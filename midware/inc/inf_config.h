@@ -120,8 +120,8 @@ struct InfTherBoardPara
 /******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
-extern const int32_t    i32TempVirTable[TEMPVIR_NTCDATALEN][TEMPVIRDATALEN];
-extern const uint32_t   u32TempNtcTable[TEMPNTCDATALEN];
+extern const int32_t    _i32TempVirTable[TEMPVIR_NTCDATALEN][TEMPVIRDATALEN];
+extern const uint32_t   _u32TempNtcTable[TEMPNTCDATALEN];
 extern struct InfTherBoardPara const stcInfTherBoardPara;
 
 /******************************************************************************

@@ -100,7 +100,7 @@ extern uint32_t App_NtcRCal(uint32_t u32R1, float32_t f32Kntc, uint32_t u32AdcNt
 
 ///< 红外温度采样值获取(采样16次取平均)
 extern void AppAdcVirAvgCodeGet(uint32_t *pu32AdcRestultAcc);
-extern void AppAdcVBiasAvgCodeGet(uint32_t *pu32AdcRestultAcc);
+// extern void AppAdcVBiasAvgCodeGet(uint32_t *pu32AdcRestultAcc);
 
 //@}
 #ifdef __cplusplus

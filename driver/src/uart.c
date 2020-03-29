@@ -344,6 +344,10 @@ en_result_t Uart_Init(M0P_UART_TypeDef* UARTx, stc_uart_cfg_t* pstcCfg)
     {
         u16OverShift = u32Over[pstcCfg->stcBaud.enClkDiv/UartMsk8Or16Div];
         UARTx->SCNT = pstcCfg->stcBaud.u32Pclk/(pstcCfg->stcBaud.u32Baud<<u16OverShift);
+
+        // Uart_DisableFunc(UARTx,UartRtsFunc);      ///<关闭硬件流控
+        // Uart_DisableFunc(UARTx,UartCtsFunc);      ///<关闭硬件流控
+
         Uart_EnableFunc(UARTx,UartRenFunc);       ///<使能收发
     }
     

@@ -109,7 +109,7 @@ float32_t gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp;
 ///< 串口发送重定向
 int fputc(int ch, FILE * file)
 {
-    Uart_SendDataPoll(M0P_UART0,ch);
+    Uart_SendDataPoll(DBG_CONSOLE,ch);
     
     return ch;
 }
@@ -131,7 +131,7 @@ void App_SystemInit(void)
     AppVolMonitorInit();
     
     ///< 自动关机模块
-    AppPowerOffModuleInit();
+    // AppPowerOffModuleInit();
     
     ///< 串口初始化
     AppUartInit();
@@ -139,7 +139,7 @@ void App_SystemInit(void)
     ///< 参数调整区初始化0
     AppParaAreaInit();
     
-    printf("Init Sucessful \r\n");
+    // printf("Init Sucessful \r\n");
 }
 
 
@@ -220,19 +220,22 @@ void AppAdcColTemp(boolean_t bMarkEn)
         u32VirAdcCode  = (u32VirAdcCodeAcc  + 0x8u)>>4u;   ///< 表面温度 ADC CODE    
         u32NtcHAdcCode = (u32NtcHAdcCodeAcc + 0x8u)>>4u;   ///< 环境温度RH ADC CODE
         u32NtcLAdcCode = (u32NtcLAdcCodeAcc + 0x8u)>>4u;   ///< 表面温度RL ADC CODE
-        AppAdcVBiasAvgCodeGet(&u32VirBiasAdcCode);          ///< 红外偏置电压 ADC CODE
+        // AppAdcVBiasAvgCodeGet(&u32VirBiasAdcCode);          ///< 红外偏置电压 ADC CODE
         
         __enable_irq();
     }
 
+    printf("VIR: %u, NTCH: %u, NTCL: %u\r\n",
+                u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode);
+
     ///< 环境温度获取
-    gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
+    // gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
     
     ///< 黑体温度获取
-    gf32BlackBodyTemp = NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, u32VirBiasAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
+    // gf32BlackBodyTemp = NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, u32VirBiasAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
     
     ///< 人体温度获取
-    gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取
+    // gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取
   
 }
 
@@ -272,7 +275,7 @@ int32_t main(void)
     ///< 系统初始化
     App_SystemInit();
 
-#if 1 
+#if 0
 
     while(1)
     {   
@@ -464,19 +467,27 @@ int32_t main(void)
         }       
     }
 
-#else       ///< 可用于简单采样测试(需要开启UART及其端口配置)            
-    printf("Temp Test >>> \r\n");
+#else
+    ///< 可用于简单采样测试(需要开启UART及其端口配置)            
+    // printf("Temp Test >>> \r\n");
+
     while(1)
     {
-        delay1ms(100);
+        AppLedEnable(-1);
+        AppBeepBlink((SystemCoreClock/1500));
+
+        delay1ms(1500);
         
         ///<*** 温度数据采集及转换     
         AppAdcColTemp(FALSE);
         
-        printf("Ntc_Temp = %2.1fC\t", gf32NtcTemp);
-        printf("BlackBody_Temp = %2.1fC\t\t", gf32BlackBodyTemp);
-        printf("HumanBody_Temp = %2.1fC\t\n", gf32HumanBodyTemp);
-        
+        // printf("Ntc = %2.1fC\r\n", gf32NtcTemp);
+        // delay1ms(100);
+        // printf("Black = %2.1fC\r\n", gf32BlackBodyTemp);
+        // delay1ms(100);
+        // printf("Human = %2.1fC\r\n", gf32HumanBodyTemp);
+        // delay1ms(100);
+        // printf("\r\n");
     }
       
 #endif

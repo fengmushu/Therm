@@ -226,26 +226,31 @@ void AppLedEnable(en_led_colour_t enLedColour)
     {
         Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
         Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
-        Gpio_ClrIO(M_LED3_PORT, M_LED3_PIN);
+        // Gpio_ClrIO(M_LED3_PORT, M_LED3_PIN);
     }
     else if(LedLightBlue == enLedColour)
     {
         Gpio_ClrIO(M_LED1_PORT, M_LED1_PIN);
         Gpio_ClrIO(M_LED2_PORT, M_LED2_PIN);
-        Gpio_SetIO(M_LED3_PORT, M_LED3_PIN);
+        // Gpio_SetIO(M_LED3_PORT, M_LED3_PIN);
     }
     else
     {
-        ;
+        if(Gpio_ReadOutputIO(M_LED1_PORT, M_LED1_PIN)) {
+            Gpio_ClrIO(M_LED1_PORT, M_LED1_PIN);
+            Gpio_ClrIO(M_LED2_PORT, M_LED2_PIN);
+        } else {
+            Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
+            Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
+        }
     }
-
 }
 
 void AppLedDisable(void)
 {
     Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
     Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
-    Gpio_SetIO(M_LED3_PORT, M_LED3_PIN);
+    // Gpio_SetIO(M_LED3_PORT, M_LED3_PIN);
 }
 
 ///< VCC 电量监测模块初始化
@@ -286,19 +291,19 @@ void AppUartInit(void)
     DDL_ZERO_STRUCT(stcMulti);
     DDL_ZERO_STRUCT(stcBaud);
     
-    Sysctrl_SetPeripheralGate(SysctrlPeripheralUart0,TRUE);//UART0外设模块时钟使能
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralUart1,TRUE);           //UART0/1 外设模块时钟使能
     
     stcCfg.enRunMode        = UartMskMode1;                     //模式1
     stcCfg.enStopBit        = UartMsk1bit;                      //1位停止位
-    stcCfg.stcBaud.u32Baud  = 38400;                            //波特率38400
+    stcCfg.stcBaud.u32Baud  = 115200;                           //波特率115200
     stcCfg.stcBaud.enClkDiv = UartMsk8Or16Div;                  //通道采样分频配置
     stcCfg.stcBaud.u32Pclk  = Sysctrl_GetPClkFreq();            //获得外设时钟（PCLK）频率值
-    Uart_Init(M0P_UART0, &stcCfg);                              //串口初始化
+    Uart_Init(DBG_CONSOLE, &stcCfg);                              //串口初始化
 
-    Uart_ClrStatus(M0P_UART0, UartRC);                          //清接收请求
-    Uart_ClrStatus(M0P_UART0, UartTC);                          //清发送请求
-    Uart_EnableIrq(M0P_UART0, UartRxIrq);                       //使能串口接收中断
-    Uart_EnableIrq(M0P_UART0, UartTxIrq);                       //使能串口发送中断
+    Uart_ClrStatus(DBG_CONSOLE, UartRC);                          //清接收请求
+    Uart_ClrStatus(DBG_CONSOLE, UartTC);                          //清发送请求
+    Uart_EnableIrq(DBG_CONSOLE, UartRxIrq);                       //使能串口接收中断
+    Uart_EnableIrq(DBG_CONSOLE, UartTxIrq);                       //使能串口发送中断
 }
 
 

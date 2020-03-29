@@ -225,6 +225,7 @@ int __fastcall NNA_TempNtcFind(unsigned int a1)
 // 77C: using guessed type int __fastcall _aeabi_memclr4(_DWORD, _DWORD);
 // 784: using guessed type int __fastcall _aeabi_ui2f(_DWORD);
 
+///< NTCH, NTCL
 //----- (000002A4) --------------------------------------------------------
 int (__fastcall **__fastcall NNA_NtcTempGet(int a1, int a2))(_DWORD, _DWORD)
 {
@@ -267,6 +268,7 @@ int (__fastcall **__fastcall NNA_NtcTempGet(int a1, int a2))(_DWORD, _DWORD)
 // 774: using guessed type int __fastcall _aeabi_fsub(_DWORD, _DWORD);
 // 784: using guessed type int __fastcall _aeabi_ui2f(_DWORD);
 
+///< 
 //----- (00000310) --------------------------------------------------------
 int __fastcall NNA_VirBlackBodyTempMark(int a1, int a2, int a3)
 {
@@ -327,6 +329,7 @@ int __fastcall NNA_VirBlackBodyTempCal(int a1, int a2)
 // 768: using guessed type int __fastcall _aeabi_fcmplt(_DWORD);
 // 774: using guessed type int __fastcall _aeabi_fsub(_DWORD, _DWORD);
 
+///< NTC, VIR, Bias, isCal
 //----- (00000388) --------------------------------------------------------
 int __fastcall NNA_BlackBodyTempGet(int a1, int a2, int a3, int a4)
 {
@@ -381,6 +384,7 @@ int __fastcall NNA_BlackBodyTempGet(int a1, int a2, int a3, int a4)
   v17 = _aeabi_fdiv(v16, MEMORY[0x495806F2]);
   v18 = _aeabi_f2iz(v17);
   v19 = _aeabi_fadd(v36, -1845401592);
+  // Table Search
   v20 = NNA_TempVirFind(v19, v18);
   v21 = (void *)1611154192;
   if ( !_aeabi_fcmpge(v20, 1611154192) )
@@ -392,6 +396,7 @@ int __fastcall NNA_BlackBodyTempGet(int a1, int a2, int a3, int a4)
   v22 = _aeabi_fdiv(v21, 1213686288);
   if ( v35 == 1 )
   {
+    // Cal
     v23 = _aeabi_ui2d((unsigned __int16)*MEMORY[0x4958070A]);
     v25 = _aeabi_ddiv(v23, v24, 0, 1213686352);
     v26 = _aeabi_d2f(v25);
@@ -403,12 +408,12 @@ int __fastcall NNA_BlackBodyTempGet(int a1, int a2, int a3, int a4)
   }
   else
   {
-    v32 = MEMORY[0x495806FA];
-    v30 = MEMORY[0x495806FE];
+    v32 = MEMORY[0x495806FA]; //NTCL
+    v30 = MEMORY[0x495806FE]; //NTCH
     v31 = v22;
   }
-  v33 = NNA_VirBlackBodyTempMark(v31, v32, v30);
-  return NNA_VirBlackBodyTempCal(v33, v36);
+  v33 = NNA_VirBlackBodyTempMark(v31, v32, v30); //VIR, NTCL, NTCH
+  return NNA_VirBlackBodyTempCal(v33, v36); //Vbody,  NTC
 }
 // 770: invalid function type has been ignored
 // 730: using guessed type int __fastcall _aeabi_d2f(_DWORD);
