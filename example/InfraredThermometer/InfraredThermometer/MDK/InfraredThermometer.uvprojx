@@ -311,7 +311,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>7</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -509,6 +509,11 @@
               <FileName>nna.lib</FileName>
               <FileType>4</FileType>
               <FilePath>..\..\..\..\midware\src\nna.lib</FilePath>
+            </File>
+            <File>
+              <FileName>tnna.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\tnna.c</FilePath>
             </File>
           </Files>
         </Group>

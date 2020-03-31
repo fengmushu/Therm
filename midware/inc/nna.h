@@ -100,7 +100,7 @@ extern "C"
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode);
+extern float32_t _NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode);
 
 /**
  *******************************************************************************
@@ -113,7 +113,7 @@ extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-float32_t NNA_BlackBodyTempGet(float32_t f32NtcTemp, uint32_t u32VirAdcCode, uint32_t u32AdcBiasCode, boolean_t bMarkEn);
+extern float32_t _NNA_BlackBodyTempGet(float32_t f32NtcTemp, uint32_t u32VirAdcCode, boolean_t bMarkEn);
 
 /**
  *******************************************************************************

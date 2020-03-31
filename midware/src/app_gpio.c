@@ -98,11 +98,11 @@ void _AppUartPortInit(void)
     stcGpioCfg.enPu       = GpioPuDisable;
     
     stcGpioCfg.enDir = GpioDirOut;
-    Gpio_Init(DBG_CONSOLE_GPIO,DBG_CONSOLE_TX,&stcGpioCfg);
-    Gpio_SetAfMode(DBG_CONSOLE_GPIO,DBG_CONSOLE_TX,GpioAf3); //配置PD00 为UART1 TX
+    Gpio_Init(DBG_CONSOLE_GPIO, DBG_CONSOLE_TX,&stcGpioCfg);
+    Gpio_SetAfMode(DBG_CONSOLE_GPIO, DBG_CONSOLE_TX, GpioAf3); //配置PD00 为UART1 TX
     stcGpioCfg.enDir = GpioDirIn;
-    Gpio_Init(DBG_CONSOLE_GPIO,DBG_CONSOLE_RX,&stcGpioCfg);
-    Gpio_SetAfMode(DBG_CONSOLE_GPIO,DBG_CONSOLE_RX,GpioAf3); //配置PA01 为UART1 RX
+    Gpio_Init(DBG_CONSOLE_GPIO, DBG_CONSOLE_RX, &stcGpioCfg);
+    Gpio_SetAfMode(DBG_CONSOLE_GPIO, DBG_CONSOLE_RX, GpioAf3); //配置PD01 为UART1 RX
 }
 
 
@@ -118,15 +118,17 @@ void _AppKeyPortInit(void)
     stcGpioCfg.enPd       = GpioPdDisable;
     stcGpioCfg.enPu       = GpioPuDisable;
     
-    Gpio_Init(M_KEY_USER0_PORT, M_KEY_USER0_PIN, &stcGpioCfg);
-    Gpio_Init(M_KEY_USER1_PORT, M_KEY_USER1_PIN, &stcGpioCfg);
-    Gpio_Init(M_KEY_USER2_PORT, M_KEY_USER2_PIN, &stcGpioCfg);
-    Gpio_Init(M_KEY_USER3_PORT, M_KEY_USER3_PIN, &stcGpioCfg);
+    Gpio_Init(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN, &stcGpioCfg);
+    Gpio_Init(M_KEY_MID_PORT, M_KEY_MID_PIN, &stcGpioCfg);
+    Gpio_Init(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, &stcGpioCfg);
+    Gpio_Init(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN, &stcGpioCfg);
+    Gpio_Init(M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, &stcGpioCfg);
     
-    Gpio_EnableIrq(M_KEY_USER0_PORT, M_KEY_USER0_PIN, GpioIrqFalling);
-    Gpio_EnableIrq(M_KEY_USER1_PORT, M_KEY_USER1_PIN, GpioIrqFalling);
-    Gpio_EnableIrq(M_KEY_USER2_PORT, M_KEY_USER2_PIN, GpioIrqFalling);
-    Gpio_EnableIrq(M_KEY_USER3_PORT, M_KEY_USER3_PIN, GpioIrqFalling);
+    Gpio_EnableIrq(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN, GpioIrqFalling);
+    Gpio_EnableIrq(M_KEY_MID_PORT, M_KEY_MID_PIN, GpioIrqFalling);
+    Gpio_EnableIrq(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, GpioIrqFalling);
+    Gpio_EnableIrq(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN, GpioIrqFalling);
+    Gpio_EnableIrq(M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, GpioIrqFalling);
     
     EnableNvic(PORTC_IRQn, IrqLevel0, TRUE);
     EnableNvic(PORTD_IRQn, IrqLevel0, TRUE);
@@ -215,23 +217,23 @@ void _AppEeI2cPortInit(void)
 ///< ADC 采样端口初始化
 void _AppAdcPortInit(void)
 {
-    
-    stc_gpio_cfg_t  stcGpioCfg;
-    
-    stcGpioCfg.enCtrlMode = GpioAHB;
-    stcGpioCfg.enDir      = GpioDirOut;
-    stcGpioCfg.enDrv      = GpioDrvH;
-    stcGpioCfg.enOD       = GpioOdDisable;
-    stcGpioCfg.enPd       = GpioPdDisable;
-    stcGpioCfg.enPu       = GpioPuEnable; //默認開啓mo'r
-
     Gpio_SetAnalogMode(M_ADC_VOUT_PORT, M_ADC_VOUT_PIN);            //PA00
     Gpio_SetAnalogMode(M_ADC_NTCH_PORT, M_ADC_NTCH_PIN);            //PA01
     Gpio_SetAnalogMode(M_ADC_NTCL_PORT, M_ADC_NTCL_PIN);            //PA02
     // Gpio_SetAnalogMode(M_ADC_VREF_PORT, M_ADC_VREF_PIN);         //PA03 --- V-Bias-Ref-In 没用到
 
+    stc_gpio_cfg_t  stcGpioCfg;
+
+    stcGpioCfg.enCtrlMode = GpioAHB;
+    stcGpioCfg.enDir      = GpioDirOut;
+    stcGpioCfg.enDrv      = GpioDrvH;
+    stcGpioCfg.enOD       = GpioOdDisable;
+    stcGpioCfg.enPd       = GpioPdEnable;
+    stcGpioCfg.enPu       = GpioPuDisable; //默認開啓
+
     // ADC-VCC
     Gpio_Init(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN, &stcGpioCfg);      //PA15 ON/OFF
+    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
 }
 
 ///< LCD 端口初始化
@@ -275,7 +277,7 @@ void AppMGpioInit(void)
     _AppBeepPortInit();
     
     ///< EEPROM I2C 端口初始化
-    _AppEeI2cPortInit();
+    // _AppEeI2cPortInit();
     
     ///< ADC 采样端口初始化
     _AppAdcPortInit();

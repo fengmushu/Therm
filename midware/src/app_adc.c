@@ -133,7 +133,7 @@ void AppMAdcInit(void)
     stcAdcCfg.enAdcMode         = AdcScanMode;                  ///<采样模式-扫描
     stcAdcCfg.enAdcClkDiv       = AdcMskClkDiv8;                ///<采样分频-1
     stcAdcCfg.enAdcSampCycleSel = AdcMskSampCycle12Clk;         ///<采样周期数-8
-    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelExtern1;       ///<参考电压选择-VCC
+    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelAVDD;          ///<参考电压选择-AVDD
     stcAdcCfg.enAdcOpBuf        = AdcMskBufDisable;             ///<OP BUF配置-关
     stcAdcCfg.enInRef           = AdcMskInRefDisable;           ///<内部参考电压使能-关
     stcAdcCfg.enAdcAlign        = AdcAlignRight;                ///<转换结果对齐方式-右
@@ -154,10 +154,10 @@ void AppAdcChAvgCodeGet(en_adc_samp_ch_sel_t ch, uint32_t *pu32AdcRestultAcc)
     *pu32AdcRestultAcc = Adc_GetAccResult();
     *pu32AdcRestultAcc = (*pu32AdcRestultAcc + 0x8u)>>4;
     
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    Adc_ClrAccResult();
-    
     Adc_SQR_Stop();
+
+    Adc_ClrAccResult();
+    Adc_ClrIrqStatus(AdcMskIrqSqr);
 }
 
 ///< 环境温度采样值L获取(采样16次取平均)

@@ -56,6 +56,8 @@
  ******************************************************************************/
 #include "ddl.h"
 
+#define ARRAY_SIZE(A) (sizeof(A)/sizeof(A[0]))
+
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
 extern "C"
@@ -78,7 +80,7 @@ extern "C"
  ******************************************************************************/
 #define TEMPNTCDATALEN          (36u)       ///< 固定默认值
 #define TEMPVIR_NTCDATALEN      (36u)       ///< 固定默认值
-#define TEMPVIRDATALEN          (71u)       ///< 固定默认值
+#define TEMPVIRDATALEN          (36u)       ///< 固定默认值
 
 /******************************************************************************
  * Local type definitions ('typedef')
@@ -120,8 +122,8 @@ struct InfTherBoardPara
 /******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
-extern const int32_t    _i32TempVirTable[TEMPVIR_NTCDATALEN][TEMPVIRDATALEN];
-extern const uint32_t   _u32TempNtcTable[TEMPNTCDATALEN];
+extern const int32_t    i32TempVirTable[TEMPVIR_NTCDATALEN][TEMPVIRDATALEN];
+extern const int32_t    i32TempNtcTable[TEMPNTCDATALEN];
 extern struct InfTherBoardPara const stcInfTherBoardPara;
 
 /******************************************************************************

@@ -58,16 +58,16 @@
 #define SYSTEM_XTL          (32768u)            ///< 32768Hz
 
 ///< M GPIO KEYS
-#define M_KEY_USER0_PORT       GpioPortC
-#define M_KEY_USER0_PIN        GpioPin10
-#define M_KEY_USER1_PORT       GpioPortC
-#define M_KEY_USER1_PIN        GpioPin11
-#define M_KEY_USER2_PORT       GpioPortC
-#define M_KEY_USER2_PIN        GpioPin12
-#define M_KEY_USER3_PORT       GpioPortD
-#define M_KEY_USER3_PIN        GpioPin6
-#define M_KEY_USER4_PORT       GpioPortD
-#define M_KEY_USER4_PIN        GpioPin2
+#define M_KEY_LEFT_PORT       GpioPortC
+#define M_KEY_LEFT_PIN        GpioPin10
+#define M_KEY_MID_PORT       GpioPortC
+#define M_KEY_MID_PIN        GpioPin11
+#define M_KEY_RIGHT_PORT       GpioPortC
+#define M_KEY_RIGHT_PIN        GpioPin12
+#define M_KEY_TRIG_PORT       GpioPortD
+#define M_KEY_TRIG_PIN        GpioPin6
+#define M_KEY_SWITCH_PORT       GpioPortD
+#define M_KEY_SWITCH_PIN        GpioPin2
 
 ///< M ADC EXREF
 // #define M_ADC_EXREF_PORT  GpioPortB

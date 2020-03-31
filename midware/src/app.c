@@ -63,7 +63,7 @@
 /*******************************************************************************
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
-#define FREQBEEPVAL             (1200000) //Hz
+#define FREQBEEPVAL             (1200) //Hz
  
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
@@ -157,9 +157,8 @@ void AppPowerOffModuleInit(void)
     DDL_ZERO_STRUCT(RtcInitStruct);                      //变量初始值置零
     DDL_ZERO_STRUCT(RtcAlmStruct);
 
-    Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc,TRUE);//RTC模块时钟打开
-
-    Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);        //使能内部RCL时钟作为RTC时钟
+    // Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc,TRUE);//RTC模块时钟打开
+    // Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);        //使能内部RCL时钟作为RTC时钟
 
     RtcInitStruct.rtcAmpm = RtcPm;                       //12小时制
     RtcInitStruct.rtcClksrc = RtcClkRcl;                 //内部低速时钟

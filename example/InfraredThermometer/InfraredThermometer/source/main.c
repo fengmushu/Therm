@@ -86,20 +86,48 @@ typedef enum enMState
     CalibrationMode = 7u
 }enMState_t;
 
+typedef enum enMKeyType
+{
+    Key_Left = 0u,
+    Key_Mid,
+    Key_Right,
+    Key_Trig,
+    Key_Switch,
+    Key_Max,
+}enMKeyType_t;
+
+#define KEY_LEFT()     (gu32UserKeyFlag & (1u < Key_Left))
+#define KEY_MID()      (gu32UserKeyFlag & (1u < Key_Mid))
+#define KEY_RIGHT()    (gu32UserKeyFlag & (1u < Key_Right))
+#define KEY_TRIG()     (gu32UserKeyFlag & (1u < Key_Trig))
+#define KEY_SWITCH()   (gu32UserKeyFlag & (1u < Key_Switch))
+
+#define KEY_SET_LEFT()     (gu32UserKeyFlag |= (1u < Key_Left))
+#define KEY_SET_MID()      (gu32UserKeyFlag |= (1u < Key_Mid))
+#define KEY_SET_RIGHT()    (gu32UserKeyFlag |= (1u < Key_Right))
+#define KEY_SET_TRIG()     (gu32UserKeyFlag |= (1u < Key_Trig))
+#define KEY_SET_SWITCH()   (gu32UserKeyFlag |= (1u < Key_Switch))
+
+#define KEY_CLR_LEFT()     (gu32UserKeyFlag &= ~(1u < Key_Left))
+#define KEY_CLR_MID()      (gu32UserKeyFlag &= ~(1u < Key_Mid))
+#define KEY_CLR_RIGHT()    (gu32UserKeyFlag &= ~(1u < Key_Right))
+#define KEY_CLR_TRIG()     (gu32UserKeyFlag &= ~(1u < Key_Trig))
+#define KEY_CLR_SWITCH()   (gu32UserKeyFlag &= ~(1u < Key_Switch))
+
 /******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-volatile uint32_t gu32AdcNtcResult = 0, gu32AdcVirResult = 0;
-volatile uint32_t gu32UserKeyFlag[4] = {USERKEYFALSE, USERKEYFALSE, USERKEYFALSE, USERKEYFALSE};
-volatile stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
-volatile uint32_t gVolFlag   = CHARGEFULL;
-volatile enMState_t enMState = PowerOnMode;
+static volatile uint32_t gu32AdcNtcResult = 0, gu32AdcVirResult = 0;
+static volatile uint32_t gu32UserKeyFlag = USERKEYFALSE;
+static volatile stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
+// volatile uint32_t gVolFlag   = CHARGEFULL;
+static volatile enMState_t enMState = PowerOnMode;
 
 /******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
 ///< 环境温度、黑体温度、人体温度
-float32_t gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp;
+static float32_t gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp;
 /******************************************************************************
  * Local variable definitions ('static')                                      *
  ******************************************************************************/
@@ -114,10 +142,26 @@ int fputc(int ch, FILE * file)
     return ch;
 }
 
+///< App 系统时钟/总线初始化
+void AppSysInit(void)
+{
+    stc_sysctrl_clk_cfg_t stcCfg;
+
+    stcCfg.enClkSrc = SysctrlClkRCH;
+    stcCfg.enHClkDiv = SysctrlHclkDiv1;
+    stcCfg.enPClkDiv = SysctrlPclkDiv1;
+
+    Sysctrl_ClkInit(&stcCfg);
+    Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);           //使能内部RCL时钟作为RTC时钟
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc,TRUE);   //RTC模块时钟打开
+}
 
 ///< 系统初始化
 void App_SystemInit(void)
 {
+    ///< 系统时钟/总线初始化
+    AppSysInit();
+
     ///< GPIO 初始化
     AppMGpioInit();
     
@@ -131,7 +175,7 @@ void App_SystemInit(void)
     AppVolMonitorInit();
     
     ///< 自动关机模块
-    // AppPowerOffModuleInit();
+    AppPowerOffModuleInit();
     
     ///< 串口初始化
     AppUartInit();
@@ -162,24 +206,17 @@ void AppLcdInitialMode(void)
 }
 
 
-///< 按键状态清除
-void AppUserKeyClearAll(void)
-{
-    gu32UserKeyFlag[0] = USERKEYFALSE;
-    gu32UserKeyFlag[1] = USERKEYFALSE;
-    gu32UserKeyFlag[2] = USERKEYFALSE;
-    gu32UserKeyFlag[3] = USERKEYFALSE;
-}
-
-
 ///< ADC 采样及温度计算
 // TRUE  - 标准模式(使用标定后的值)
 // FALSE - 标定(测试)模式 
 void AppAdcColTemp(boolean_t bMarkEn)
 {
     uint32_t  u32SampIndex;     ///< 采样次数
-    uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode, u32VirBiasAdcCode;     ///< ADC 采样值
+    uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
     uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
+
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+    delay1ms(200);
     
     ///<*** ADC数据采集     
     {
@@ -189,19 +226,19 @@ void AppAdcColTemp(boolean_t bMarkEn)
         u32VirAdcCodeAcc  = 0;
         u32NtcHAdcCodeAcc = 0;
         u32NtcLAdcCodeAcc = 0;
-      
+
         while(u32SampIndex--)
         {
-            if(u32SampIndex&0x8u)
-            {
-                gstcLcdDisplayCfg.u16Num = LCDCHAR__;  
-                AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-            }
-            else
-            {
-                gstcLcdDisplayCfg.u16Num = 0xFFFEu;
-                AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-            }
+            // if(u32SampIndex&0x8u)
+            // {
+            //     gstcLcdDisplayCfg.u16Num = LCDCHAR__;  
+            //     AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
+            // }
+            // else
+            // {
+            //     gstcLcdDisplayCfg.u16Num = 0xFFFEu;
+            //     AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
+            // }
             
             APP_LCD_DISABLE();
             Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
@@ -214,45 +251,45 @@ void AppAdcColTemp(boolean_t bMarkEn)
             u32VirAdcCodeAcc  += u32VirAdcCode;
             u32NtcHAdcCodeAcc += u32NtcHAdcCode;
             u32NtcLAdcCodeAcc += u32NtcLAdcCode;
-            
         }
-        
+
         u32VirAdcCode  = (u32VirAdcCodeAcc  + 0x8u)>>4u;   ///< 表面温度 ADC CODE    
         u32NtcHAdcCode = (u32NtcHAdcCodeAcc + 0x8u)>>4u;   ///< 环境温度RH ADC CODE
         u32NtcLAdcCode = (u32NtcLAdcCodeAcc + 0x8u)>>4u;   ///< 表面温度RL ADC CODE
-        // AppAdcVBiasAvgCodeGet(&u32VirBiasAdcCode);          ///< 红外偏置电压 ADC CODE
-        
+
         __enable_irq();
     }
 
-    printf("VIR: %u, NTCH: %u, NTCL: %u\r\n",
-                u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode);
+    // Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
 
     ///< 环境温度获取
-    // gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
-    
-    ///< 黑体温度获取
-    // gf32BlackBodyTemp = NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, u32VirBiasAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
-    
-    ///< 人体温度获取
+    gf32NtcTemp = _NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
+
+    // ///< 黑体温度获取
+    gf32BlackBodyTemp = _NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
+
+    // ///< 人体温度获取
     // gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取
-  
+
+    // printf("NTCH: %u, NTCL: %u\r\n", u32NtcHAdcCode, u32NtcLAdcCode);
+    printf("VIR: %u, Ntc: %2.2fC, BB: %2.2fC\r\n", u32VirAdcCode, gf32NtcTemp, gf32BlackBodyTemp);
+    // printf("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp);
 }
 
 
 ///< 校准(标定)模式API
 void App_CalibrationMode(void)
 { 
-    if(TRUE  == Gpio_GetInputIO(M_KEY_USER1_PORT, M_KEY_USER1_PIN) &&       ///< VIR Mark
-       FALSE == Gpio_GetInputIO(M_KEY_USER2_PORT, M_KEY_USER2_PIN))
+    if(TRUE  == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&       ///< VIR Mark
+       FALSE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
     {
         Flash_SectorErase(VIRL_PARA_ADDR);
         AppAdcColTemp(FALSE);
         AppVirLParaMark(((uint32_t)(gf32BlackBodyTemp*100)));
         ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
     }
-    else if(FALSE == Gpio_GetInputIO(M_KEY_USER1_PORT, M_KEY_USER1_PIN) &&      ///< NTC Mark
-            TRUE  == Gpio_GetInputIO(M_KEY_USER2_PORT, M_KEY_USER2_PIN))
+    else if(FALSE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&      ///< NTC Mark
+            TRUE  == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
     {
         Flash_SectorErase(VIRH_PARA_ADDR);
         AppAdcColTemp(FALSE);
@@ -276,7 +313,6 @@ int32_t main(void)
     App_SystemInit();
 
 #if 0
-
     while(1)
     {   
         switch(enMState)
@@ -287,8 +323,8 @@ int32_t main(void)
                 AppLcdInitialMode();    ///< LCD 初始状态显示
 
                 ///< 校准模式判定
-                if(TRUE == Gpio_GetInputIO(M_KEY_USER1_PORT, M_KEY_USER1_PIN) && 
-                   TRUE == Gpio_GetInputIO(M_KEY_USER2_PORT, M_KEY_USER2_PIN))
+                if(TRUE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) && 
+                   TRUE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
                 {
                     ///< 状态切换至初始状态模式
                     enMState = InitialMode;
@@ -305,9 +341,9 @@ int32_t main(void)
             
             case InitialMode:           ///< 初始状态模式
             {
-                if(USERKEYTRUE == gu32UserKeyFlag[3])      ///<*** 按键检测
+                if(KEY_TRIG())      ///<*** 按键检测
                 {
-                    AppUserKeyClearAll();
+                    KEY_CLR_TRIG();
 
                     gstcLcdDisplayCfg.bM6En  = TRUE;
                     gstcLcdDisplayCfg.bM5En  = TRUE;
@@ -323,9 +359,9 @@ int32_t main(void)
                     ///< 状态切换至测量模式
                     enMState = TempMeasureMode;
                 }
-                else if(USERKEYTRUE == gu32UserKeyFlag[0])
+                else if(KEY_LEFT())
                 {
-                    AppUserKeyClearAll();
+                    KEY_CLR_LEFT();
                     
                     gstcLcdDisplayCfg.bM6En  = TRUE;
                     gstcLcdDisplayCfg.bM5En  = TRUE;
@@ -346,9 +382,9 @@ int32_t main(void)
             case TempScanMode:          ///< 历史数据查询模式
             {
                 {
-                    if(USERKEYTRUE == gu32UserKeyFlag[0])       ///<*** F1 按键检测
+                    if(KEY_LEFT())       ///<*** F1 按键检测
                     {
-                        AppUserKeyClearAll();
+                        KEY_CLR_LEFT();
                         
                         gstcLcdDisplayCfg.bM6En  = TRUE;
                         gstcLcdDisplayCfg.bM5En  = TRUE;
@@ -360,9 +396,9 @@ int32_t main(void)
                         AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));                        
                         
                     }
-                    else if(USERKEYTRUE == gu32UserKeyFlag[3])  ///<*** F2 按键检测
+                    else if(KEY_TRIG())  ///<*** F2 按键检测
                     {
-                        AppUserKeyClearAll();                        
+                        KEY_CLR_TRIG();                        
                     
                         gstcLcdDisplayCfg.bM6En  = TRUE;
                         gstcLcdDisplayCfg.bM5En  = TRUE;
@@ -386,9 +422,9 @@ int32_t main(void)
             case TempMeasureMode:       ///< 温度测量模式
             {
                 ///<*** 启动测温
-                if(USERKEYTRUE == gu32UserKeyFlag[0])  ///<*** F1 按键检测
+                if(KEY_TRIG())  ///<*** F1 按键检测
                 {
-                    AppUserKeyClearAll();                        
+                    KEY_CLR_TRIG();                        
                 
                     ///<*** 温度数据采集处理     
                     AppAdcColTemp(TRUE);
@@ -406,10 +442,9 @@ int32_t main(void)
                     AppLedDisable();
 
                 }
-                else if(USERKEYTRUE == gu32UserKeyFlag[3])      ///<*** 关机检测
+                else if(KEY_SWITCH())      ///<*** 关机检测
                 {
-                    AppUserKeyClearAll();
-
+                    KEY_CLR_SWITCH();
                     {
                         ///< 状态切换至关机模式
                         enMState = PowerOffMode;
@@ -422,9 +457,10 @@ int32_t main(void)
             
             case PowerOffMode:          ///< 关机模式
                 {
-                    if((USERKEYTRUE == gu32UserKeyFlag[3]) || (USERKEYTRUE == gu32UserKeyFlag[0]))      ///<*** 开机检测
+                    if((KEY_TRIG()) || (KEY_LEFT()))      ///<*** 开机检测
                     {
-                        AppUserKeyClearAll();
+                        KEY_CLR_TRIG();
+                        KEY_CLR_LEFT();
 
                         Adc_Enable();
                         Bgr_BgrEnable();
@@ -449,9 +485,9 @@ int32_t main(void)
             
             case CalibrationMode:       ///< 校准(标定)模式
             {
-                if(USERKEYTRUE == gu32UserKeyFlag[3])
+                if(KEY_TRIG())
                 {
-                    AppUserKeyClearAll();
+                    KEY_CLR_TRIG();
                     
                     App_CalibrationMode();
                     enMState = PowerOnMode;
@@ -526,14 +562,14 @@ void Lvd_IRQHandler(void)
 void PortC_IRQHandler(void)
 {
     delay1ms(100);
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_USER0_PORT, M_KEY_USER0_PIN))
+    if (TRUE == Gpio_GetIrqStatus(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN))
     {
-        Gpio_ClearIrq(M_KEY_USER0_PORT, M_KEY_USER0_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_USER0_PORT, M_KEY_USER0_PIN))
+        Gpio_ClearIrq(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN);
+        if(FALSE == Gpio_GetInputIO(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN))
         {            
             //标定按键按下
-            gu32UserKeyFlag[0] = USERKEYTRUE;
-            //……
+            KEY_SET_LEFT();
+        //……    
             //重新标定自动关机时间
             AppRtcFeed();
             Rtc_Cmd(TRUE);
@@ -542,13 +578,13 @@ void PortC_IRQHandler(void)
         return;
     }
     
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_USER1_PORT, M_KEY_USER1_PIN))
+    if (TRUE == Gpio_GetIrqStatus(M_KEY_MID_PORT, M_KEY_MID_PIN))
     {
-        Gpio_ClearIrq(M_KEY_USER1_PORT, M_KEY_USER1_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_USER1_PORT, M_KEY_USER1_PIN))
+        Gpio_ClearIrq(M_KEY_MID_PORT, M_KEY_MID_PIN);
+        if(FALSE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN))
         {
             //标定按键按下
-            gu32UserKeyFlag[1] = USERKEYTRUE;
+            KEY_SET_MID();
             //……
             //重新标定自动关机时间
             AppRtcFeed();
@@ -557,13 +593,13 @@ void PortC_IRQHandler(void)
         return;
     }
     
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_USER2_PORT, M_KEY_USER2_PIN))
+    if (TRUE == Gpio_GetIrqStatus(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
     {
-        Gpio_ClearIrq(M_KEY_USER2_PORT, M_KEY_USER2_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_USER2_PORT, M_KEY_USER2_PIN))
+        Gpio_ClearIrq(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN);
+        if(FALSE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
         {
             //标定按键按下
-            gu32UserKeyFlag[2] = USERKEYTRUE;
+            KEY_SET_RIGHT();
             //……
             //重新标定自动关机时间
             AppRtcFeed();
@@ -577,13 +613,13 @@ void PortC_IRQHandler(void)
 void PortD_IRQHandler(void)
 {
     delay1ms(100);
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_USER3_PORT, M_KEY_USER3_PIN))
+    if (TRUE == Gpio_GetIrqStatus(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN))
     {
-        Gpio_ClearIrq(M_KEY_USER3_PORT, M_KEY_USER3_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_USER3_PORT, M_KEY_USER3_PIN))
+        Gpio_ClearIrq(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN);
+        if(FALSE == Gpio_GetInputIO(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN))
         {            
             //标定按键按下
-            gu32UserKeyFlag[3] = USERKEYTRUE;
+            KEY_SET_TRIG();
             
             //重新标定自动关机时间
             AppRtcFeed();
