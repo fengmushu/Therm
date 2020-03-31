@@ -1,7 +1,7 @@
 #include "app.h"
 #include "math.h"
 
-static int bsearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t revert)
+static int32_t TNNA_BSearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t revert)
 {
     int low, upper;
 
@@ -23,12 +23,34 @@ static int bsearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t 
     return low;
 }
 
-static float32_t NNA_TempNtcFind(int32_t uRa)
+///< 
+static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_t Y, boolean_t revert)
+{
+    // 拟合 Y = a0 + a1 * x + a2 * x^2
+    float32_t delta = a1 * a1 - 4 * a2 * (a0 - Y);
+    if(delta >= 0) {
+        float32_t X1, X2;
+        float32_t N = sqrt(delta);
+        X1 = (-a1 - N) / a2 / 2;
+        X2 = (-a1 + N) / a2 / 2;
+
+        printf("%f %f\r\n", X1, X2);
+        if(revert) {
+            return X1;
+        } else {
+            return X2;
+        }
+    } else {
+        return 0;
+    }
+}
+
+static float32_t TNNA_TempNtcFind(int32_t uRa)
 {
     int iIndex;
     float32_t fTemp;
 
-    iIndex = bsearch(i32TempNtcTable, ARRAY_SIZE(i32TempNtcTable), uRa, TRUE);
+    iIndex = TNNA_BSearch(i32TempNtcTable, ARRAY_SIZE(i32TempNtcTable), uRa, TRUE);
 
     //< 10° - 45°
     fTemp = 10 + iIndex; //stcInfTherBoardPara.f32BlackBodyTempL
@@ -55,37 +77,18 @@ float32_t _NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
     // 算法选择
     if(0) {
         // 查表
-        return NNA_TempNtcFind(uRa);
+        return TNNA_TempNtcFind(uRa);
     } else {
-        // 拟合 Y = a0 + a1 * x + a2 * x^2
-        float32_t a0 = 284148.615, a1 = -9890.25670,  a2 = 102.357699;
-        // Ra : c(t) = -0.000495 * t * t - 0.054351 * t
-        // b^2 - 4 * a * (c - uRa) => X = a1 * a1 - 4 * a2 * (a0 - Ra)
-        // uRa = - b +/- "X" / 2 / a2;
-
-        float32_t X = a1 * a1 - 4 * a2 * (a0 - uRa);
-        if(X >= 0) {
-            float32_t X1, X2;
-
-            X = sqrt(X);
-            X1 = (-a1 - X) / 2 / a2;
-            X2 = (-a1 + X) / 2 / a2;
-
-            ///< 曲线斜率向上, 取第一个解
-            // printf("%f %f\r\n", X1, X2);
-            return X1;
-        } else {
-            return -1;
-        }
+        return TNNA_Fitting(284148.615, -9890.25670, 102.357699, uRa, TRUE);
     }
 }
 
-static float32_t NNA_TempVirFind(float32_t fTempEnv, uint32_t u32VirAdc)
+static float32_t TNNA_TempVirFind(float32_t fTempEnv, int32_t i32VirAdc)
 {
     int iVirIndex;
     int iIndex = fTempEnv - 10;
 
-    iVirIndex = bsearch(i32TempVirTable[iIndex], ARRAY_SIZE(i32TempVirTable[0]), u32VirAdc, FALSE);
+    iVirIndex = TNNA_BSearch(i32TempVirTable[iIndex], ARRAY_SIZE(i32TempVirTable[0]), i32VirAdc, FALSE);
 
     // 10-45C
     iVirIndex += 10;
@@ -95,12 +98,18 @@ static float32_t NNA_TempVirFind(float32_t fTempEnv, uint32_t u32VirAdc)
 
 float32_t _NNA_BlackBodyTempGet(float32_t fTempEnv, uint32_t u32VirAdcCode, boolean_t bMarkEn)
 {
-    float32_t fVirT;
-    uint32_t uVirValue = u32VirAdcCode; //FIXME:~
+    float32_t iVirValue;
 
-    // 找出环温对应的 Vir-T
-    fVirT = NNA_TempVirFind(fTempEnv, uVirValue);
+    // Vi = (Vo - Vbias) * Ri / (Ri:2K + Rr:680K) --- uV
+    iVirValue = ((u32VirAdcCode - 1400) * 1000000) / (2000 + 680000) * 2000;
 
-    return fVirT;
+    // 算法
+    if(0) {
+        // 查表找出环温对应的 Vir-T
+        return TNNA_TempVirFind(fTempEnv, iVirValue);
+    } else {
+        // 拟合
+        return TNNA_Fitting(-2420154, 54351.00, 495.0000, iVirValue, FALSE);
+    }
 }
 
