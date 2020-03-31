@@ -1,7 +1,7 @@
 #include "app.h"
 #include "math.h"
 
-static int bsearch(const int32_t *uA, uint32_t uLen, int32_t uTarget)
+static int bsearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t revert)
 {
     int low, upper;
 
@@ -10,9 +10,14 @@ static int bsearch(const int32_t *uA, uint32_t uLen, int32_t uTarget)
     while( low <= upper) {
         int m = low + (upper - low) / 2;
 
-        if(uA[m] > uTarget) {low = m + 1;}
-        if(uA[m] < uTarget) {upper = m - 1;}
         if(uA[m] == uTarget) {return m;}
+        if(revert) {
+            if(uA[m] > uTarget) {low = m + 1;}
+            if(uA[m] < uTarget) {upper = m - 1;}
+        } else {
+            if(uA[m] < uTarget) {low = m + 1;}
+            if(uA[m] > uTarget) {upper = m - 1;}
+        }
     }
 
     return low;
@@ -23,7 +28,7 @@ static float32_t NNA_TempNtcFind(int32_t uRa)
     int iIndex;
     float32_t fTemp;
 
-    iIndex = bsearch(i32TempNtcTable, ARRAY_SIZE(i32TempNtcTable), uRa);
+    iIndex = bsearch(i32TempNtcTable, ARRAY_SIZE(i32TempNtcTable), uRa, TRUE);
 
     //< 10° - 45°
     fTemp = 10 + iIndex; //stcInfTherBoardPara.f32BlackBodyTempL
@@ -80,7 +85,7 @@ static float32_t NNA_TempVirFind(float32_t fTempEnv, uint32_t u32VirAdc)
     int iVirIndex;
     int iIndex = fTempEnv - 10;
 
-    iVirIndex = bsearch(i32TempVirTable[iIndex], ARRAY_SIZE(i32TempVirTable[0]), u32VirAdc);
+    iVirIndex = bsearch(i32TempVirTable[iIndex], ARRAY_SIZE(i32TempVirTable[0]), u32VirAdc, FALSE);
 
     // 10-45C
     iVirIndex += 10;
@@ -91,7 +96,7 @@ static float32_t NNA_TempVirFind(float32_t fTempEnv, uint32_t u32VirAdc)
 float32_t _NNA_BlackBodyTempGet(float32_t fTempEnv, uint32_t u32VirAdcCode, boolean_t bMarkEn)
 {
     float32_t fVirT;
-    uint32_t uVirValue = u32VirAdcCode - 1000;
+    uint32_t uVirValue = u32VirAdcCode; //FIXME:~
 
     // 找出环温对应的 Vir-T
     fVirT = NNA_TempVirFind(fTempEnv, uVirValue);
