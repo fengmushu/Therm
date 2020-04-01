@@ -211,6 +211,7 @@ void AppLcdInitialMode(void)
 // FALSE - 标定(测试)模式 
 void AppAdcColTemp(boolean_t bMarkEn)
 {
+    static int i = 0;
     uint32_t  u32SampIndex;     ///< 采样次数
     uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
     uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
@@ -265,14 +266,20 @@ void AppAdcColTemp(boolean_t bMarkEn)
     ///< 环境温度获取
     gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
 
-    // ///< 黑体温度获取
+    ///< 黑体温度获取
     gf32BlackBodyTemp = NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
 
-    // ///< 人体温度获取
+    if(i++ % 2) {
+        NNA_Calibration(gf32NtcTemp, 35, u32VirAdcCode);
+    } else {
+        NNA_Calibration(gf32NtcTemp, 42, u32VirAdcCode);
+    }
+
+    ///< 人体温度获取
     // gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取
 
     // printf("NTCH: %u, NTCL: %u\r\n", u32NtcHAdcCode, u32NtcLAdcCode);
-    printf("VIR: %u, Ntc: %2.2fC, BB: %2.2fC\r\n", u32VirAdcCode, gf32NtcTemp, gf32BlackBodyTemp);
+    printf("VIR: %u, Ntc: %2.2fC, %2.2fC\r\n", u32VirAdcCode, gf32NtcTemp, gf32BlackBodyTemp);
     // printf("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp);
 }
 
@@ -280,22 +287,22 @@ void AppAdcColTemp(boolean_t bMarkEn)
 ///< 校准(标定)模式API
 void App_CalibrationMode(void)
 { 
-    if(TRUE  == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&       ///< VIR Mark
-       FALSE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
-    {
-        Flash_SectorErase(VIRL_PARA_ADDR);
-        AppAdcColTemp(FALSE);
-        AppVirLParaMark(((uint32_t)(gf32BlackBodyTemp*100)));
-        ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
-    }
-    else if(FALSE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&      ///< NTC Mark
-            TRUE  == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
-    {
-        Flash_SectorErase(VIRH_PARA_ADDR);
-        AppAdcColTemp(FALSE);
-        AppVirHParaMark(((uint32_t)(gf32BlackBodyTemp*100)));
-        ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
-    }
+    // if(TRUE  == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&       ///< VIR Mark
+    //    FALSE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
+    // {
+    //     Flash_SectorErase(VIRL_PARA_ADDR);
+    //     AppAdcColTemp(FALSE);
+    //     AppVirLParaMark(((uint32_t)(gf32BlackBodyTemp*100)));
+    //     ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
+    // }
+    // else if(FALSE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&      ///< NTC Mark
+    //         TRUE  == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
+    // {
+    //     Flash_SectorErase(VIRH_PARA_ADDR);
+    //     AppAdcColTemp(FALSE);
+    //     AppVirHParaMark(((uint32_t)(gf32BlackBodyTemp*100)));
+    //     ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
+    // }
 }
 
 /**
@@ -512,10 +519,10 @@ int32_t main(void)
         AppLedEnable(-1);
         AppBeepBlink((SystemCoreClock/1500));
 
-        delay1ms(1500);
+        delay1ms(5000);
         
         ///<*** 温度数据采集及转换     
-        AppAdcColTemp(FALSE);
+        AppAdcColTemp(TRUE);
         
         // printf("Ntc = %2.1fC\r\n", gf32NtcTemp);
         // delay1ms(100);

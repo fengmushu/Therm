@@ -125,6 +125,8 @@ extern float32_t NNA_BlackBodyTempGet(float32_t f32NtcTemp, uint32_t u32VirAdcCo
  ******************************************************************************/
 extern float32_t NNA_HumanBodyTempGet(float32_t f32BlackBodyTemp, float32_t f32NtcTemp);
 
+
+extern boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc);
 //@} // APP Group
    
 #ifdef __cplusplus

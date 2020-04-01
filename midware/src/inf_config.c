@@ -97,19 +97,17 @@ struct InfTherBoardPara const stTherBoardPara =
     .u32AdcResolMsk     = (0xFFFu),         ///< ADC 有效位(默认 - [0xFFF])
         
     ///< NTC 校准系数   
-    //.u32NtcRL           = (46950),          ///< NTC 对地采样电阻RL(Ω)[#I]
     .u32NtcRL           = (51000),          ///< NTC 对地采样电阻RL(Ω)[#II]
     .f32NtcKL           = (0.3426),         ///< NTC 校准系数(默认 - [0.0])
     .f32NtcKH           = (0.3426),         ///< NTC 校准系数(默认 - [0.0])
     .f32NtcStdTemp      = (25.0),           ///< NTC 标准环境温度(默认 - [25.0]) 
     
     ///< VIR 校准系数
-    //.f32VirOpGain       = (253.0127),       ///< VIR 信号调理OP增益[#I]
     .f32VirOpGain       = (252.8823),       ///< VIR 信号调理OP增益[#II]
     .f32VirK            = (1.0),            ///< VIR 校准系数(默认 - [1.0])
     .f32BlackBodyTempL  = (33.93),           ///< VIR 黑体标定温度L
     .f32BlackBodyTempH  = (37.90),           ///< VIR 黑体标定温度H
-    .f32BlackBodyStdTempL  = (32),           ///< VIR 黑体标定温度L(默认32.0)
+    .f32BlackBodyStdTempL  = (37),           ///< VIR 黑体标定温度L(默认32.0)
     .f32BlackBodyStdTempH  = (42),           ///< VIR 黑体标定温度H(默认37.0)
 
     .u32BlackBodyTempLAddr = (0xFC00),      ///< 黑体标定温度L数据地址
@@ -137,7 +135,7 @@ struct InfTherBoardPara const stTherBoardPara =
     .f32VirK            = (1.0),            ///< VIR 校准系数(默认 - [1.0])
     .f32BlackBodyTempL  = (33.93),           ///< VIR 黑体标定温度L
     .f32BlackBodyTempH  = (37.90),           ///< VIR 黑体标定温度H
-    .f32BlackBodyStdTempL  = (32),           ///< VIR 黑体标定温度L(默认32.0)
+    .f32BlackBodyStdTempL  = (37),           ///< VIR 黑体标定温度L(默认32.0)
     .f32BlackBodyStdTempH  = (42),           ///< VIR 黑体标定温度H(默认37.0)
 
     .u32BlackBodyTempLAddr = (0xFC00),      ///< 黑体标定温度L数据地址

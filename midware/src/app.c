@@ -130,6 +130,22 @@ void AppVirHParaMark(uint32_t u32VirHDataCal)
     __enable_irq();
 }
 
+uint16_t AppVirLParaGet(void)
+{
+    if(((VIRL_PARA_DATA&0xFFFF0000)>>16) != 0x5A5A) {
+        return 0;
+    }
+    return (VIRL_PARA_DATA & 0xFFFF);
+}
+
+uint16_t AppVirHParaGet(void)
+{
+    if(((VIRL_PARA_DATA&0xFFFF0000)>>16) != 0x5A5A) {
+        return 0;
+    }
+    return (VIRL_PARA_DATA & 0xFFFF);
+}
+
 void AppBeepBlink(uint32_t u32FreqIndex)
 {    
     while(u32FreqIndex--)

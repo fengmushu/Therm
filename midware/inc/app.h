@@ -134,6 +134,8 @@ extern void AppParaAreaInit(void);
 ///< VIR黑体 校准系数标定
 extern void AppVirLParaMark(uint32_t u32VirLDataCal);
 extern void AppVirHParaMark(uint32_t u32VirHDataCal);
+extern uint16_t AppVirLParaGet(void);
+extern uint16_t AppVirHParaGet(void);
 
 #ifdef __cplusplus
 }
