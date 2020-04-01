@@ -123,6 +123,8 @@ static volatile stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
 // volatile uint32_t gVolFlag   = CHARGEFULL;
 static volatile enMState_t enMState = PowerOnMode;
 
+static volatile int enCalType = 1;
+
 /******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
@@ -261,19 +263,23 @@ void AppAdcColTemp(boolean_t bMarkEn)
         __enable_irq();
     }
 
-    // Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
 
     ///< 环境温度获取
     gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
 
+    ///< 校准模式
+    if(bMarkEn) {
+        if(enCalType % 2) {
+            NNA_Calibration(gf32NtcTemp, 26, u32VirAdcCode);
+        } else {
+            NNA_Calibration(gf32NtcTemp, 42, u32VirAdcCode);
+        }
+        enCalType ++;
+    }
+
     ///< 黑体温度获取
     gf32BlackBodyTemp = NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
-
-    if(i++ % 2) {
-        NNA_Calibration(gf32NtcTemp, 35, u32VirAdcCode);
-    } else {
-        NNA_Calibration(gf32NtcTemp, 42, u32VirAdcCode);
-    }
 
     ///< 人体温度获取
     // gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取
@@ -382,7 +388,7 @@ int32_t main(void)
                     ///< 状态切换至历史数据查询模式
                     enMState = TempScanMode;
                 }
-           }
+            }
                 
             break;
             
@@ -516,14 +522,19 @@ int32_t main(void)
 
     while(1)
     {
-        AppLedEnable(-1);
-        AppBeepBlink((SystemCoreClock/1500));
+        if((enCalType % 2)) {
+            AppLedEnable(1);
+        } else {
+            AppLedEnable(0);
+        }
 
-        delay1ms(5000);
-        
-        ///<*** 温度数据采集及转换     
-        AppAdcColTemp(TRUE);
-        
+        ///<*** 温度数据采集及转换
+        if(KEY_TRIG()) {
+            KEY_CLR_TRIG();
+            AppAdcColTemp(TRUE);
+            AppBeepBlink((SystemCoreClock/1500));
+        }
+
         // printf("Ntc = %2.1fC\r\n", gf32NtcTemp);
         // delay1ms(100);
         // printf("Black = %2.1fC\r\n", gf32BlackBodyTemp);
@@ -531,10 +542,12 @@ int32_t main(void)
         // printf("Human = %2.1fC\r\n", gf32HumanBodyTemp);
         // delay1ms(100);
         // printf("\r\n");
+
+        delay1ms(200);
     }
-      
+
 #endif
-} 
+}
    
 
 ///< LVD 中断服务函数

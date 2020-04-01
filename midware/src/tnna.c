@@ -112,14 +112,22 @@ static float32_t NNA_GetFixupBase(void)
     return (AppVirLParaGet() + AppVirHParaGet()) / 2;
 }
 
+static float32_t fAmp = 0, fCaLBase = 0, fCaHBase = 0;
+
 float32_t NNA_BlackBodyTempGet(float32_t fTempEnv, uint32_t u32VirAdc, boolean_t bMarkEn)
 {
     float32_t fVirVolt, fVoltBySearch, fVoltByFitting, fTempEnvFit;
-    static float32_t fTempFixup = 0;// = NNA_GetFixupBase();
+    float32_t fTempFixup = (fCaLBase + fCaHBase) / 2;// = NNA_GetFixupBase();
+
+    if(0 == fAmp) {
+        return 0;
+    } else {
+        printf("\t* %2.2f %2.2f\r\n", fAmp, fTempFixup);
+    }
 
     ///< 解系统放大系数
     // Vi = (Vo - Vbias) * Ri / (Ri:2K + Rr:680K) --- uV
-    fVirVolt = ((u32VirAdc - 1100) * 1000000) / (2000 + 680000) * 2000;
+    fVirVolt = ((u32VirAdc) * 1000000) / fAmp;
 
     printf("\t%2.2f uV\r\n", fVirVolt);
 
@@ -128,7 +136,8 @@ float32_t NNA_BlackBodyTempGet(float32_t fTempEnv, uint32_t u32VirAdc, boolean_t
 
     // (Te) -> (V-Tt曲线)
     // c(t) = -0.000495 * t * t - 0.054351 * t + C
-    fTempEnvFit = VtE_Paras[1] * fTempEnv - VtE_Paras[2] * pow(fTempEnv, 2) + fTempFixup;
+    fTempEnvFit = VtE_Paras[1] * fTempEnv + VtE_Paras[2] * pow(fTempEnv, 2) + fTempFixup;
+
     // U = 0.0004950 * x * x + 0.054351 * x + c(t)
     fVoltByFitting = TNNA_Fitting( fTempEnvFit, VtT_Paras[1], VtT_Paras[2], fVirVolt, FALSE);
 
@@ -146,10 +155,13 @@ float32_t NNA_BlackBodyTempGet(float32_t fTempEnv, uint32_t u32VirAdc, boolean_t
 
 boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc)
 {
-    static float32_t fAmp;
-    static float32_t fCaLBase, fCaHBase, fTH = 0xFFFFFFFF, fTL = 0xFFFFFFFF, uVAdcH, uVAdcL;;
+    static float32_t fTH = 0xFFFFFFFF, fTL = 0xFFFFFFFF, uVAdcH, uVAdcL;;
 
     float32_t fTx;
+
+    if(fAmp) {
+        return TRUE;
+    }
 
     ///< U35 = k * (A*35*35 + B*35 + a*t35*t35 + b*t35 + cbase)
     ///< U42 = k * (A*42*42 + B*42 + a*t42*t42 + b*t42 + cbase)
@@ -161,8 +173,8 @@ boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u3
     ///< cbase = U42/k - n
 
     ///< k: fAMP, m/n: fTx, Ux: fVirAdcH/L, cbase: fCaH/LBase
-    fTx = VtT_Paras[2] * pow(fTempTarget, 2) + VtT_Paras[1] * fTempTarget;
-    fTx += VtE_Paras[2] * pow(fTempEnv, 2) + VtE_Paras[1] * fTempEnv;
+    fTx = VtT_Paras[2] * pow(fTempTarget, 2) + VtT_Paras[1] * fTempTarget \
+                + VtE_Paras[2] * pow(fTempEnv, 2) + VtE_Paras[1] * fTempEnv;
 
     if(fTempTarget < 40) {
         fTL = fTx;
@@ -173,7 +185,8 @@ boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u3
     }
 
     if(fTL != 0xFFFFFFFF && fTH != 0xFFFFFFFF && ((fTL - fTH != 0))) {
-        fAmp = (uVAdcH - uVAdcL) / (fTH - fTL); // 线性区间放大
+        // 线性区间放大
+        fAmp = (uVAdcH - uVAdcL) / (fTH - fTL); 
         if(fAmp != 0) {
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
