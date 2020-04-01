@@ -89,9 +89,9 @@ typedef enum en_led_colour
 /******************************************************************************
  * Global definitions
  ******************************************************************************/
-#define VIRL_PARA_ADDR           (stcInfTherBoardPara.u32BlackBodyTempLAddr)                                   ///< 红外低温标定数据存放地址
+#define VIRL_PARA_ADDR           (stTherBoardPara.u32BlackBodyTempLAddr)                                   ///< 红外低温标定数据存放地址
 #define VIRL_PARA_DATA           (*((volatile uint32_t*)VIRL_PARA_ADDR))    ///< 红外低温标定数据
-#define VIRH_PARA_ADDR           (stcInfTherBoardPara.u32BlackBodyTempHAddr)                                   ///< 红外高温标定数据存放地址
+#define VIRH_PARA_ADDR           (stTherBoardPara.u32BlackBodyTempHAddr)                                   ///< 红外高温标定数据存放地址
 #define VIRH_PARA_DATA           (*((volatile uint32_t*)VIRH_PARA_ADDR))    ///< 红外高温标定数据
     
 

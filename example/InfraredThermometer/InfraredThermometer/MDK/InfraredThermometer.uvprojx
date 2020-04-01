@@ -506,11 +506,6 @@
               <FilePath>..\..\..\..\midware\src\inf_config.c</FilePath>
             </File>
             <File>
-              <FileName>nna.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>..\..\..\..\midware\src\nna.lib</FilePath>
-            </File>
-            <File>
               <FileName>tnna.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\midware\src\tnna.c</FilePath>

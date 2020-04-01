@@ -90,7 +90,7 @@
  ******************************************************************************/
 
 #if (SENSOR_TYPE == S_1875N)
-struct InfTherBoardPara const stcInfTherBoardPara = 
+struct InfTherBoardPara const stTherBoardPara = 
 {
     ///< ADC 参数配置
     .u32VirAdcVref      = (2048000000),     ///< VIR ADC 参考电压(nV)
@@ -118,7 +118,7 @@ struct InfTherBoardPara const stcInfTherBoardPara =
 #endif
 
 #if (SENSOR_TYPE == S_ISB_TS45H)    ///< 森霸
-struct InfTherBoardPara const stcInfTherBoardPara = 
+struct InfTherBoardPara const stTherBoardPara = 
 {
     ///< ADC 参数配置
     .u32VirAdcVref      = (2048000000),     ///< VIR ADC 参考电压(nV)
@@ -147,7 +147,7 @@ struct InfTherBoardPara const stcInfTherBoardPara =
 #endif
 
 #if (SENSOR_TYPE == S_ZTP148)		///< 安菲诺
-struct InfTherBoardPara const stcInfTherBoardPara = 
+struct InfTherBoardPara const stTherBoardPara = 
 {
     ///< ADC 参数配置
     .u32VirAdcVref      = (2048000000),     ///< VIR ADC 参考电压(nV)
@@ -180,7 +180,7 @@ struct InfTherBoardPara const stcInfTherBoardPara =
 #endif
 
 #if (SENSOR_TYPE == S_ATS46)		///< ATS
-struct InfTherBoardPara const stcInfTherBoardPara = 
+struct InfTherBoardPara const stTherBoardPara = 
 {
     ///< ADC 参数配置
     .u32VirAdcVref      = (2048000000),     ///< VIR ADC 参考电压(nV)

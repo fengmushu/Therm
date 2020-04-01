@@ -263,10 +263,10 @@ void AppAdcColTemp(boolean_t bMarkEn)
     // Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
 
     ///< 环境温度获取
-    gf32NtcTemp = _NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
+    gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
 
     // ///< 黑体温度获取
-    gf32BlackBodyTemp = _NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
+    gf32BlackBodyTemp = NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
 
     // ///< 人体温度获取
     // gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取

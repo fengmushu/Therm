@@ -124,7 +124,7 @@ struct InfTherBoardPara
  ******************************************************************************/
 extern const int32_t    i32TempVirTable[TEMPVIR_NTCDATALEN][TEMPVIRDATALEN];
 extern const int32_t    i32TempNtcTable[TEMPNTCDATALEN];
-extern struct InfTherBoardPara const stcInfTherBoardPara;
+extern struct InfTherBoardPara const stTherBoardPara;
 
 /******************************************************************************
  * Global function prototypes (definition in C source)                        
