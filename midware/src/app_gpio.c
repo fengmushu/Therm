@@ -254,6 +254,17 @@ void _AppLcdPortInit(void)
     Gpio_SetAnalogMode(M_LCD_SEG7_PORT, M_LCD_SEG7_PIN); //SEG7
     Gpio_SetAnalogMode(M_LCD_SEG8_PORT, M_LCD_SEG8_PIN); //SEG8
     Gpio_SetAnalogMode(M_LCD_SEG9_PORT, M_LCD_SEG9_PIN); //SEG9
+    /// SEG 10-19
+    Gpio_SetAnalogMode(M_LCD_SEG10_PORT, M_LCD_SEG10_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG11_PORT, M_LCD_SEG11_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG12_PORT, M_LCD_SEG12_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG13_PORT, M_LCD_SEG13_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG14_PORT, M_LCD_SEG14_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG15_PORT, M_LCD_SEG15_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG16_PORT, M_LCD_SEG16_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG17_PORT, M_LCD_SEG17_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG18_PORT, M_LCD_SEG18_PIN);
+    Gpio_SetAnalogMode(M_LCD_SEG19_PORT, M_LCD_SEG19_PIN);
 }
 
 void AppMGpioInit(void)

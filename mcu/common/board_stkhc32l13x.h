@@ -100,6 +100,7 @@
 #define M_LCD_COM2_PIN    GpioPin11
 #define M_LCD_COM3_PORT   GpioPortA
 #define M_LCD_COM3_PIN    GpioPin12
+//< M LCD SEG0-19
 #define M_LCD_SEG0_PORT   GpioPortA
 #define M_LCD_SEG0_PIN    GpioPin8 
 #define M_LCD_SEG1_PORT   GpioPortC
@@ -120,14 +121,26 @@
 #define M_LCD_SEG8_PIN    GpioPin12
 #define M_LCD_SEG9_PORT   GpioPortB
 #define M_LCD_SEG9_PIN    GpioPin11
-
-// ///< M DIGITAL SENSOR
-// #define M_S_CS_PORT       GpioPortA
-// #define M_S_CS_PIN        GpioPin4
-// #define M_S_SDO_PORT      GpioPortA
-// #define M_S_SDO_PIN       GpioPin6
-// #define M_S_CLK_PORT      GpioPortA
-// #define M_S_CLK_PIN       GpioPin5
+#define M_LCD_SEG10_PORT   GpioPortB
+#define M_LCD_SEG10_PIN    GpioPin10
+#define M_LCD_SEG11_PORT   GpioPortB
+#define M_LCD_SEG11_PIN    GpioPin2
+#define M_LCD_SEG12_PORT   GpioPortB
+#define M_LCD_SEG12_PIN    GpioPin1
+#define M_LCD_SEG13_PORT   GpioPortB
+#define M_LCD_SEG13_PIN    GpioPin0
+#define M_LCD_SEG14_PORT   GpioPortC
+#define M_LCD_SEG14_PIN    GpioPin5
+#define M_LCD_SEG15_PORT   GpioPortC
+#define M_LCD_SEG15_PIN    GpioPin4
+#define M_LCD_SEG16_PORT   GpioPortA
+#define M_LCD_SEG16_PIN    GpioPin7
+#define M_LCD_SEG17_PORT   GpioPortA
+#define M_LCD_SEG17_PIN    GpioPin6
+#define M_LCD_SEG18_PORT   GpioPortA
+#define M_LCD_SEG18_PIN    GpioPin5
+#define M_LCD_SEG19_PORT   GpioPortA
+#define M_LCD_SEG19_PIN    GpioPin4
 
 //< M BEEP
 #define M_BEEP_PORT       GpioPortD

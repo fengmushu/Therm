@@ -520,6 +520,9 @@ int32_t main(void)
     ///< 可用于简单采样测试(需要开启UART及其端口配置)            
     // DBG_PRINT("Temp Test >>> \r\n");
 
+    AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
+    AppLcdInitialMode();    ///< LCD 初始状态显示
+
     while(1)
     {
         if((enCalType % 2)) {
@@ -533,6 +536,7 @@ int32_t main(void)
             KEY_CLR_TRIG();
             AppAdcColTemp(TRUE);
             AppBeepBlink((SystemCoreClock/1500));
+            AppLcdBlink();
         }
 
         // DBG_PRINT("Ntc = %2.1fC\r\n", gf32NtcTemp);

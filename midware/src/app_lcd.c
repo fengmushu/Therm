@@ -134,10 +134,10 @@ void AppLcdInit(void)
 
     Sysctrl_SetPeripheralGate(SysctrlPeripheralLcd,TRUE);  //LCD外设时钟打开
     
-    // Sysctrl_SetRCLTrim(SysctrlRclFreq32768);                ///< 配置内部低速时钟频率为32.768kHz
-    // Sysctrl_ClkSourceEnable(SysctrlClkRCL,TRUE);            ///< 使能RCL时钟
+    Sysctrl_SetRCLTrim(SysctrlRclFreq32768);                ///< 配置内部低速时钟频率为32.768kHz
+    Sysctrl_ClkSourceEnable(SysctrlClkRCL,TRUE);            ///< 使能RCL时钟
     
-    LcdSegCom.u32Seg0_31 = 0xfffffc00;                              ///< 配置LCD_POEN0寄存器 开启SEG0~SEG9
+    LcdSegCom.u32Seg0_31 = 0xFFE00000;                              ///< 配置LCD_POEN0寄存器 开启SEG0~SEG9, SEG10-19
     LcdSegCom.stc_seg32_51_com0_8_t.seg32_51_com0_8     = 0xffffffff;   ///< 初始化LCD_POEN1寄存器 全部关闭输出端口
     LcdSegCom.stc_seg32_51_com0_8_t.segcom_bit.Com0_3   = 0;          ///< 使能COM0~COM3
     LcdSegCom.stc_seg32_51_com0_8_t.segcom_bit.Mux      = 0;             ///< Mux=0,Seg32_35=0,BSEL=1表示:选择外部电容工作模式，内部电阻断路
