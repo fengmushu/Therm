@@ -185,7 +185,7 @@ void App_SystemInit(void)
     ///< 参数调整区初始化0
     AppParaAreaInit();
     
-    // printf("Init Sucessful \r\n");
+    // DBG_PRINT("Init Sucessful \r\n");
 }
 
 
@@ -271,7 +271,7 @@ void AppAdcColTemp(boolean_t bMarkEn)
     ///< 校准模式
     if(bMarkEn) {
         if(enCalType % 2) {
-            NNA_Calibration(gf32NtcTemp, 26, u32VirAdcCode);
+            NNA_Calibration(gf32NtcTemp, 37, u32VirAdcCode);
         } else {
             NNA_Calibration(gf32NtcTemp, 42, u32VirAdcCode);
         }
@@ -284,9 +284,9 @@ void AppAdcColTemp(boolean_t bMarkEn)
     ///< 人体温度获取
     // gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取
 
-    // printf("NTCH: %u, NTCL: %u\r\n", u32NtcHAdcCode, u32NtcLAdcCode);
-    printf("VIR: %u, Ntc: %2.2fC, %2.2fC\r\n", u32VirAdcCode, gf32NtcTemp, gf32BlackBodyTemp);
-    // printf("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp);
+    // DBG_PRINT("NTCH: %u, NTCL: %u\r\n", u32NtcHAdcCode, u32NtcLAdcCode);
+    DBG_PRINT("VIR: %u, Ntc: %2.2fC, %2.2fC\r\n", u32VirAdcCode, gf32NtcTemp, gf32BlackBodyTemp);
+    // DBG_PRINT("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp);
 }
 
 
@@ -518,7 +518,7 @@ int32_t main(void)
 
 #else
     ///< 可用于简单采样测试(需要开启UART及其端口配置)            
-    // printf("Temp Test >>> \r\n");
+    // DBG_PRINT("Temp Test >>> \r\n");
 
     while(1)
     {
@@ -535,13 +535,13 @@ int32_t main(void)
             AppBeepBlink((SystemCoreClock/1500));
         }
 
-        // printf("Ntc = %2.1fC\r\n", gf32NtcTemp);
+        // DBG_PRINT("Ntc = %2.1fC\r\n", gf32NtcTemp);
         // delay1ms(100);
-        // printf("Black = %2.1fC\r\n", gf32BlackBodyTemp);
+        // DBG_PRINT("Black = %2.1fC\r\n", gf32BlackBodyTemp);
         // delay1ms(100);
-        // printf("Human = %2.1fC\r\n", gf32HumanBodyTemp);
+        // DBG_PRINT("Human = %2.1fC\r\n", gf32HumanBodyTemp);
         // delay1ms(100);
-        // printf("\r\n");
+        // DBG_PRINT("\r\n");
 
         delay1ms(200);
     }

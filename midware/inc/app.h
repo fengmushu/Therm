@@ -64,6 +64,8 @@
 #include "nna.h"
 #include "flash.h"
 
+#define DBG_PRINT printf
+
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
 extern "C"

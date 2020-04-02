@@ -38,7 +38,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         X1 = (-a1 - N) / a2 / 2;
         X2 = (-a1 + N) / a2 / 2;
 
-        // printf(" - %f %f\r\n", X1, X2);
+        // DBG_PRINT(" - %f %f\r\n", X1, X2);
         if(revert) {
             return X1;
         } else {
@@ -84,7 +84,7 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
     // 拟合R-Te曲线
     fTempByFitting = TNNA_Fitting(RaT_Paras[0], RaT_Paras[1], RaT_Paras[2], uRa, TRUE);
 
-    printf("\t%2.2f %2.2f\r\n", fTempBySearch, fTempByFitting);
+    DBG_PRINT("\t%2.2f %2.2f\r\n", fTempBySearch, fTempByFitting);
     // 二选一
     if(0) {
         return fTempBySearch;
@@ -122,14 +122,14 @@ float32_t NNA_BlackBodyTempGet(float32_t fTempEnv, uint32_t u32VirAdc, boolean_t
     if(0 == fAmp) {
         return 0;
     } else {
-        printf("\t* %2.2f %2.2f\r\n", fAmp, fTempFixup);
+        DBG_PRINT("\t* %2.2f %2.2f\r\n", fAmp, fTempFixup);
     }
 
     ///< 解系统放大系数
     // Vi = (Vo - Vbias) * Ri / (Ri:2K + Rr:680K) --- uV
-    fVirVolt = ((u32VirAdc) * 1000000) / fAmp;
+    fVirVolt = ((u32VirAdc) * 1000000) / fAmp / 0.95;
 
-    printf("\t%2.2f uV\r\n", fVirVolt);
+    DBG_PRINT("\t%2.2f uV\r\n", fVirVolt);
 
     // 查表V-Tt
     fVoltBySearch = TNNA_TempVirFind(fTempEnv, fVirVolt);
@@ -141,7 +141,7 @@ float32_t NNA_BlackBodyTempGet(float32_t fTempEnv, uint32_t u32VirAdc, boolean_t
     // U = 0.0004950 * x * x + 0.054351 * x + c(t)
     fVoltByFitting = TNNA_Fitting( fTempEnvFit, VtT_Paras[1], VtT_Paras[2], fVirVolt, FALSE);
 
-    printf("\t%2.2f %2.2f %2.2f\r\n", fVoltBySearch, fVoltByFitting, fTempEnvFit);
+    DBG_PRINT("\t%2.2f %2.2f %2.2f\r\n", fVoltBySearch, fVoltByFitting, fTempEnvFit);
 
     // 二选一
     if(0) {
@@ -191,7 +191,7 @@ boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u3
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
 
-			printf("\tAMP: %2.2f %2.2f %2.2f\r\n", fAmp, fCaLBase, fCaHBase);
+            DBG_PRINT("\tAMP: %2.2f %2.2f %2.2f\r\n", fAmp, fCaLBase, fCaHBase);
         }
     }
 
