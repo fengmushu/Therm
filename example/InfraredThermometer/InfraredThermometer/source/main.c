@@ -119,7 +119,6 @@ typedef enum enMKeyType
  ******************************************************************************/
 static volatile uint32_t gu32AdcNtcResult = 0, gu32AdcVirResult = 0;
 static volatile uint32_t gu32UserKeyFlag = USERKEYFALSE;
-static volatile stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
 // volatile uint32_t gVolFlag   = CHARGEFULL;
 static volatile enMState_t enMState = PowerOnMode;
 
@@ -186,25 +185,6 @@ void App_SystemInit(void)
     AppParaAreaInit();
     
     // DBG_PRINT("Init Sucessful \r\n");
-}
-
-
-///< LCD 初始化模式显示
-void AppLcdInitialMode(void)
-{
-    gstcLcdDisplayCfg.bM6En     = FALSE;
-    gstcLcdDisplayCfg.bM5En     = FALSE;
-    gstcLcdDisplayCfg.bM2En     = FALSE;
-    gstcLcdDisplayCfg.bM7En     = TRUE;
-    gstcLcdDisplayCfg.bM8En     = FALSE;
-    gstcLcdDisplayCfg.bM9En     = FALSE;
-    gstcLcdDisplayCfg.bM10En    = TRUE;
-    gstcLcdDisplayCfg.bM11En    = TRUE;
-    gstcLcdDisplayCfg.bM3En     = FALSE;
-    gstcLcdDisplayCfg.enTmpMode = Char__;
-    gstcLcdDisplayCfg.u16Num    = LCDCHAR__;
-
-    AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
 }
 
 
@@ -520,11 +500,28 @@ int32_t main(void)
     ///< 可用于简单采样测试(需要开启UART及其端口配置)            
     // DBG_PRINT("Temp Test >>> \r\n");
 
+    AppLedEnable(LedLightBlue);
+    AppLcdDisplayAll();
     AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
-    AppLcdInitialMode();    ///< LCD 初始状态显示
+
 
     while(1)
     {
+        //for test lcd
+        #if 1
+        {   
+            extern void AppLcdDebug(void);
+            AppLedEnable(LedLightBlue);
+            delay1ms(500);
+            
+            AppLcdDebug();
+            delay1ms(1000);
+            continue;
+            
+        }
+        #endif
+                
+    
         if((enCalType % 2)) {
             AppLedEnable(1);
         } else {
@@ -563,12 +560,11 @@ void Lvd_IRQHandler(void)
     u8Index = 5;
     while(u8Index--)
     {
-        gstcLcdDisplayCfg.bM11En  = FALSE;
-        AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
+        
+        AppLcdDisplayUpdate();
         delay1ms(300);
         
-        gstcLcdDisplayCfg.bM11En  = TRUE;
-        AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
+        AppLcdDisplayUpdate();
         delay1ms(300);
     }
     
