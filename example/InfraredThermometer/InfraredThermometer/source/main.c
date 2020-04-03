@@ -520,8 +520,6 @@ int32_t main(void)
             
             AppLcdDebug();
             delay1ms(1000);
-            continue;
-            
         }
         #endif
                 
