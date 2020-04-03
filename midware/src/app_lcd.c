@@ -148,11 +148,8 @@ static inline void sAppLcdDisplaySymbol(volatile uint16_t* LcdRam, enLcdSymbolTy
 
 
 static inline void sAppLcdDisplayNumber(uint16_t Display, volatile uint16_t* LcdRam, uint16_t RamIndex, 
-        uint16_t Max_number, boolean_t HasDot)
+        uint16_t Max_number, int8_t MinDigit)
 {
-    /* 有小数点最少显示两位数字，否则最少显示一位 */
-    int8_t MinDigit = HasDot ? 2 : 1;
-    
     if (Display > Max_number)
     {
         Display = Max_number;
@@ -174,7 +171,7 @@ static inline void sAppLcdDisplayTemp(stc_lcd_display_cfg_t *pstcLcdDisplayCfg)
     volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
 
     /* display number */
-    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16Temp, pu16LcdRam, 6, 9999, 1);
+    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16Temp, pu16LcdRam, 6, 9999, 2);
     sAppLcdDisplaySymbol(pu16LcdRam, TEMP_DOT_SYM);
 
 }
@@ -203,7 +200,7 @@ static inline void sAppLcdDisplayLogIndex(stc_lcd_display_cfg_t *pstcLcdDisplayC
     volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
 
     /* display number */
-    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16LogIndex, pu16LcdRam, 4, 99, 0);
+    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16LogIndex, pu16LcdRam, 4, 99, 2);
 }
 
 /* log temp display: digit[7-10] ->pu16LcdRam[3-0] */
@@ -212,7 +209,7 @@ static inline void sAppLcdDisplayLogTemp(stc_lcd_display_cfg_t *pstcLcdDisplayCf
     volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
 
     /* display number */
-    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16LogTemp, pu16LcdRam, 0, 9999, 1);
+    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16LogTemp, pu16LcdRam, 0, 9999, 2);
     sAppLcdDisplaySymbol(pu16LcdRam, LOG_T_DT_SYM);
 }
 
