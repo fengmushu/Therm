@@ -373,7 +373,7 @@ void AppLcdSetLogTemp(uint16_t Temp, uint16_t Index)
     pstcLcdDisplayCfg->u16LogTemp = Temp;
     pstcLcdDisplayCfg->u16LogIndex = Index;
     pstcLcdDisplayCfg->bLogTempDis = TRUE;
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOCK_SYM, TRUE);
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, TRUE);
     return;
 }
 
@@ -381,7 +381,7 @@ void AppLcdClearLogTemp(void)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
     pstcLcdDisplayCfg->bLogTempDis = FALSE;
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOCK_SYM, FALSE);
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, FALSE);
 }
 
 
@@ -474,7 +474,8 @@ void AppLcdBlink(void)
 #if LCD_DEBUG
 void AppLcdDebug(void)
 {
-    while (1)
+    int8_t test_cnt = 1;
+    while ((test_cnt--) > 0)
     {
         uint16_t i = 0;  
         uint16_t tmp = 0;
