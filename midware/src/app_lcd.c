@@ -125,7 +125,7 @@ static const uint16_t s_LcdNumCode[10] = {
     0x0b07, //9
 };
 
-/* 0x0702 F 0x0e00 L 0x0c06 o 0x0705 N 0x0c04 u 0x0703 P*/
+/* 0x0702 F 0x0e00 L 0x0c06 o 0x0705 N 0x0607 H*/
 /* lcd string code */
 static const uint16_t s_LcdStrCode[Str_MAX -1][2] = 
 {
@@ -136,7 +136,7 @@ static const uint16_t s_LcdStrCode[Str_MAX -1][2] =
     {0x0c06, 0x0705},            /* oN */
     {0x0c06, 0x0702},            /* oFF */
     {0x0e00, 0x0c06},            /* Lo */
-    {0x0c04, 0x0703},            /* uP */
+    {0x0607, 0x0005},            /* HI */
 };
     
 
@@ -512,15 +512,13 @@ void AppLcdDebug(void)
         AppLcdSetTempMode(Fahrenheit, TRUE);
         AppLcdDisplayUpdate();
         delay1ms(500);
-
-                
+               
         for (i = 0; i < Str_MAX; ++i)
         {
             AppLcdSetString(i);
             AppLcdDisplayUpdate();
             delay1ms(500);
         }
-
         
         for (i = 0; i < 40; ++i)
         {

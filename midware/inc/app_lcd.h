@@ -96,7 +96,7 @@ typedef enum enStrType
     Str_ON      = 4,            /* oN */
     Str_OFF     = 5,            /* oFF */
     Str_LO      = 6,            /* Lo */
-    Str_UP      = 7,            /* uP */
+    Str_HI      = 7,            /* HI */
     Str_NONE    = 8,            /* 不显示 */
     Str_MAX
 }enStrType_t;
