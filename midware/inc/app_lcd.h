@@ -65,44 +65,61 @@
  ******************************************************************************
  ** \brief 温度类型
  *****************************************************************************/
-typedef enum en_tmp_mode_ref
+typedef enum enTempMode
 {
-    Celsius    = 0x0905u,            /*!< 摄氏度 */
-    Fahrenheit = 0x0807u,            /*!< 华氏度 */
-    Char__     = 0x0100u,            /*!<   '_'  */
-    None       = 0x0000u,            /*!< 无显示 */
-}en_tmp_mode_ref_t;
+    Celsius     = 0,            /*!< 摄氏度 */
+    Fahrenheit  = 1,            /*!< 华氏度 */
+    TempNone    = 2,            /*!< 无显示 */
+}enTempMode_t;
 
-
-/******************************************************************************
- ** LCD Data Map Config
+ /**
+ ******************************************************************************
+ ** \brief 检测类型
  *****************************************************************************/
-typedef struct stc_lcd_display_cfg
+typedef enum enCheckMode
 {
-    boolean_t bM6En;        ///< 度数标识"°"显示使能 
-    boolean_t bM5En;        ///< 人体测试模式使能
-    boolean_t bM2En;        ///< 记忆模式使能
-    boolean_t bM7En;        ///< 蜂鸣器打开使能
-    boolean_t bM8En;        ///< 蜂鸣器标识显示使能
-    boolean_t bM9En;        ///< 环境测温模式使能
-    boolean_t bM10En;       ///< 小数点显示使能
-    boolean_t bM11En;       ///< 电量显示使能
-    boolean_t bM3En;        ///< 测温状态显示使能
-    
-    uint16_t  u16Num;       ///< 去掉小数点后的十进制温度值————温度示数显示"M1|1|2|3"
+    Body        = 0,            /*!< body */
+    Surface     = 1,            /*!< surface temp */
+    CheckNone   = 2,            /*!< 无显示 */
+}enCheckMode_t;
 
-    en_tmp_mode_ref_t enTmpMode;    ///< 温度显示模式"摄氏度 or 华氏度"
-    
-}stc_lcd_display_cfg_t;
+/**
+******************************************************************************
+** \brief 字符串显示格式
+*****************************************************************************/
+typedef enum enStrType
+{
+    Str_F1      = 0,            /* F1 */
+    Str_F2      = 1,            /* F2 */
+    Str_F3      = 2,            /* F3 */
+    Str_F4      = 3,            /* F4 */
+    Str_ON      = 4,            /* oN */
+    Str_OFF     = 5,            /* oFF */
+    Str_LO      = 6,            /* Lo */
+    Str_UP      = 7,            /* uP */
+    Str_NONE    = 8,            /* 不显示 */
+    Str_MAX
+}enStrType_t;
+
 
 
 /*******************************************************************************
  ** \brief lcd相关函数声明
  ******************************************************************************/
 extern void AppLcdInit(void);
-extern void AppLcdStkLcdShow(uint32_t u32RamData);
-extern void AppLcdDisplayUpdate(stc_lcd_display_cfg_t *pstcLcdDisplayCfg);
-extern void AppLcdShowAll(void);
+extern void AppLcdDisplayClear(void);
+extern void AppLcdDisplayAll(void);
+extern void AppLcdSetLock(boolean_t display);
+extern void AppLcdSetBuzzer(boolean_t display);
+extern void AppLcdSetBattery(boolean_t display);
+extern void AppLcdSetCheckMode(enCheckMode_t CheckMode);
+extern void AppLcdSetTempMode(enTempMode_t TempMode,  boolean_t display);
+extern void AppLcdSetTemp(uint16_t Temp);
+extern void AppLcdClearTemp(void);
+extern void AppLcdSetLogTemp(uint16_t Temp, uint16_t Index);
+extern void AppLcdClearLogTemp(void);
+extern void AppLcdSetString(enStrType_t StrType);
+extern void AppLcdDisplayUpdate();
 extern void AppLcdClearAll(void);
 extern void AppLcdBlink(void); 
 //@} // LCDGroup
