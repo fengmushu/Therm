@@ -105,24 +105,40 @@ typedef enum enStrType
 
 /*******************************************************************************
  ** \brief lcd相关函数声明
+ note: 
+ AppLcdSetXXX函数，调用后需调用AppLcdDisplayUpdate更新显示屏。
  ******************************************************************************/
 extern void AppLcdInit(void);
+
 extern void AppLcdDisplayClear(void);
+
 extern void AppLcdDisplayAll(void);
+
 extern void AppLcdSetLock(boolean_t display);
+
 extern void AppLcdSetBuzzer(boolean_t display);
+
 extern void AppLcdSetBattery(boolean_t display);
+
 extern void AppLcdSetCheckMode(enCheckMode_t CheckMode);
+
 extern void AppLcdSetTempMode(enTempMode_t TempMode,  boolean_t display);
+
 extern void AppLcdSetTemp(uint16_t Temp);
+
 extern void AppLcdClearTemp(void);
+
 extern void AppLcdSetLogTemp(uint16_t Temp, uint16_t Index);
+
 extern void AppLcdClearLogTemp(void);
+
 extern void AppLcdSetString(enStrType_t StrType);
+
 extern void AppLcdDisplayUpdate();
+
 extern void AppLcdClearAll(void);
+
 extern void AppLcdBlink(void); 
-//@} // LCDGroup
 
 #ifdef __cplusplus
 #endif
