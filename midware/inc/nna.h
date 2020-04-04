@@ -104,26 +104,24 @@ extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode
 
 /**
  *******************************************************************************
- ** \brief VIR 黑体温度获取
+ ** \brief VIR 黑体/物体 温度
  ** \param [in]  f32NtcTemp     Ntc温度
  ** \param [in]  u32AdcCode     Vir ADC采样值
  ** \param [in]  u32AdcBiasCode Vir Bias ADC采样值
- ** \param [in]  bMarkEn        TRUE-校准模式
- ** \param [in]                 FLASE-非校准(测试)模式
+ ** \param [in]  fEpsilon       物体表面的 热辐射率
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-extern float32_t NNA_BlackBodyTempGet(float32_t f32NtcTemp, uint32_t u32VirAdcCode, boolean_t bMarkEn);
+extern float32_t NNA_SurfaceTempGet(float32_t f32NtcTemp, uint32_t u32VirAdcCode, float32_t fEpsilon);
 
 /**
  *******************************************************************************
  ** \brief VIR 人体温度获取
- ** \param [in]  f32BlackBodyTemp   黑体温度
- ** \param [in]  f32NtcTemp         环境温度
+ ** \param [in]  fSurfaceTemp   表面温度
 
  ** \retval                         人体温度
  ******************************************************************************/
-extern float32_t NNA_HumanBodyTempGet(float32_t f32BlackBodyTemp, float32_t f32NtcTemp);
+extern float32_t NNA_HumanBodyTempGet(float32_t fSurfaceTemp);
 
 
 extern boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc);
