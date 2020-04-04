@@ -475,6 +475,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\driver\src\flash.c</FilePath>
             </File>
+            <File>
+              <FileName>crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\driver\src\crc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -499,11 +504,6 @@
               <FileName>app.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\midware\src\app.c</FilePath>
-            </File>
-            <File>
-              <FileName>inf_config.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\midware\src\inf_config.c</FilePath>
             </File>
             <File>
               <FileName>tnna.c</FileName>
