@@ -128,7 +128,7 @@ static volatile int enCalType = 1;
  * Local function prototypes ('static')
  ******************************************************************************/
 ///< 环境温度、黑体温度、人体温度
-static float32_t gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp;
+static float32_t gf32NtcTemp, gfBlackTemp, gfSurfaceTemp, gfHumanTemp;
 /******************************************************************************
  * Local variable definitions ('static')                                      *
  ******************************************************************************/
@@ -198,8 +198,7 @@ void AppAdcColTemp(boolean_t bMarkEn)
     uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
     uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
 
-    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
-    delay1ms(200);
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); delay1ms(100);
     
     ///<*** ADC数据采集     
     {
@@ -258,15 +257,19 @@ void AppAdcColTemp(boolean_t bMarkEn)
         enCalType ++;
     }
 
-    ///< 黑体温度获取
-    gf32BlackBodyTemp = NNA_BlackBodyTempGet(gf32NtcTemp, u32VirAdcCode, bMarkEn);     ///< VIR 黑体温度值获取
+    ///< 黑体/物体 表面温度
+    gfBlackTemp = NNA_SurfaceTempGet(gf32NtcTemp, u32VirAdcCode, 1.0);
 
-    ///< 人体温度获取
-    // gf32HumanBodyTemp = NNA_HumanBodyTempGet(gf32BlackBodyTemp, gf32NtcTemp);        ///< 人体温度值获取
+    ///< 物体表面 
+    gfSurfaceTemp = NNA_SurfaceTempGet(gf32NtcTemp, u32VirAdcCode, 0.98);
+
+    ///< 人体温度
+    gfHumanTemp = NNA_HumanBodyTempGet(gfSurfaceTemp);
 
     // DBG_PRINT("NTCH: %u, NTCL: %u\r\n", u32NtcHAdcCode, u32NtcLAdcCode);
-    DBG_PRINT("VIR: %u, Ntc: %2.2fC, %2.2fC\r\n", u32VirAdcCode, gf32NtcTemp, gf32BlackBodyTemp);
-    // DBG_PRINT("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gf32BlackBodyTemp, gf32HumanBodyTemp);
+    DBG_PRINT("VIR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n", \
+                    u32VirAdcCode, gf32NtcTemp, gfBlackTemp, gfSurfaceTemp, gfHumanTemp);
+    // DBG_PRINT("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gfSurfaceTemp, gfHumanTemp);
 }
 
 
@@ -278,7 +281,7 @@ void App_CalibrationMode(void)
     // {
     //     Flash_SectorErase(VIRL_PARA_ADDR);
     //     AppAdcColTemp(FALSE);
-    //     AppVirLParaMark(((uint32_t)(gf32BlackBodyTemp*100)));
+    //     AppVirLParaMark(((uint32_t)(gfSurfaceTemp*100)));
     //     ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
     // }
     // else if(FALSE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&      ///< NTC Mark
@@ -286,7 +289,7 @@ void App_CalibrationMode(void)
     // {
     //     Flash_SectorErase(VIRH_PARA_ADDR);
     //     AppAdcColTemp(FALSE);
-    //     AppVirHParaMark(((uint32_t)(gf32BlackBodyTemp*100)));
+    //     AppVirHParaMark(((uint32_t)(gfSurfaceTemp*100)));
     //     ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
     // }
 }
@@ -422,7 +425,7 @@ int32_t main(void)
                     ///<*** 温度数据采集处理     
                     AppAdcColTemp(TRUE);
                     
-                    gstcLcdDisplayCfg.u16Num = (gf32HumanBodyTemp + 0.05)*10;
+                    gstcLcdDisplayCfg.u16Num = (gfHumanTemp + 0.05)*10;
                     gstcLcdDisplayCfg.bM7En  = FALSE;
                     gstcLcdDisplayCfg.bM8En  = FALSE;
                     gstcLcdDisplayCfg.bM5En  = TRUE;
@@ -504,11 +507,12 @@ int32_t main(void)
     AppLcdDisplayAll();
     AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
 
+    // Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); //Always ON
 
     while(1)
     {
         //for test lcd
-        #if 1
+        #if 0
         {   
             extern void AppLcdDebug(void);
             AppLedEnable(LedLightBlue);
@@ -535,14 +539,6 @@ int32_t main(void)
             AppBeepBlink((SystemCoreClock/1500));
             AppLcdBlink();
         }
-
-        // DBG_PRINT("Ntc = %2.1fC\r\n", gf32NtcTemp);
-        // delay1ms(100);
-        // DBG_PRINT("Black = %2.1fC\r\n", gf32BlackBodyTemp);
-        // delay1ms(100);
-        // DBG_PRINT("Human = %2.1fC\r\n", gf32HumanBodyTemp);
-        // delay1ms(100);
-        // DBG_PRINT("\r\n");
 
         delay1ms(200);
     }
