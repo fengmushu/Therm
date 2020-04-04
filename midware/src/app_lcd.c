@@ -479,7 +479,6 @@ void AppLcdDebug(void)
     {
         uint16_t i = 0;  
         uint16_t tmp = 0;
-        
         AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
         AppLcdDisplayClear();    ///< LCD 初始状态显示
 
@@ -531,6 +530,7 @@ void AppLcdDebug(void)
 
             AppLcdSetTempMode(Celsius, i%2);
 
+					
             AppLcdSetBattery(i%2);
 
             AppLcdDisplayUpdate();
