@@ -55,7 +55,6 @@
  * Include files
  ******************************************************************************/
 #include "ddl.h"
-#include "inf_config.h"
 
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus

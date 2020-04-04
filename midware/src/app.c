@@ -85,65 +85,136 @@
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
 
+static UID_t           gstUID;
+static FactoryData_t   gstFactory;
+
+static inline uint32_t FlashRead32(uint32_t uAddr)
+{
+    return *((uint32_t *)uAddr);
+}
+
+static inline uint16_t FlashRead16(uint32_t uAddr)
+{
+    return *((uint16_t *)uAddr);
+}
+
+static inline uint8_t FlashRead8(uint32_t uAddr)
+{
+    return *((uint8_t *)uAddr);
+}
+
+static void AppLoadUID(void)
+{
+    int i;
+
+    memset(&gstUID, 0, sizeof(gstUID));
+    for(i=0; i<sizeof(UID_t); i++) {
+        *((uint8_t*)&gstUID + i) = *(uint8_t*)(UID_BASE_ADDR);
+    }
+
+    DBG_PRINT("RevID: %2x - %2x, %2x, %2x\r\n", gstUID.RevID, \
+            gstUID.WaterNumber, gstUID.XCoordWater, gstUID.YCoordWater);
+    DBG_PRINT("\t%02x-%02x-%02x-%02x-%02x-%02x\r\n", \
+            gstUID.LotNumber[0], gstUID.LotNumber[1], gstUID.LotNumber[2],
+            gstUID.LotNumber[3], gstUID.LotNumber[4], gstUID.LotNumber[5]);
+}
+
+static boolean_t CalDataLoad(void)
+{
+    int i;
+    uint32_t uMagic;
+    uint16_t Len, Csum;
+    uint32_t uAddr = CAL_DATA_ADDR;
+    FactoryData_t *pFactory = &gstFactory;
+    uint8_t  *pBuffer = (uint8_t*)&pFactory->CalData;
+
+    uMagic = FlashRead32(uAddr);
+    if(uMagic != CAL_MAGIC_NUM) {
+        return FALSE;
+    }
+    pFactory->uMagic = uMagic;
+
+    uAddr += sizeof(pFactory->uMagic);
+    pFactory->u16Len = FlashRead16(uAddr);
+    uAddr += sizeof(pFactory->u16Len);
+    pFactory->u16Crc = FlashRead16(uAddr);
+
+    for(i=0; i<sizeof(CalData_t); i++) {
+        pBuffer[i] = FlashRead8(uAddr + i);
+    }
+
+    Csum = CRC16_Get8(pBuffer, sizeof(CalData_t));
+    if(Csum != pFactory->u16Crc) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+boolean_t AppCalDataStore(void *pCal, uint8_t uLen)
+{
+    int i;
+    uint32_t uAddr = CAL_DATA_ADDR;
+    FactoryData_t *pFactory = &gstFactory;
+    uint8_t *pBuffer = (uint8_t*)pCal;
+
+    ASSERT(uLen == sizeof(CalData_t));
+
+    ///< 关闭中断
+    __disable_irq();
+
+    ///< 擦除块
+    Flash_SectorErase(uAddr);
+
+    ///< 写入工厂信息头部
+    pFactory->uMagic = CAL_MAGIC_NUM;
+    pFactory->u16Len = sizeof(CalData_t);
+    pFactory->u16Crc = CRC16_Get8((uint8_t*)pCal, uLen);
+    Flash_WriteWord(uAddr, pFactory->uMagic);
+    uAddr += sizeof(pFactory->uMagic);
+    Flash_WriteHalfWord(uAddr, pFactory->u16Len);
+    uAddr += sizeof(pFactory->u16Len);
+    Flash_WriteHalfWord(uAddr, pFactory->u16Crc);
+    uAddr += sizeof(pFactory->u16Crc);
+    ///< 写入校准数据
+    for(i=0; i<sizeof(CalData_t); i++) {
+        Flash_WriteByte(uAddr + i, pBuffer[i]);
+    }
+
+    ///< 还原中断
+    __enable_irq();
+
+    return TRUE;
+}
+
+boolean_t AppCalCheck(void)
+{
+    if(!CalDataLoad()) {
+        return FALSE;
+    }
+	return TRUE;
+}
+
+void AppCalClean(void)
+{
+    ///< 关闭中断
+    __disable_irq();
+    ///< 擦除块
+    Flash_SectorErase(CAL_DATA_ADDR);
+    ///< 还原中断
+    __enable_irq();
+}
+
 void AppParaAreaInit(void)
 {
-    M0P_SYSCTRL->PERI_CLKEN_f.FLASH = 1;
-    
+    // M0P_SYSCTRL->PERI_CLKEN_f.FLASH = 1;
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralFlash, TRUE);
+
+    ///< 初始化Flash
     Flash_Init(1, TRUE);
-    
-    if(((VIRL_PARA_DATA&0xFFFF0000)>>16) != 0x5A5A)
-    {
-        Flash_SectorErase(VIRL_PARA_ADDR);
-    }
-    
-    if(((VIRH_PARA_DATA&0xFFFF0000)>>16) != 0x5A5A)
-    {
-        Flash_SectorErase(VIRH_PARA_ADDR);
-    }
-}
 
-///< VIR L 校准参数标定
-void AppVirLParaMark(uint32_t u32VirLDataCal)
-{
-    __disable_irq();
-    
-    u32VirLDataCal &= 0xFFFF;
-    u32VirLDataCal |= 0x5A5A<<16;
-    
-    Flash_SectorErase(VIRL_PARA_ADDR);
-    Flash_WriteWord(VIRL_PARA_ADDR, u32VirLDataCal);
-    
-    __enable_irq();
-}
-
-///< VIR H 校准参数标定
-void AppVirHParaMark(uint32_t u32VirHDataCal)
-{
-    __disable_irq();
-    
-    u32VirHDataCal &= 0xFFFF;
-    u32VirHDataCal |= 0x5A5A<<16;
-        
-    Flash_SectorErase(VIRH_PARA_ADDR);
-    Flash_WriteWord(VIRH_PARA_ADDR, u32VirHDataCal);
-    
-    __enable_irq();
-}
-
-uint16_t AppVirLParaGet(void)
-{
-    if(((VIRL_PARA_DATA&0xFFFF0000)>>16) != 0x5A5A) {
-        return 0;
-    }
-    return (VIRL_PARA_DATA & 0xFFFF);
-}
-
-uint16_t AppVirHParaGet(void)
-{
-    if(((VIRL_PARA_DATA&0xFFFF0000)>>16) != 0x5A5A) {
-        return 0;
-    }
-    return (VIRL_PARA_DATA & 0xFFFF);
+    ///< 加载UID
+    AppLoadUID();
 }
 
 void AppBeepBlink(uint32_t u32FreqIndex)
@@ -293,7 +364,6 @@ void AppVolMonitorInit(void)
     ///< LVD 模块使能
     Lvd_Enable();
 }
-
 
 ///< 串口模块配置
 void AppUartInit(void)

@@ -63,6 +63,7 @@
 #include "app_adc.h"
 #include "nna.h"
 #include "flash.h"
+#include "crc.h"
 
 #if 1
 #define DBG_PRINT printf
@@ -75,6 +76,10 @@
 extern "C"
 {
 #endif
+
+#define CAL_MAGIC_NUM           0x41415ABB
+#define CAL_DATA_ADDR           0xFC00
+#define UID_BASE_ADDR           0x00100E74
 
 /**
  ******************************************************************************
@@ -91,6 +96,33 @@ typedef enum en_led_colour
     LedRed       = 0x00u,                 ///< 红色
     LedLightBlue = 0x40u,                 ///< 浅蓝色
 }en_led_colour_t;
+
+typedef struct {
+    uint8_t LotNumber[6];
+    uint8_t XCoordWater;
+    uint8_t YCoordWater;
+    uint8_t WaterNumber;
+    uint8_t RevID;
+} UID_t;
+
+typedef struct {
+    ///< 运放放大系数
+    float32_t   fAmp;
+    ///< 温度偏移基数
+    float32_t   fCalBase;
+    ///< 人体温度修正偏移: 29
+    uint8_t     u8HumFix;
+} CalData_t;
+
+typedef struct {
+    ///< 数据校验
+    uint32_t    uMagic;
+    uint16_t    u16Len;
+    uint16_t    u16Crc;
+
+    ///< 校准数据
+    CalData_t   CalData;
+} FactoryData_t;
 
 /******************************************************************************
  * Global definitions
@@ -137,6 +169,9 @@ extern void AppUartInit(void);
 
 ///< 参数标定区初始化
 extern void AppParaAreaInit(void);
+extern boolean_t AppCalCheck(void);
+extern void AppCalClean(void);
+extern boolean_t AppCalDataStore(void *pCal, uint8_t uLen);
 ///< VIR黑体 校准系数标定
 extern void AppVirLParaMark(uint32_t u32VirLDataCal);
 extern void AppVirHParaMark(uint32_t u32VirHDataCal);

@@ -96,33 +96,30 @@ typedef enum enMKeyType
     Key_Max,
 }enMKeyType_t;
 
-#define KEY_LEFT()     (gu32UserKeyFlag & (1u < Key_Left))
-#define KEY_MID()      (gu32UserKeyFlag & (1u < Key_Mid))
-#define KEY_RIGHT()    (gu32UserKeyFlag & (1u < Key_Right))
-#define KEY_TRIG()     (gu32UserKeyFlag & (1u < Key_Trig))
-#define KEY_SWITCH()   (gu32UserKeyFlag & (1u < Key_Switch))
-
-#define KEY_SET_LEFT()     (gu32UserKeyFlag |= (1u < Key_Left))
-#define KEY_SET_MID()      (gu32UserKeyFlag |= (1u < Key_Mid))
-#define KEY_SET_RIGHT()    (gu32UserKeyFlag |= (1u < Key_Right))
-#define KEY_SET_TRIG()     (gu32UserKeyFlag |= (1u < Key_Trig))
-#define KEY_SET_SWITCH()   (gu32UserKeyFlag |= (1u < Key_Switch))
-
-#define KEY_CLR_LEFT()     (gu32UserKeyFlag &= ~(1u < Key_Left))
-#define KEY_CLR_MID()      (gu32UserKeyFlag &= ~(1u < Key_Mid))
-#define KEY_CLR_RIGHT()    (gu32UserKeyFlag &= ~(1u < Key_Right))
-#define KEY_CLR_TRIG()     (gu32UserKeyFlag &= ~(1u < Key_Trig))
-#define KEY_CLR_SWITCH()   (gu32UserKeyFlag &= ~(1u < Key_Switch))
-
 /******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-static volatile uint32_t gu32AdcNtcResult = 0, gu32AdcVirResult = 0;
-static volatile uint32_t gu32UserKeyFlag = USERKEYFALSE;
-// volatile uint32_t gVolFlag   = CHARGEFULL;
-static volatile enMState_t enMState = PowerOnMode;
+static uint32_t gu32AdcNtcResult = 0, gu32AdcVirResult = 0;
+static uint32_t gu32UserKeyFlag = 0;
+static enMState_t enMState = PowerOnMode;
 
-static volatile int enCalType = 1;
+#define KEY_LEFT()     (gu32UserKeyFlag & (1UL << Key_Left))
+#define KEY_MID()      (gu32UserKeyFlag & (1UL << Key_Mid))
+#define KEY_RIGHT()    (gu32UserKeyFlag & (1UL << Key_Right))
+#define KEY_TRIG()     (gu32UserKeyFlag & (1UL << Key_Trig))
+#define KEY_SWITCH()   (gu32UserKeyFlag & (1UL << Key_Switch))
+
+#define KEY_SET_LEFT()     (gu32UserKeyFlag |= (1UL << Key_Left))
+#define KEY_SET_MID()      (gu32UserKeyFlag |= (1UL << Key_Mid))
+#define KEY_SET_RIGHT()    (gu32UserKeyFlag |= (1UL << Key_Right))
+#define KEY_SET_TRIG()     (gu32UserKeyFlag |= (1UL << Key_Trig))
+#define KEY_SET_SWITCH()   (gu32UserKeyFlag |= (1UL << Key_Switch))
+
+#define KEY_CLR_LEFT()     (gu32UserKeyFlag &= ~(1UL << Key_Left))
+#define KEY_CLR_MID()      (gu32UserKeyFlag &= ~(1UL << Key_Mid))
+#define KEY_CLR_RIGHT()    (gu32UserKeyFlag &= ~(1UL << Key_Right))
+#define KEY_CLR_TRIG()     (gu32UserKeyFlag &= ~(1UL << Key_Trig))
+#define KEY_CLR_SWITCH()   (gu32UserKeyFlag &= ~(1UL << Key_Switch))
 
 /******************************************************************************
  * Local function prototypes ('static')
@@ -247,21 +244,11 @@ void AppAdcColTemp(boolean_t bMarkEn)
     ///< 环境温度获取
     gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
 
-    ///< 校准模式
-    if(bMarkEn) {
-        if(enCalType % 2) {
-            NNA_Calibration(gf32NtcTemp, 37, u32VirAdcCode);
-        } else {
-            NNA_Calibration(gf32NtcTemp, 42, u32VirAdcCode);
-        }
-        enCalType ++;
-    }
-
     ///< 黑体/物体 表面温度
     gfBlackTemp = NNA_SurfaceTempGet(gf32NtcTemp, u32VirAdcCode, 1.0);
 
     ///< 物体表面 
-    gfSurfaceTemp = NNA_SurfaceTempGet(gf32NtcTemp, u32VirAdcCode, 0.98);
+    gfSurfaceTemp = NNA_SurfaceTempGet(gf32NtcTemp, u32VirAdcCode, 0.98295);
 
     ///< 人体温度
     gfHumanTemp = NNA_HumanBodyTempGet(gfSurfaceTemp);
@@ -272,26 +259,101 @@ void AppAdcColTemp(boolean_t bMarkEn)
     // DBG_PRINT("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gfSurfaceTemp, gfHumanTemp);
 }
 
+///< ADC 修正值获取
+static boolean_t AppAdcCodeGet(uint32_t *uVir, uint32_t *uVNtcH, uint32_t *uVNtcL)
+{
+    uint32_t  u32SampIndex;     ///< 采样次数
+    uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
+    uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
+
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); delay1ms(100);
+
+    ///<*** ADC数据采集     
+    {
+        __disable_irq();
+
+        u32SampIndex      = 0x10u;
+        u32VirAdcCodeAcc  = 0;
+        u32NtcHAdcCodeAcc = 0;
+        u32NtcLAdcCodeAcc = 0;
+
+        while(u32SampIndex--)
+        {
+            Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
+            AppAdcVirAvgCodeGet(&u32VirAdcCode);            ///< 表面温度 ADC采样
+            AppAdcNtcHAvgCodeGet(&u32NtcHAdcCode);          ///< 环境温度RH ADC采样
+            AppAdcNtcLAvgCodeGet(&u32NtcLAdcCode);          ///< 表面温度RL ADC采样
+            Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
+
+            u32VirAdcCodeAcc  += u32VirAdcCode;
+            u32NtcHAdcCodeAcc += u32NtcHAdcCode;
+            u32NtcLAdcCodeAcc += u32NtcLAdcCode;
+        }
+
+        u32VirAdcCode  = (u32VirAdcCodeAcc  + 0x8u)>>4u;   ///< 表面温度 ADC CODE    
+        u32NtcHAdcCode = (u32NtcHAdcCodeAcc + 0x8u)>>4u;   ///< 环境温度RH ADC CODE
+        u32NtcLAdcCode = (u32NtcLAdcCodeAcc + 0x8u)>>4u;   ///< 表面温度RL ADC CODE
+
+        __enable_irq();
+    }
+
+    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+
+    *uVir = u32VirAdcCode;
+    *uVNtcH = u32NtcHAdcCode;
+    *uVNtcL = u32NtcLAdcCode;
+
+    return TRUE;
+}
 
 ///< 校准(标定)模式API
-void App_CalibrationMode(void)
-{ 
-    // if(TRUE  == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&       ///< VIR Mark
-    //    FALSE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
-    // {
-    //     Flash_SectorErase(VIRL_PARA_ADDR);
-    //     AppAdcColTemp(FALSE);
-    //     AppVirLParaMark(((uint32_t)(gfSurfaceTemp*100)));
-    //     ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
-    // }
-    // else if(FALSE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) &&      ///< NTC Mark
-    //         TRUE  == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
-    // {
-    //     Flash_SectorErase(VIRH_PARA_ADDR);
-    //     AppAdcColTemp(FALSE);
-    //     AppVirHParaMark(((uint32_t)(gfSurfaceTemp*100)));
-    //     ///< AppAdcColTemp(TRUE);   ///< 标定后再次采集确认
-    // }
+static void AppCalibrationMode(void)
+{
+	CalData_t stCal;
+    float32_t fNtc;
+    uint8_t u8CaType = 0;
+    uint32_t uNtcH, uNtcL, uVir;
+
+    ///< 等按键触发
+    while(1) {
+        if(!KEY_TRIG()) {
+            if(u8CaType == 0) {
+                AppLedEnable(1);
+                delay1ms(200);
+            } else {
+                AppLedEnable(1);
+                delay1ms(500);
+            }
+            continue;
+        }
+
+        ///< 清除按键
+        KEY_CLR_TRIG();
+
+        ///< 读取ADC
+        if(!AppAdcCodeGet(&uVir, &uNtcH, &uNtcL)) {
+            delay1ms(100);
+            continue;
+        }
+
+        ///< 环境温度
+        fNtc = NNA_NtcTempGet(uNtcH, uNtcL);
+
+        if(u8CaType == 0) {
+            NNA_Calibration(fNtc, 37, uVir);
+            AppBeepBlink((SystemCoreClock/1500));
+        } else if(u8CaType == 1) {
+            NNA_Calibration(fNtc, 42, uVir);
+            AppBeepBlink((SystemCoreClock/1500));
+        } else {
+            /// finished
+            break;
+        }
+        u8CaType ++;
+    }
+
+    ///< 回写校准数据
+    AppCalDataStore(&stCal, sizeof(stCal));
 }
 
 /**
@@ -308,204 +370,12 @@ int32_t main(void)
     ///< 系统初始化
     App_SystemInit();
 
-#if 0
-    while(1)
-    {   
-        switch(enMState)
-        {
-            case PowerOnMode:           ///< 上电(开机)模式
-            {   
-                AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
-                AppLcdInitialMode();    ///< LCD 初始状态显示
-
-                ///< 校准模式判定
-                if(TRUE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN) && 
-                   TRUE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
-                {
-                    ///< 状态切换至初始状态模式
-                    enMState = InitialMode;
-                }
-                else
-                {
-                    gstcLcdDisplayCfg.bM9En     = TRUE;
-                    AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-                    ///< 状态切换至温度校准模式
-                    enMState = CalibrationMode;
-                }
-            }
-            break;
-            
-            case InitialMode:           ///< 初始状态模式
-            {
-                if(KEY_TRIG())      ///<*** 按键检测
-                {
-                    KEY_CLR_TRIG();
-
-                    gstcLcdDisplayCfg.bM6En  = TRUE;
-                    gstcLcdDisplayCfg.bM5En  = TRUE;
-                    gstcLcdDisplayCfg.bM10En = TRUE;
-                    gstcLcdDisplayCfg.bM2En  = TRUE;
-                    gstcLcdDisplayCfg.bM8En  = TRUE;
-                    gstcLcdDisplayCfg.bM3En  = TRUE;
-                    gstcLcdDisplayCfg.bM2En  = FALSE;
-                    gstcLcdDisplayCfg.enTmpMode = Celsius;
-                    gstcLcdDisplayCfg.u16Num = LCDCHAR__;       ///<*** 显示'__._'(需修改)
-                    AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-                    
-                    ///< 状态切换至测量模式
-                    enMState = TempMeasureMode;
-                }
-                else if(KEY_LEFT())
-                {
-                    KEY_CLR_LEFT();
-                    
-                    gstcLcdDisplayCfg.bM6En  = TRUE;
-                    gstcLcdDisplayCfg.bM5En  = TRUE;
-                    gstcLcdDisplayCfg.bM10En = TRUE;
-                    gstcLcdDisplayCfg.bM2En  = TRUE;
-                    gstcLcdDisplayCfg.bM8En  = TRUE;
-                    gstcLcdDisplayCfg.enTmpMode = Celsius;
-                    gstcLcdDisplayCfg.u16Num = gstcLcdDisplayCfg.u16Num - 10;  ///<*** 更新前一次存储温度(需修改)
-                    AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-                    
-                    ///< 状态切换至历史数据查询模式
-                    enMState = TempScanMode;
-                }
-            }
-                
-            break;
-            
-            case TempScanMode:          ///< 历史数据查询模式
-            {
-                {
-                    if(KEY_LEFT())       ///<*** F1 按键检测
-                    {
-                        KEY_CLR_LEFT();
-                        
-                        gstcLcdDisplayCfg.bM6En  = TRUE;
-                        gstcLcdDisplayCfg.bM5En  = TRUE;
-                        gstcLcdDisplayCfg.bM10En = TRUE;
-                        gstcLcdDisplayCfg.bM2En  = TRUE;
-                        gstcLcdDisplayCfg.bM8En  = TRUE;
-                        gstcLcdDisplayCfg.enTmpMode = Celsius;
-                        gstcLcdDisplayCfg.u16Num = gstcLcdDisplayCfg.u16Num - 10;  ///<*** 更新前一次存储温度(需修改)
-                        AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));                        
-                        
-                    }
-                    else if(KEY_TRIG())  ///<*** F2 按键检测
-                    {
-                        KEY_CLR_TRIG();                        
-                    
-                        gstcLcdDisplayCfg.bM6En  = TRUE;
-                        gstcLcdDisplayCfg.bM5En  = TRUE;
-                        gstcLcdDisplayCfg.bM10En = TRUE;
-                        gstcLcdDisplayCfg.bM2En  = TRUE;
-                        gstcLcdDisplayCfg.bM8En  = TRUE;
-                        gstcLcdDisplayCfg.bM3En  = TRUE;
-                        gstcLcdDisplayCfg.bM2En  = FALSE;
-                        gstcLcdDisplayCfg.enTmpMode = Celsius;
-                        gstcLcdDisplayCfg.u16Num = LCDCHAR__;       ///<*** 显示'__._'(需修改)
-                        AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg)); 
-
-                        ///< 状态切换至测温模式
-                        enMState = TempMeasureMode;
-                        
-                    }
-                }
-            }
-            break;
-            
-            case TempMeasureMode:       ///< 温度测量模式
-            {
-                ///<*** 启动测温
-                if(KEY_TRIG())  ///<*** F1 按键检测
-                {
-                    KEY_CLR_TRIG();                        
-                
-                    ///<*** 温度数据采集处理     
-                    AppAdcColTemp(TRUE);
-                    
-                    gstcLcdDisplayCfg.u16Num = (gfHumanTemp + 0.05)*10;
-                    gstcLcdDisplayCfg.bM7En  = FALSE;
-                    gstcLcdDisplayCfg.bM8En  = FALSE;
-                    gstcLcdDisplayCfg.bM5En  = TRUE;
-                    gstcLcdDisplayCfg.bM9En  = FALSE;
-                    AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-                    
-                    AppLedEnable(LedLightBlue);
-                    AppBeepBlink((SystemCoreClock/1500));
-                    delay1ms(1000);
-                    AppLedDisable();
-
-                }
-                else if(KEY_SWITCH())      ///<*** 关机检测
-                {
-                    KEY_CLR_SWITCH();
-                    {
-                        ///< 状态切换至关机模式
-                        enMState = PowerOffMode;
-                    }
-                }
-            
-            }
-            
-            break;
-            
-            case PowerOffMode:          ///< 关机模式
-                {
-                    if((KEY_TRIG()) || (KEY_LEFT()))      ///<*** 开机检测
-                    {
-                        KEY_CLR_TRIG();
-                        KEY_CLR_LEFT();
-
-                        Adc_Enable();
-                        Bgr_BgrEnable();
-                        
-                        {
-                            ///< 状态切换至关机模式
-                            enMState = PowerOnMode;
-                        }
-                    }
-                    else
-                    {                        
-                        ///<*** 配置IO,准备进入超低功耗模式
-                        AppLcdClearAll();
-                        ///< 状态切换至关机模式
-                        Adc_Disable();
-                        Bgr_BgrDisable();
-                        Lpm_GotoDeepSleep(FALSE);
-                    }
-
-                }
-            break;
-            
-            case CalibrationMode:       ///< 校准(标定)模式
-            {
-                if(KEY_TRIG())
-                {
-                    KEY_CLR_TRIG();
-                    
-                    App_CalibrationMode();
-                    enMState = PowerOnMode;
-                }
-            }
-            break;
-            
-            default:
-                // ……
-                enMState = PowerOnMode;
-            break;
-                
-        }       
-    }
-
-#else
     ///< 可用于简单采样测试(需要开启UART及其端口配置)            
     // DBG_PRINT("Temp Test >>> \r\n");
 
     AppLedEnable(LedLightBlue);
     AppLcdDisplayAll();
-    AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
+    // AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
 
     // Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); //Always ON
 
@@ -522,12 +392,10 @@ int32_t main(void)
             delay1ms(1000);
         }
         #endif
-                
-    
-        if((enCalType % 2)) {
-            AppLedEnable(1);
-        } else {
-            AppLedEnable(0);
+
+        while(AppCalCheck() == FALSE) {
+            AppCalibrationMode();
+            delay1ms(100);
         }
 
         ///<*** 温度数据采集及转换
@@ -535,13 +403,18 @@ int32_t main(void)
             KEY_CLR_TRIG();
             AppAdcColTemp(TRUE);
             AppBeepBlink((SystemCoreClock/1500));
+            // AppLcdBlink();
+        }
+
+        if(KEY_LEFT()) {
+            KEY_CLR_LEFT();
+            AppCalClean();
+            AppBeepBlink((SystemCoreClock/1500));
             AppLcdBlink();
         }
 
-        delay1ms(200);
+        delay1ms(100);
     }
-
-#endif
 }
    
 
@@ -575,7 +448,7 @@ void Lvd_IRQHandler(void)
 ///< GPIO 中断服务程序 ———— 测温及选择功能键
 void PortC_IRQHandler(void)
 {
-    delay1ms(100);
+    delay1ms(10);
     if (TRUE == Gpio_GetIrqStatus(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN))
     {
         Gpio_ClearIrq(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN);

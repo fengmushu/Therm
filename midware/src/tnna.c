@@ -1,10 +1,14 @@
 #include "app.h"
 #include "math.h"
 
-static float32_t VtT_Paras[3] = {-2420154, 54351.00, 495.00};
-static float32_t VtE_Paras[3] = {1589544, -54351.00, -495.00};
-static float32_t RaT_Paras[3] = {19263, -4305.730, 42.1632};
+#define USE_FITTING 1
 
+static const float32_t VtT_Paras[3] = {-2420154, 54351.00, 495.00};
+static const float32_t VtE_Paras[3] = {1589544, -54351.00, -495.00};
+static const float32_t RaT_Paras[3] = {19263, -4305.730, 42.1632};
+static float32_t fAmp = 0, fCaLBase = 0, fCaHBase = 0;
+
+#ifndef USE_FITTING
 static int32_t TNNA_BSearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t revert)
 {
     int low, upper;
@@ -27,6 +31,34 @@ static int32_t TNNA_BSearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, b
     return low;
 }
 
+static float32_t TNNA_TempNtcFind(int32_t uRa)
+{
+    int iIndex;
+    float32_t fTemp;
+
+    iIndex = TNNA_BSearch(i32TempNtcTable, ARRAY_SIZE(i32TempNtcTable), uRa, TRUE);
+
+    //< 10° - 45°
+    fTemp = 10 + iIndex; //stTherBoardPara.f32BlackBodyTempL
+    return fTemp;
+}
+
+///< 查表
+static float32_t TNNA_TempVirFind(float32_t fTempEnv, int32_t i32VirAdc)
+{
+    int iTempObject;
+    int iIndex = fTempEnv - 10;
+
+    // 查表
+    iTempObject = TNNA_BSearch(i32TempVirTable[iIndex], ARRAY_SIZE(i32TempVirTable[0]), i32VirAdc, FALSE);
+
+    // 平移
+    iTempObject += 10;
+
+    return iTempObject;
+}
+
+#else
 ///< 
 static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_t Y, boolean_t revert)
 {
@@ -48,18 +80,8 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         return 0;
     }
 }
+#endif //USE_FITTING
 
-static float32_t TNNA_TempNtcFind(int32_t uRa)
-{
-    int iIndex;
-    float32_t fTemp;
-
-    iIndex = TNNA_BSearch(i32TempNtcTable, ARRAY_SIZE(i32TempNtcTable), uRa, TRUE);
-
-    //< 10° - 45°
-    fTemp = 10 + iIndex; //stTherBoardPara.f32BlackBodyTempL
-    return fTemp;
-}
 
 /**
  *******************************************************************************
@@ -73,42 +95,19 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
 {
     uint32_t uRa;
     uint32_t fNtcRL = 51000;
-    float32_t fTempBySearch, fTempByFitting;
 
     // Ra-T = Vra / VnL * RL
     //< (3090 - 960) / 960 * 51000 = 119k
     uRa = (float32_t)(u32AdcNtcHCode - u32AdcNtcLCode) / u32AdcNtcLCode  * fNtcRL;
 
+  #ifndef USE_FITTING
     // 查表R-Te
-    fTempBySearch = TNNA_TempNtcFind(uRa);
-
+    return TNNA_TempNtcFind(uRa);
+  #else
     // 拟合R-Te曲线
-    fTempByFitting = TNNA_Fitting(RaT_Paras[0], RaT_Paras[1], RaT_Paras[2]  + ((float32_t)uRa / 1000), 0, FALSE);
-
-    DBG_PRINT("\tRa: %u S: %2.2f F: %2.2f\r\n", uRa, fTempBySearch, fTempByFitting);
-    // 二选一
-    if(0) {
-        return fTempBySearch;
-    } else {
-        return fTempByFitting;
-    }
+    return TNNA_Fitting(RaT_Paras[0], RaT_Paras[1], RaT_Paras[2]  + ((float32_t)uRa / 1000), 0, FALSE);
+  #endif //USE_FITTING
 }
-
-static float32_t TNNA_TempVirFind(float32_t fTempEnv, int32_t i32VirAdc)
-{
-    int iTempObject;
-    int iIndex = fTempEnv - 10;
-
-    // 查表
-    iTempObject = TNNA_BSearch(i32TempVirTable[iIndex], ARRAY_SIZE(i32TempVirTable[0]), i32VirAdc, FALSE);
-
-    // 平移
-    iTempObject += 10;
-
-    return iTempObject;
-}
-
-static float32_t fAmp = 0, fCaLBase = 0, fCaHBase = 0;
 
 float32_t NNA_SurfaceTempGet(float32_t fTempEnv, uint32_t u32VirAdc, float32_t fEpsilon)
 {
@@ -127,27 +126,17 @@ float32_t NNA_SurfaceTempGet(float32_t fTempEnv, uint32_t u32VirAdc, float32_t f
     fVirVolt = ((u32VirAdc) * 1000000) / fAmp / fEpsilon;
 
     // DBG_PRINT("\t$ %2.2f uV\r\n", fVirVolt);
-
+  #ifndef USE_FITTING
     // 查表V-Tt
-    fVoltBySearch = TNNA_TempVirFind(fTempEnv, fVirVolt);
-
+    return TNNA_TempVirFind(fTempEnv, fVirVolt);
+  #else
     // (Te) -> (V-Tt曲线)
     // c(t) = -0.000495 * t * t - 0.054351 * t + C
     fTempEnvFit = VtE_Paras[1] * fTempEnv + VtE_Paras[2] * pow(fTempEnv, 2) + fTempFixup;
 
     // U = 0.0004950 * x * x + 0.054351 * x + c(t)
-    fVoltByFitting = TNNA_Fitting( fTempEnvFit, VtT_Paras[1], VtT_Paras[2], fVirVolt, FALSE);
-
-    DBG_PRINT("\t- %2.2f %2.2f %2.2f\r\n", fVoltBySearch, fVoltByFitting, fTempEnvFit);
-
-    // 二选一
-    if(0) {
-        // 查表找出环温对应的 Vir-T
-        return fVoltBySearch;
-    } else {
-        // 拟合
-        return fVoltByFitting;
-    }
+    return TNNA_Fitting( fTempEnvFit, VtT_Paras[1], VtT_Paras[2], fVirVolt, FALSE);
+  #endif //USE_FITTING
 }
 
 boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc)
@@ -191,16 +180,6 @@ boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u3
             DBG_PRINT("\tAMP: %2.2f %2.2f %2.2f\r\n", fAmp, fCaLBase, fCaHBase);
         }
     }
-
-    // 标定
-    // if(0) {
-        ///< U = A*x^2 + B*x + c(t)
-        ///< c(t) = a*t^2 + b*t + Base
-
-        ///< Base = U - b * t - a * t^2 - B*x - A * x^2
-        // fBase = fVoltByFitting - (-54351.00 * fTempEnv) - (-495.00 * fTempEnv * fTempEnv);
-        // fBase = fBase - (54351.00 * fFixCurr) - (495.00 * fFixCurr * fFixCurr);
-    // }
     return TRUE;
 }
 
@@ -219,7 +198,7 @@ float32_t NNA_HumanBodyTempGet(float32_t fSurfaceTemp)
     }
 
     if(fSurfaceTemp <= 36.2) {
-        return 29.13 + 0.22 * fSurfaceTemp;
+        return 29 + 0.22 * fSurfaceTemp;
     }
 
     if(fSurfaceTemp <= 38) {
