@@ -494,11 +494,11 @@ void AppLcdDebug(void)
         AppLcdDisplayUpdate();
         delay1ms(500);
 
-        AppLcdSetCheckMode(Surface);
+        AppLcdSetCheckMode(Surface, TRUE);
         AppLcdDisplayUpdate();
         delay1ms(500);
 
-        AppLcdSetCheckMode(Body);
+        AppLcdSetCheckMode(Body, TRUE);
         AppLcdDisplayUpdate();
         delay1ms(500);
 
