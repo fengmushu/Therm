@@ -109,7 +109,7 @@ typedef struct stc_lcd_display_cfg
 /*****************************************************************************
  * Function implementation - global ('extern') and local ('static')
  *****************************************************************************/
-static volatile stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
+static stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
 
 /* our lcd num */
 static const uint16_t s_LcdNumCode[10] = {
@@ -523,7 +523,7 @@ void AppLcdDebug(void)
             tmp += (i >= 30 ? (i - 30) : 0)*1000;
             tmp += ((i >= 20 && i < 30) ? (i-20) : 0)*100;
             tmp += ((i >= 10 && i < 20) ? (i-10) : 0)*10;
-            tmp += (i >= 0 && i <10) ?i:0;
+            tmp += (i < 10) ? i : 0;
 
             AppLcdSetTemp(tmp);
             AppLcdSetLogTemp(tmp, tmp > 100 ? tmp/100 : tmp);

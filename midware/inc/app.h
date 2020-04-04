@@ -64,7 +64,11 @@
 #include "nna.h"
 #include "flash.h"
 
+#if 1
 #define DBG_PRINT printf
+#else
+#define DBG_PRINT(x, ...) do{} while(0)
+#endif
 
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
