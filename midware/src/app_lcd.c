@@ -295,20 +295,20 @@ void AppLcdSetBattery(boolean_t display)
 }
 
 
-void AppLcdSetCheckMode(enCheckMode_t CheckMode)
+void AppLcdSetCheckMode(enCheckMode_t CheckMode, boolean_t display)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
     pstcLcdDisplayCfg->enCheckMode = CheckMode;
     switch(CheckMode)
     {
         case Body:
-            sAppLcdSetSymbol(pstcLcdDisplayCfg, BODY_SYM, TRUE);
+            sAppLcdSetSymbol(pstcLcdDisplayCfg, BODY_SYM, display);
             sAppLcdSetSymbol(pstcLcdDisplayCfg, SURFACE_SYM, FALSE);
             break;
                 
         case Surface:
             sAppLcdSetSymbol(pstcLcdDisplayCfg, BODY_SYM, FALSE);
-            sAppLcdSetSymbol(pstcLcdDisplayCfg, SURFACE_SYM, TRUE);
+            sAppLcdSetSymbol(pstcLcdDisplayCfg, SURFACE_SYM, display);
             break;
             
         case CheckNone:
@@ -459,15 +459,19 @@ void AppLcdClearAll(void)
 
 void AppLcdBlink(void)
 {
-    AppLcdDisplayAll();
-    delay1ms(400);
-    AppLcdDisplayClear();
-    delay1ms(400);
-    AppLcdDisplayAll();
-    delay1ms(400);
-    AppLcdDisplayClear();
-    delay1ms(400);
-    AppLcdDisplayAll();
+    uint8_t cnt = 5;
+    while (cnt-- > 0)
+    {
+        if (cnt % 2 == 0)
+        {
+            AppLcdDisplayAll();
+        }
+        else
+        {
+            AppLcdDisplayClear();
+        }
+        delay1ms(400);
+    }
 }
 
 #define LCD_DEBUG 1
@@ -521,9 +525,9 @@ void AppLcdDebug(void)
         {
             tmp = 0;
             tmp += (i >= 30 ? (i - 30) : 0)*1000;
-            tmp += ((i >= 20 && i < 30) ? (i-20) : 0)*100;
-            tmp += ((i >= 10 && i < 20) ? (i-10) : 0)*10;
-            tmp += (i < 10) ? i : 0;
+            tmp += ((i >= 20 && i < 30) ? (i -20) : 0)*100;
+            tmp += ((i >= 10 && i < 20) ? (i -10) : 0)*10;
+            tmp += (i < 10) ? i:0;
 
             AppLcdSetTemp(tmp);
             AppLcdSetLogTemp(tmp, tmp > 100 ? tmp/100 : tmp);

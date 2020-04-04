@@ -120,7 +120,7 @@ extern void AppLcdSetBuzzer(boolean_t display);
 
 extern void AppLcdSetBattery(boolean_t display);
 
-extern void AppLcdSetCheckMode(enCheckMode_t CheckMode);
+extern void AppLcdSetCheckMode(enCheckMode_t CheckMode, boolean_t display);
 
 extern void AppLcdSetTempMode(enTempMode_t TempMode,  boolean_t display);
 
