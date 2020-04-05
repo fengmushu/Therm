@@ -185,82 +185,8 @@ void App_SystemInit(void)
 }
 
 
-///< ADC 采样及温度计算
-// TRUE  - 标准模式(使用标定后的值)
-// FALSE - 标定(测试)模式 
-void AppAdcColTemp(boolean_t bMarkEn)
-{
-    static int i = 0;
-    uint32_t  u32SampIndex;     ///< 采样次数
-    uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
-    uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
-
-    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); delay1ms(100);
-    
-    ///<*** ADC数据采集     
-    {
-        __disable_irq();
-
-        u32SampIndex      = 0x10u;
-        u32VirAdcCodeAcc  = 0;
-        u32NtcHAdcCodeAcc = 0;
-        u32NtcLAdcCodeAcc = 0;
-
-        while(u32SampIndex--)
-        {
-            // if(u32SampIndex&0x8u)
-            // {
-            //     gstcLcdDisplayCfg.u16Num = LCDCHAR__;  
-            //     AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-            // }
-            // else
-            // {
-            //     gstcLcdDisplayCfg.u16Num = 0xFFFEu;
-            //     AppLcdDisplayUpdate((stc_lcd_display_cfg_t*)(&gstcLcdDisplayCfg));
-            // }
-            
-            APP_LCD_DISABLE();
-            Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
-            AppAdcVirAvgCodeGet(&u32VirAdcCode);            ///< 表面温度 ADC采样
-            AppAdcNtcHAvgCodeGet(&u32NtcHAdcCode);          ///< 环境温度RH ADC采样
-            AppAdcNtcLAvgCodeGet(&u32NtcLAdcCode);          ///< 表面温度RL ADC采样
-            Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
-            APP_LCD_ENABLE();
-            
-            u32VirAdcCodeAcc  += u32VirAdcCode;
-            u32NtcHAdcCodeAcc += u32NtcHAdcCode;
-            u32NtcLAdcCodeAcc += u32NtcLAdcCode;
-        }
-
-        u32VirAdcCode  = (u32VirAdcCodeAcc  + 0x8u)>>4u;   ///< 表面温度 ADC CODE    
-        u32NtcHAdcCode = (u32NtcHAdcCodeAcc + 0x8u)>>4u;   ///< 环境温度RH ADC CODE
-        u32NtcLAdcCode = (u32NtcLAdcCodeAcc + 0x8u)>>4u;   ///< 表面温度RL ADC CODE
-
-        __enable_irq();
-    }
-
-    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
-
-    ///< 环境温度获取
-    gf32NtcTemp = NNA_NtcTempGet(u32NtcHAdcCode, u32NtcLAdcCode);       ///< NTC 环境温度值获取
-
-    ///< 黑体/物体 表面温度
-    gfBlackTemp = NNA_SurfaceTempGet(gf32NtcTemp, u32VirAdcCode, 1.0);
-
-    ///< 物体表面 
-    gfSurfaceTemp = NNA_SurfaceTempGet(gf32NtcTemp, u32VirAdcCode, 0.98295);
-
-    ///< 人体温度
-    gfHumanTemp = NNA_HumanBodyTempGet(gfSurfaceTemp);
-
-    // DBG_PRINT("NTCH: %u, NTCL: %u\r\n", u32NtcHAdcCode, u32NtcLAdcCode);
-    DBG_PRINT("VIR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n", \
-                    u32VirAdcCode, gf32NtcTemp, gfBlackTemp, gfSurfaceTemp, gfHumanTemp);
-    // DBG_PRINT("Ntc = %2.1fC, Black = %2.1fC, Human = %2.1fC\r\n", gf32NtcTemp, gfSurfaceTemp, gfHumanTemp);
-}
-
 ///< ADC 修正值获取
-static boolean_t AppAdcCodeGet(uint32_t *uVir, uint32_t *uVNtcH, uint32_t *uVNtcL)
+static boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
     uint32_t  u32SampIndex;     ///< 采样次数
     uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
@@ -299,20 +225,54 @@ static boolean_t AppAdcCodeGet(uint32_t *uVir, uint32_t *uVNtcH, uint32_t *uVNtc
 
     Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
 
-    *uVir = u32VirAdcCode;
+    *uViR = u32VirAdcCode;
     *uVNtcH = u32NtcHAdcCode;
     *uVNtcL = u32NtcLAdcCode;
 
     return TRUE;
 }
 
-///< 校准(标定)模式API
-static void AppCalibrationMode(void)
+///< ADC 采样及温度计算
+// TRUE  - 标准模式(使用标定后的值)
+// FALSE - 标定(测试)模式 
+void AppTempCalculate(CalData_t *pCal)
 {
-	CalData_t stCal;
+    static int i = 0;
+    uint32_t  u32SampIndex;     ///< 采样次数
+    uint32_t  uViR, uVNtcH, uVNtcL;     ///< ADC 采样值
+    float32_t fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp;
+
+    ASSERT(pCal);
+
+    if(FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL)) {
+        return;
+    }
+
+    ///< 环境温度获取
+    fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL);       ///< NTC 环境温度值获取
+
+    ///< 黑体/物体 表面温度
+    fBlackTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
+
+    ///< 物体表面 
+    fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
+
+    ///< 人体温度
+    fHumanTemp = NNA_HumanBodyTempGet(pCal, fSurfaceTemp);
+
+    DBG_PRINT("ViR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n", \
+                    uViR, fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp);
+}
+
+///< 校准(标定)模式API
+static void AppCalibration(void)
+{
+	CalData_t Cal;
     float32_t fNtc;
     uint8_t u8CaType = 0;
-    uint32_t uNtcH, uNtcL, uVir;
+    uint32_t uNtcH, uNtcL, uViR;
+
+    memset(&Cal, 0, sizeof(Cal));
 
     ///< 等按键触发
     while(1) {
@@ -326,12 +286,11 @@ static void AppCalibrationMode(void)
             }
             continue;
         }
-
         ///< 清除按键
         KEY_CLR_TRIG();
 
         ///< 读取ADC
-        if(!AppAdcCodeGet(&uVir, &uNtcH, &uNtcL)) {
+        if(!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL)) {
             delay1ms(100);
             continue;
         }
@@ -340,20 +299,22 @@ static void AppCalibrationMode(void)
         fNtc = NNA_NtcTempGet(uNtcH, uNtcL);
 
         if(u8CaType == 0) {
-            NNA_Calibration(fNtc, 37, uVir);
-            AppBeepBlink((SystemCoreClock/1500));
-        } else if(u8CaType == 1) {
-            NNA_Calibration(fNtc, 42, uVir);
+            NNA_Calibration(&Cal, fNtc, 37, uViR);
             AppBeepBlink((SystemCoreClock/1500));
         } else {
+            NNA_Calibration(&Cal, fNtc, 42, uViR);
+            AppBeepBlink((SystemCoreClock/1500));
             /// finished
             break;
         }
         u8CaType ++;
     }
 
+    ///< 区间补偿常数
+    Cal.u8FixHuman = 29;
+
     ///< 回写校准数据
-    AppCalDataStore(&stCal, sizeof(stCal));
+    AppCalStore(&Cal, sizeof(Cal));
 }
 
 /**
@@ -366,7 +327,7 @@ static void AppCalibrationMode(void)
  **
  ******************************************************************************/
 int32_t main(void)
-{        
+{
     ///< 系统初始化
     App_SystemInit();
 
@@ -381,6 +342,7 @@ int32_t main(void)
 
     while(1)
     {
+        CalData_t *pCal;
         //for test lcd
         #if 0
         {   
@@ -393,15 +355,15 @@ int32_t main(void)
         }
         #endif
 
-        while(AppCalCheck() == FALSE) {
-            AppCalibrationMode();
+        while((pCal = AppCalGet()) == NULL) {
+            AppCalibration();
             delay1ms(100);
         }
 
         ///<*** 温度数据采集及转换
         if(KEY_TRIG()) {
             KEY_CLR_TRIG();
-            AppAdcColTemp(TRUE);
+            AppTempCalculate(pCal);
             AppBeepBlink((SystemCoreClock/1500));
             // AppLcdBlink();
         }
@@ -409,8 +371,8 @@ int32_t main(void)
         if(KEY_LEFT()) {
             KEY_CLR_LEFT();
             AppCalClean();
-            AppBeepBlink((SystemCoreClock/1500));
             AppLcdBlink();
+            AppBeepBlink((SystemCoreClock/1500));
         }
 
         delay1ms(100);

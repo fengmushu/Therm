@@ -104,16 +104,6 @@ typedef struct {
     uint8_t WaterNumber;
     uint8_t RevID;
 } UID_t;
-
-typedef struct {
-    ///< 运放放大系数
-    float32_t   fAmp;
-    ///< 温度偏移基数
-    float32_t   fCalBase;
-    ///< 人体温度修正偏移: 29
-    uint8_t     u8HumFix;
-} CalData_t;
-
 typedef struct {
     ///< 数据校验
     uint32_t    uMagic;
@@ -169,9 +159,10 @@ extern void AppUartInit(void);
 
 ///< 参数标定区初始化
 extern void AppParaAreaInit(void);
-extern boolean_t AppCalCheck(void);
+extern CalData_t *AppCalGet(void);
+extern boolean_t AppCalStore(void *pCal, uint8_t uLen);
 extern void AppCalClean(void);
-extern boolean_t AppCalDataStore(void *pCal, uint8_t uLen);
+
 ///< VIR黑体 校准系数标定
 extern void AppVirLParaMark(uint32_t u32VirLDataCal);
 extern void AppVirHParaMark(uint32_t u32VirHDataCal);

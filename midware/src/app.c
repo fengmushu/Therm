@@ -119,7 +119,7 @@ static void AppLoadUID(void)
             gstUID.LotNumber[3], gstUID.LotNumber[4], gstUID.LotNumber[5]);
 }
 
-static boolean_t CalDataLoad(void)
+static boolean_t CalLoad(void)
 {
     int i;
     uint32_t uMagic;
@@ -151,7 +151,26 @@ static boolean_t CalDataLoad(void)
     return TRUE;
 }
 
-boolean_t AppCalDataStore(void *pCal, uint8_t uLen)
+CalData_t *AppCalGet(void)
+{
+    static int nCRC = -1;
+    FactoryData_t *pFactory = &gstFactory;
+
+    ///< from cacahed data
+    if(nCRC == pFactory->u16Crc) {
+        return &pFactory->CalData;
+    }
+
+    ///< load from flash
+    if(CalLoad()) {
+        nCRC = pFactory->u16Crc;
+        return &pFactory->CalData;
+    } else {
+        return NULL;
+    }
+}
+
+boolean_t AppCalStore(void *pCal, uint8_t uLen)
 {
     int i;
     uint32_t uAddr = CAL_DATA_ADDR;
@@ -187,16 +206,11 @@ boolean_t AppCalDataStore(void *pCal, uint8_t uLen)
     return TRUE;
 }
 
-boolean_t AppCalCheck(void)
-{
-    if(!CalDataLoad()) {
-        return FALSE;
-    }
-	return TRUE;
-}
-
 void AppCalClean(void)
 {
+    ///< 清空缓存数据
+    memset(&gstFactory, 0, sizeof(FactoryData_t));
+
     ///< 关闭中断
     __disable_irq();
     ///< 擦除块

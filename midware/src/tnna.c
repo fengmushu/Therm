@@ -6,7 +6,6 @@
 static const float32_t VtT_Paras[3] = {-2420154, 54351.00, 495.00};
 static const float32_t VtE_Paras[3] = {1589544, -54351.00, -495.00};
 static const float32_t RaT_Paras[3] = {19263, -4305.730, 42.1632};
-static float32_t fAmp = 0, fCaLBase = 0, fCaHBase = 0;
 
 #ifndef USE_FITTING
 static int32_t TNNA_BSearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t revert)
@@ -109,10 +108,11 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
   #endif //USE_FITTING
 }
 
-float32_t NNA_SurfaceTempGet(float32_t fTempEnv, uint32_t u32VirAdc, float32_t fEpsilon)
+float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32VirAdc, float32_t fEpsilon)
 {
     float32_t fVirVolt, fVoltBySearch, fVoltByFitting, fTempEnvFit;
-    float32_t fTempFixup = (fCaLBase + fCaHBase) / 2;// = NNA_GetFixupBase();
+    float32_t fAmp = pCal->fAmp;
+    float32_t fTempFixup = pCal->fCalBase;
 
     // DBG_PRINT("# %2.2f uV\r\n", (float32_t)u32VirAdc * 1000000);
     if(0 == fAmp) {
@@ -139,13 +139,13 @@ float32_t NNA_SurfaceTempGet(float32_t fTempEnv, uint32_t u32VirAdc, float32_t f
   #endif //USE_FITTING
 }
 
-boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc)
+boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc)
 {
     static float32_t fTH = 0xFFFFFFFF, fTL = 0xFFFFFFFF, uVAdcH, uVAdcL;;
 
-    float32_t fTx;
+    float32_t fTx, fAmp, fCaLBase, fCaHBase;
 
-    if(fAmp) {
+    if(pCal->fAmp) {
         return TRUE;
     }
 
@@ -177,13 +177,16 @@ boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u3
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
 
+            pCal->fAmp = fAmp;
+            pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
+
             DBG_PRINT("\tAMP: %2.2f %2.2f %2.2f\r\n", fAmp, fCaLBase, fCaHBase);
         }
     }
     return TRUE;
 }
 
-float32_t NNA_HumanBodyTempGet(float32_t fSurfaceTemp)
+float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fSurfaceTemp)
 {
     if(fSurfaceTemp < 30) {
         return -1;
@@ -198,7 +201,7 @@ float32_t NNA_HumanBodyTempGet(float32_t fSurfaceTemp)
     }
 
     if(fSurfaceTemp <= 36.2) {
-        return 29 + 0.22 * fSurfaceTemp;
+        return pCal->u8FixHuman + 0.22 * fSurfaceTemp;
     }
 
     if(fSurfaceTemp <= 38) {

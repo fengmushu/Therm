@@ -73,11 +73,14 @@ extern "C"
  * Global type definitions
  ******************************************************************************/
 
-/******************************************************************************
- * Global definitions
- ******************************************************************************/
-#define NTC_CAL_VALUE   (250)       //(0.1℃)    校准参数NTC标定预设值
-#define VIR_CAL_VALUE   (370)       //(0.1℃)    校准参数VIR标定预设值
+typedef struct {
+    ///< 运放放大系数
+    float32_t   fAmp;
+    ///< 温度偏移基数
+    float32_t   fCalBase;
+    ///< 人体温度修正偏移: 29
+    uint8_t     u8FixHuman;
+} CalData_t;
 
 /******************************************************************************
  * Local type definitions ('typedef')
@@ -111,7 +114,7 @@ extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-extern float32_t NNA_SurfaceTempGet(float32_t f32NtcTemp, uint32_t u32VirAdcCode, float32_t fEpsilon);
+extern float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t f32NtcTemp, uint32_t u32VirAdcCode, float32_t fEpsilon);
 
 /**
  *******************************************************************************
@@ -120,10 +123,10 @@ extern float32_t NNA_SurfaceTempGet(float32_t f32NtcTemp, uint32_t u32VirAdcCode
 
  ** \retval                         人体温度
  ******************************************************************************/
-extern float32_t NNA_HumanBodyTempGet(float32_t fSurfaceTemp);
+extern float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fSurfaceTemp);
 
 
-extern boolean_t NNA_Calibration(float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc);
+extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc);
 //@} // APP Group
    
 #ifdef __cplusplus
