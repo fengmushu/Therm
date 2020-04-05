@@ -288,7 +288,7 @@ void AppMGpioInit(void)
     _AppBeepPortInit();
     
     ///< EEPROM I2C 端口初始化
-    // _AppEeI2cPortInit();
+    _AppEeI2cPortInit();
     
     ///< ADC 采样端口初始化
     _AppAdcPortInit();
