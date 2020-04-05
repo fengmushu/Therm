@@ -139,11 +139,24 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
   #endif //USE_FITTING
 }
 
-boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc)
+void NNA_CalInit(CalData_t *pCal)
 {
-    static float32_t fTH = 0xFFFFFFFF, fTL = 0xFFFFFFFF, uVAdcH, uVAdcL;;
+    memset(pCal, 0, sizeof(CalData_t));
 
+    pCal->fTH = pCal->fTL = 0xFFFFFFFF;
+    pCal->u8HumanFix = 29;
+}
+
+boolean_t NNA_Calibration(
+                            CalData_t *pCal,
+                            float32_t fTempEnv,
+                            float32_t fTempTarget,
+                            float32_t *fTempGet,
+                            uint32_t u32VirAdc)
+{
     float32_t fTx, fAmp, fCaLBase, fCaHBase;
+    float32_t fTH = pCal->fTH, fTL = pCal->fTL;
+    float32_t uVAdcH = pCal->uVAdcH, uVAdcL = pCal->uVAdcL;
 
     if(pCal->fAmp) {
         return TRUE;
@@ -161,13 +174,15 @@ boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTa
     ///< k: fAMP, m/n: fTx, Ux: fVirAdcH/L, cbase: fCaH/LBase
     fTx = VtT_Paras[2] * pow(fTempTarget, 2) + VtT_Paras[1] * fTempTarget \
                 + VtE_Paras[2] * pow(fTempEnv, 2) + VtE_Paras[1] * fTempEnv;
+    ///< 返回目标温度实测值
+    *fTempGet = fTx;
 
     if(fTempTarget < 40) {
-        fTL = fTx;
-        uVAdcL = u32VirAdc * 1000000;
+        pCal->fTL = fTL = fTx;
+        pCal->uVAdcL = uVAdcL = u32VirAdc * 1000000;
     } else {
-        fTH = fTx;
-        uVAdcH = u32VirAdc * 1000000;
+        pCal->fTH = fTH = fTx;
+        pCal->uVAdcH = uVAdcH = u32VirAdc * 1000000;
     }
 
     if(fTL != 0xFFFFFFFF && fTH != 0xFFFFFFFF && ((fTL - fTH != 0))) {
@@ -180,9 +195,9 @@ boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTa
             pCal->fAmp = fAmp;
             pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
 
-            // DBG_PRINT("\tAMP: %2.2f %2.2f %2.2f\r\n", fAmp, fCaLBase, fCaHBase);
+            DBG_PRINT("\tAMP: %2.2f L: %2.2f H: %2.2f %2.2f %2.2f\r\n", fAmp, fTL, fTH, fCaLBase, fCaHBase);
         } else {
-            DBG_PRINT("\tAMP: overflow: %2.2f\r\n", fAmp);
+            DBG_PRINT("\tAMP-OF: %2.2f, %2.2f\r\n", fAmp, fTx);
             return FALSE;
         }
     }

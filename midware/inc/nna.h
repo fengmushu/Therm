@@ -78,6 +78,9 @@ typedef struct {
     float32_t   fAmp;
     ///< 温度偏移基数
     float32_t   fCalBase;
+    ///< 校准过程中间参数
+    float32_t   fTH, fTL;
+    uint32_t    uVAdcH, uVAdcL;
     ///< 人体温度修正偏移: 29
     uint8_t     u8HumanFix;
 } CalData_t;
@@ -93,6 +96,8 @@ typedef struct {
 /******************************************************************************
  * Global function prototypes (definition in C source)                        
  ******************************************************************************/
+
+extern void NNA_CalInit(CalData_t *pCal);
 
 /**
  *******************************************************************************
@@ -126,7 +131,7 @@ extern float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t f32NtcTemp, uint3
 extern float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fSurfaceTemp);
 
 
-extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, uint32_t u32VirAdc);
+extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, float32_t *fTemp, uint32_t u32VirAdc);
 //@} // APP Group
    
 #ifdef __cplusplus

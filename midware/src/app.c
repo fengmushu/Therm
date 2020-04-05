@@ -156,7 +156,7 @@ static boolean_t CalLoad(void)
         DBG_PRINT("### Cal Data:\r\n");
         DBG_PRINT("\tAMP: %f\r\n", pFactory->CalData.fAmp);
         DBG_PRINT("\tBase: %f\r\n", pFactory->CalData.fCalBase);
-        DBG_PRINT("\tHumanFix: %u\r\n", pFactory->CalData.u8HumanFix);
+        DBG_PRINT("\tHuman: %u\r\n", pFactory->CalData.u8HumanFix);
     }
   #endif
 
