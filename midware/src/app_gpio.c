@@ -131,6 +131,12 @@ void _AppKeyPortInit(void)
     Gpio_EnableIrq(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, GpioIrqFalling);
     Gpio_EnableIrq(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN, GpioIrqFalling);
     Gpio_EnableIrq(M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, GpioIrqFalling);
+
+    Gpio_EnableIrq(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN, GpioIrqRising);
+    Gpio_EnableIrq(M_KEY_MID_PORT, M_KEY_MID_PIN, GpioIrqRising);
+    Gpio_EnableIrq(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, GpioIrqRising);
+    Gpio_EnableIrq(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN, GpioIrqRising);
+    Gpio_EnableIrq(M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, GpioIrqRising);
     
     EnableNvic(PORTC_IRQn, IrqLevel0, TRUE);
     EnableNvic(PORTD_IRQn, IrqLevel0, TRUE);
