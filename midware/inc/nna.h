@@ -79,7 +79,7 @@ typedef struct {
     ///< 温度偏移基数
     float32_t   fCalBase;
     ///< 人体温度修正偏移: 29
-    uint8_t     u8FixHuman;
+    uint8_t     u8HumanFix;
 } CalData_t;
 
 /******************************************************************************

@@ -65,8 +65,11 @@
 #include "flash.h"
 #include "crc.h"
 
-#if 1
+#define DEBUG
+
+#ifdef DEBUG
 #define DBG_PRINT printf
+#define DBG_DUMP(p, l) hexdump(p, l)
 #else
 #define DBG_PRINT(x, ...) do{} while(0)
 #endif
@@ -160,7 +163,7 @@ extern void AppUartInit(void);
 ///< 参数标定区初始化
 extern void AppParaAreaInit(void);
 extern CalData_t *AppCalGet(void);
-extern boolean_t AppCalStore(void *pCal, uint8_t uLen);
+extern boolean_t AppCalStore(CalData_t *pCal);
 extern void AppCalClean(void);
 
 ///< VIR黑体 校准系数标定

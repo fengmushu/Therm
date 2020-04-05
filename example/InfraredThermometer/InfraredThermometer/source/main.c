@@ -120,6 +120,7 @@ static enMState_t enMState = PowerOnMode;
 #define KEY_CLR_RIGHT()    (gu32UserKeyFlag &= ~(1UL << Key_Right))
 #define KEY_CLR_TRIG()     (gu32UserKeyFlag &= ~(1UL << Key_Trig))
 #define KEY_CLR_SWITCH()   (gu32UserKeyFlag &= ~(1UL << Key_Switch))
+#define KEY_CLR_ALL()      (gu32UserKeyFlag = 0)
 
 /******************************************************************************
  * Local function prototypes ('static')
@@ -151,7 +152,8 @@ void AppSysInit(void)
 
     Sysctrl_ClkInit(&stcCfg);
     Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);           //使能内部RCL时钟作为RTC时钟
-    Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc,TRUE);   //RTC模块时钟打开
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc, TRUE);  //RTC模块时钟打开
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralCrc, TRUE);  //需要校验和时钟
 }
 
 ///< 系统初始化
@@ -272,17 +274,18 @@ static void AppCalibration(void)
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
 
+    KEY_CLR_ALL();
     memset(&Cal, 0, sizeof(Cal));
 
-    ///< 等按键触发
     while(1) {
+        ///< 等按键触发
         if(!KEY_TRIG()) {
             if(u8CaType == 0) {
                 AppLedEnable(1);
-                delay1ms(200);
+                delay1ms(100);
             } else {
                 AppLedEnable(1);
-                delay1ms(500);
+                delay1ms(200);
             }
             continue;
         }
@@ -291,7 +294,6 @@ static void AppCalibration(void)
 
         ///< 读取ADC
         if(!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL)) {
-            delay1ms(100);
             continue;
         }
 
@@ -299,22 +301,27 @@ static void AppCalibration(void)
         fNtc = NNA_NtcTempGet(uNtcH, uNtcL);
 
         if(u8CaType == 0) {
-            NNA_Calibration(&Cal, fNtc, 37, uViR);
-            AppBeepBlink((SystemCoreClock/1500));
+            if(NNA_Calibration(&Cal, fNtc, 37, uViR)) {
+                u8CaType ++;
+                AppBeepBlink((SystemCoreClock/500));
+            } else {
+                continue;
+            }
         } else {
-            NNA_Calibration(&Cal, fNtc, 42, uViR);
-            AppBeepBlink((SystemCoreClock/1500));
-            /// finished
-            break;
+            if(NNA_Calibration(&Cal, fNtc, 42, uViR)) {
+                AppBeepBlink((SystemCoreClock/1500));
+                break;
+            } else {
+                continue;
+            }
         }
-        u8CaType ++;
     }
 
     ///< 区间补偿常数
-    Cal.u8FixHuman = 29;
+    Cal.u8HumanFix = 29;
 
     ///< 回写校准数据
-    AppCalStore(&Cal, sizeof(Cal));
+    AppCalStore(&Cal);
 }
 
 /**
@@ -355,6 +362,7 @@ int32_t main(void)
         }
         #endif
 
+        ///< 产测数据加载
         while((pCal = AppCalGet()) == NULL) {
             AppCalibration();
             delay1ms(100);
@@ -368,6 +376,7 @@ int32_t main(void)
             // AppLcdBlink();
         }
 
+        ///< 清空产测数据
         if(KEY_LEFT()) {
             KEY_CLR_LEFT();
             AppCalClean();

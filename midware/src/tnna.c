@@ -69,7 +69,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         X1 = (-a1 - N) / a2 / 2;
         X2 = (-a1 + N) / a2 / 2;
 
-        DBG_PRINT("\t- %f %f\r\n", X1, X2);
+        // DBG_PRINT("\t- %f %f\r\n", X1, X2);
         if(revert) {
             return X1;
         } else {
@@ -173,14 +173,17 @@ boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTa
     if(fTL != 0xFFFFFFFF && fTH != 0xFFFFFFFF && ((fTL - fTH != 0))) {
         // 线性区间放大
         fAmp = (uVAdcH - uVAdcL) / (fTH - fTL); 
-        if(fAmp != 0) {
+        if (fAmp >= 300 && fAmp <= 900) {
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
 
             pCal->fAmp = fAmp;
             pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
 
-            DBG_PRINT("\tAMP: %2.2f %2.2f %2.2f\r\n", fAmp, fCaLBase, fCaHBase);
+            // DBG_PRINT("\tAMP: %2.2f %2.2f %2.2f\r\n", fAmp, fCaLBase, fCaHBase);
+        } else {
+            DBG_PRINT("\tAMP: overflow: %2.2f\r\n", fAmp);
+            return FALSE;
         }
     }
     return TRUE;
@@ -201,7 +204,7 @@ float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fSurfaceTemp)
     }
 
     if(fSurfaceTemp <= 36.2) {
-        return pCal->u8FixHuman + 0.22 * fSurfaceTemp;
+        return pCal->u8HumanFix + 0.22 * fSurfaceTemp;
     }
 
     if(fSurfaceTemp <= 38) {
