@@ -303,8 +303,8 @@ __start:
     return TRUE;  
 }
 
-#define I2C_DEBUG 1
-#if I2C_DEBUG
+//#define I2C_DEBUG 1
+#ifdef I2C_DEBUG
 void i2c_debug()
 {
     uint16_t i = 0;
