@@ -65,7 +65,6 @@
 #include "app_adc.h"
 #include "app.h"
 #include "nna.h"
-#include "app_i2c.h"
 
 /******************************************************************************
  * Local pre-processor symbols/macros ('#define')                            
@@ -184,9 +183,6 @@ void App_SystemInit(void)
     
     ///< 参数调整区初始化0
     AppParaAreaInit();
-
-    /// <i2c 初始化>
-    app_i2c_init();
     
     // DBG_PRINT("Init Sucessful \r\n");
 }
