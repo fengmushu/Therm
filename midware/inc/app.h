@@ -55,17 +55,21 @@
  * Include files
  ******************************************************************************/
 #include "ddl.h"
+#include "lpm.h"
+#include "bgr.h"
+#include "adc.h"
 #include "lvd.h"
 #include "pca.h"
 #include "rtc.h"
 #include "gpio.h"
 #include "uart.h"
 #include "app_adc.h"
+#include "app_lcd.h"
 #include "nna.h"
 #include "flash.h"
 #include "crc.h"
 
-#define DEBUG
+#define DEBUG 1
 
 #ifdef DEBUG
 #define DBG_PRINT printf
@@ -74,11 +78,15 @@
 #define DBG_PRINT(x, ...) do{} while(0)
 #endif
 
+#define time_after(a,b) ((long)(b)-(long)(a)<0)
+
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#define AUTO_PWROFF_TIMEOUT     5
 
 #define CAL_MAGIC_NUM           0x41415ABB
 #define CAL_DATA_ADDR           0xFC00
@@ -149,8 +157,12 @@ extern void AppVolMonitorInit(void);
 extern void AppBeepBlink(uint32_t u32FreqIndex);
 
 ///< 自动关机模块初始化
+extern void AppPmuInit(void);
+extern void AppSystemHalt(void);
+extern void AppSystemResume(void);
 extern void AppPowerOffModuleInit(void);
-extern en_result_t AppRtcFeed(void);
+extern void AppRtcFeed(void);
+extern uint32_t AppRtcUpdate(void);
 
 //@} // APP Group
 ///< LED背光灯控制

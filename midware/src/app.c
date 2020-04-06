@@ -87,6 +87,9 @@
 
 static UID_t           gstUID;
 static FactoryData_t   gstFactory;
+static uint32_t        gnJiffies = 0;
+static uint32_t        gnPowerOffTimeout = 0;
+static boolean_t       gInSuspend = FALSE;
 
 static inline uint32_t FlashReadWord(uint32_t uAddr)
 {
@@ -190,7 +193,7 @@ boolean_t AppCalStore(CalData_t *pCal)
     FactoryData_t *pFactory = &gstFactory;
     uint8_t *pBuffer = (uint8_t*)pCal;
 
-    ASSERT(sizeof(CalData_t) <= 58); //64Byte per Block
+    ASSERT(sizeof(CalData_t) <= 506); //512Byte per Block
 
     ///< 关闭中断
     __disable_irq();
@@ -286,13 +289,13 @@ void AppPowerOffModuleInit(void)
     DDL_ZERO_STRUCT(RtcInitStruct);                      //变量初始值置零
     DDL_ZERO_STRUCT(RtcAlmStruct);
 
-    // Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc,TRUE);//RTC模块时钟打开
-    // Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);        //使能内部RCL时钟作为RTC时钟
+    Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);        //使能内部RCL时钟作为RTC时钟
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc,TRUE);//RTC模块时钟打开
 
     RtcInitStruct.rtcAmpm = RtcPm;                       //12小时制
     RtcInitStruct.rtcClksrc = RtcClkRcl;                 //内部低速时钟
     RtcInitStruct.rtcPrdsel.rtcPrdsel = RtcPrds;         //周期中断类型PRDS
-    RtcInitStruct.rtcPrdsel.rtcPrds   = RtcNone;           //不产生周期中断
+    RtcInitStruct.rtcPrdsel.rtcPrds   = Rtc1S;           //不产生周期中断
     RtcInitStruct.rtcTime.u8Second    = 0x00;               //配置RTC时间2019年4月17日10:01:55
     RtcInitStruct.rtcTime.u8Minute    = 0x00;
     RtcInitStruct.rtcTime.u8Hour      = 0x20;
@@ -308,45 +311,75 @@ void AppPowerOffModuleInit(void)
     RtcAlmStruct.RtcAlarmHour   = 0x20;
     RtcAlmStruct.RtcAlarmWeek   = 0x7f;                  //从周一到周日，每天10:02:05启动一次闹铃
     Rtc_SetAlarmTime(&RtcAlmStruct);                     //配置闹铃时间
-    Rtc_AlmIeCmd(TRUE);                                  //使能闹钟中断
+    Rtc_AlmIeCmd(FALSE);                                  //使能闹钟中断
 
     EnableNvic(RTC_IRQn, IrqLevel3, TRUE);               //使能RTC中断向量
     Rtc_Cmd(TRUE);                                       //使能RTC开始计数
 }
 
-en_result_t AppRtcFeed(void)
+void AppRtcFeed(void)
 {
-    en_result_t enRet = Ok;
-    uint16_t u16TimeOut;
-    u16TimeOut = 1000;
-    if(M0P_RTC->CR0_f.START == 1)
-    {
-        M0P_RTC->CR1_f.WAIT = 1;
-        while(--u16TimeOut)
-        {
-            if(M0P_RTC->CR1_f.WAITF)
-            {
-                    break;
-            }
-        }
-        if(u16TimeOut==0)
-        {
-            return ErrorTimeout;
-        }
-    }
-    M0P_RTC->SEC   = 0;
-    M0P_RTC->MIN   = 0;
+    Rtc_Cmd(TRUE);
+    AppSystemResume();
 
-    M0P_RTC->CR1_f.WAIT = 0;
-    if(M0P_RTC->CR0_f.START == 1)
-    {
-        while(M0P_RTC->CR1_f.WAITF)
-        {}
-    }
-    enRet = Ok;
-    return enRet;
+    ///< 清除超时计关机数器
+    gnPowerOffTimeout = gnJiffies;
 }
 
+uint32_t AppRtcUpdate(void)
+{
+    ///< 判断自动关机是否超时
+    if(time_after(gnJiffies, gnPowerOffTimeout + AUTO_PWROFF_TIMEOUT)) {
+        ///< 关机
+        gInSuspend = TRUE;
+        AppSystemHalt();
+    }
+
+    return gnJiffies ++;
+}
+
+void AppSystemResume(void)
+{
+    if(gInSuspend) {
+        AppLedEnable(1);
+        AppBeepBlink((SystemCoreClock/500));
+
+        AppLcdDisplayAll();
+        AppLcdDisplayUpdate();
+
+        Adc_Enable();
+        Bgr_BgrEnable();
+        gInSuspend = FALSE;
+    }
+}
+
+void AppPmuInit(void)
+{
+    stc_lpm_config_t stcConfig;
+
+    ///< 深度休眠模式下响应端口中断
+    Gpio_SfIrqModeCfg(GpioSfIrqDpslpMode);
+
+    ///< 低功耗模式配置
+    stcConfig.enSEVONPEND   = SevPndEnable;
+    stcConfig.enSLEEPDEEP   = SlpDpEnable;
+    stcConfig.enSLEEPONEXIT = SlpExtDisable;
+    Lpm_Config(&stcConfig);
+}
+
+void AppSystemHalt(void)
+{
+    ///< alert
+    AppLedDisable();
+    AppBeepBlink((SystemCoreClock/500));
+
+    AppLcdClearAll();
+    AppLcdDisplayUpdate();
+
+    Adc_Disable();
+    Bgr_BgrDisable();
+    Lpm_GotoLpmMode();
+}
 
 void AppLedEnable(en_led_colour_t enLedColour)
 {
@@ -392,7 +425,7 @@ void AppVolMonitorInit(void)
 
     stcLvdCfg.enAct        = LvdActMskInt;              ///< 配置触发产生中断
     stcLvdCfg.enInputSrc   = LvdInputSrcMskVCC;         ///< 配置LVD输入源
-    stcLvdCfg.enThreshold  = LvdMskTH2_7V;              ///< 配置LVD基准电压
+    stcLvdCfg.enThreshold  = LvdMskTH2_5V;              ///< 配置LVD基准电压
     stcLvdCfg.enFilter     = LvdFilterMskEnable;        ///< 滤波使能
     stcLvdCfg.enFilterTime = LvdFilterMsk28_8ms;        ///< 滤波时间设置
     stcLvdCfg.enIrqType    = LvdIrqMskHigh;             ///< 中断触发类型
@@ -407,6 +440,7 @@ void AppVolMonitorInit(void)
     Lvd_Enable();
 }
 
+#ifdef DEBUG
 ///< 串口模块配置
 void AppUartInit(void)
 {
@@ -417,9 +451,9 @@ void AppUartInit(void)
     DDL_ZERO_STRUCT(stcCfg);
     DDL_ZERO_STRUCT(stcMulti);
     DDL_ZERO_STRUCT(stcBaud);
-    
+
     Sysctrl_SetPeripheralGate(SysctrlPeripheralUart1,TRUE);           //UART0/1 外设模块时钟使能
-    
+
     stcCfg.enRunMode        = UartMskMode1;                     //模式1
     stcCfg.enStopBit        = UartMsk1bit;                      //1位停止位
     stcCfg.stcBaud.u32Baud  = 115200;                           //波特率115200
@@ -435,8 +469,9 @@ void AppUartInit(void)
 
 void hexdump(void *p, int len)
 {
-
+    return;
 }
+#endif //DEBUG
 
 //@} // BgrGroup
 

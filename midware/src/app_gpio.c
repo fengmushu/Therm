@@ -52,6 +52,7 @@
 /*******************************************************************************
  * Include files
  ******************************************************************************/
+#include "app.h"
 #include "app_gpio.h"
 #include "gpio.h"
 #include "sysctrl.h"
@@ -87,6 +88,7 @@
  ******************************************************************************/
 
 
+#ifdef DEBUG
 //串口引脚配置
 void _AppUartPortInit(void)
 {
@@ -96,15 +98,15 @@ void _AppUartPortInit(void)
     stcGpioCfg.enOD       = GpioOdEnable;
     stcGpioCfg.enPd       = GpioPdDisable;
     stcGpioCfg.enPu       = GpioPuDisable;
-    
+
     stcGpioCfg.enDir = GpioDirOut;
     Gpio_Init(DBG_CONSOLE_GPIO, DBG_CONSOLE_TX,&stcGpioCfg);
-    Gpio_SetAfMode(DBG_CONSOLE_GPIO, DBG_CONSOLE_TX, GpioAf3); //配置PD00 为UART1 TX
+    Gpio_SetAfMode(DBG_CONSOLE_GPIO, DBG_CONSOLE_TX, GpioAf3); //配置PD00 为UART1 TX, PA09:1 PB6:2, PD0:3
     stcGpioCfg.enDir = GpioDirIn;
     Gpio_Init(DBG_CONSOLE_GPIO, DBG_CONSOLE_RX, &stcGpioCfg);
     Gpio_SetAfMode(DBG_CONSOLE_GPIO, DBG_CONSOLE_RX, GpioAf3); //配置PD01 为UART1 RX
 }
-
+#endif
 
 ///< KEY 按键初始化
 void _AppKeyPortInit(void)
@@ -153,28 +155,6 @@ void _AppLedPortInit(void)
     Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
     Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
 }
-
-///< ADC SENSOR 通信接口初始化
-// void _AppAdcSensorPortInit(void)
-// {    
-//     stc_gpio_cfg_t  stcGpioCfg;
-    
-//     stcGpioCfg.enCtrlMode = GpioAHB;
-//     stcGpioCfg.enDir      = GpioDirOut;
-//     stcGpioCfg.enDrv      = GpioDrvH;
-//     stcGpioCfg.enOD       = GpioOdDisable;
-//     stcGpioCfg.enPd       = GpioPdDisable;
-//     stcGpioCfg.enPu       = GpioPuEnable;
-    
-//     Gpio_SetIO(M_S_CS_PORT,  M_S_CS_PIN) ;
-//     Gpio_SetIO(M_S_CLK_PORT, M_S_CLK_PIN);
-//     Gpio_SetIO(M_S_SDO_PORT, M_S_SDO_PIN);
-    
-//     Gpio_Init(M_S_CS_PORT,  M_S_CS_PIN,  &stcGpioCfg);
-//     Gpio_Init(M_S_CLK_PORT, M_S_CLK_PIN, &stcGpioCfg);
-//     Gpio_Init(M_S_SDO_PORT, M_S_SDO_PIN, &stcGpioCfg);
-    
-// }
 
 ///< BEEP 初始化
 void _AppBeepPortInit(void)
@@ -292,10 +272,11 @@ void AppMGpioInit(void)
     
     ///< ADC 采样端口初始化
     _AppAdcPortInit();
-    
+
+#ifdef DEBUG
     ///< UART 端口初始化
     _AppUartPortInit();
-    
+#endif
 }
 
 //@} // GpioGroup

@@ -186,7 +186,8 @@ void App_SystemInit(void)
     ///< 参数调整区初始化0
     AppParaAreaInit();
     
-    // DBG_PRINT("Init Sucessful \r\n");
+    ///< 唤醒相关
+    AppPmuInit();
 }
 
 
@@ -359,14 +360,6 @@ static void AppCalibration(void)
     AppCalStore(&Cal);
 }
 
-void AppSystemHalt(void)
-{
-    AppLcdClearAll();
-    Adc_Disable();
-    Bgr_BgrDisable();
-    Lpm_GotoDeepSleep(FALSE);
-}
-
 /**
  ******************************************************************************
  ** \brief  Main function of project
@@ -383,7 +376,7 @@ int32_t main(void)
 
     AppLedEnable(LedLightBlue);
     AppLcdDisplayAll();
-    // AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
+    AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
 
     while(1)
     {
@@ -453,13 +446,6 @@ void Lvd_IRQHandler(void)
         AppLcdDisplayUpdate();
         delay1ms(300);
     }
-    
-    ///<*** 配置IO,准备进入超低功耗模式
-    AppLcdClearAll();
-    ///< 状态切换至关机模式
-    Adc_Disable();
-    Bgr_BgrDisable();
-    Lpm_GotoDeepSleep(FALSE);
 }
 
 
