@@ -341,6 +341,8 @@ int fsm_process(fsm_t *fsm)
     fsm_node_t *next;
 
     while (!is_fsm_stopped(fsm)) {
+        ret = __FSM_STATE_NONE;
+
         if (fsm_event_process(fsm))
             return 1;
 
@@ -351,7 +353,7 @@ int fsm_process(fsm_t *fsm)
             ret = fsm->curr->proc(fsm->curr);
 
         // state proc() require to empty shift to another
-        if (ret != fsm->curr->state) {
+        if (ret != fsm->curr->state && ret != __FSM_STATE_NONE) {
             next = fsm_state_to_node(fsm, ret);
             if (!next) {
                 return 1;
