@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "ring_buf.h"
+#include "fsm_event_ring.h"
 #include "fsm.h"
 #include "app.h"
 #include "app_key.h"
@@ -210,9 +210,10 @@ int fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
 }
 
 // TODO: data
-int fsm_event_post(fsm_t *fsm, fsm_event_ring_t idx, fsm_event_t event)
+int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t idx, fsm_event_t event)
 {
-    ringbuf_t *ring;
+    event_ring_t *ring;
+    event_ring_data_t ring_data;
 
     if (idx < 0 || idx >= NUM_FSM_EVENT_RINGS)
         return 1;
@@ -222,33 +223,41 @@ int fsm_event_post(fsm_t *fsm, fsm_event_ring_t idx, fsm_event_t event)
 
     ring = &fsm->events[idx];
 
-    if (ring_buf_is_full(ring)) {
+    if (event_ring_is_full(ring)) {
         DBG_PRINT("event ring full\r\n");
         return 1;
     }
 
-    ring_buf_put(ring, (uint8_t){ event });
+    ring_data.event = (uint8_t)event;
+    ring_data.state = (uint8_t)fsm->curr->state;
+
+    event_ring_put(ring, &ring_data);
 
     return 0;
 }
 
-int __fsm_event_process(fsm_t *fsm, ringbuf_t *ring)
+int __fsm_event_process(fsm_t *fsm, event_ring_t *ring)
 {
-    fsm_event_t event;
-    fsm_node_t *last;
+    event_ring_data_t ring_data;
+    // fsm_node_t *last;
 
-    while (!ring_buf_is_empty(ring)) {
-        last = fsm->curr;
-        event = 0; // u8 -> s32, clear other bytes first
+    while (!event_ring_is_empty(ring)) {
+        // last = fsm->curr;
 
-        if (ring_buf_get(ring, (void *)&event))
+        if (event_ring_get(ring, &ring_data))
             return 1;
 
-        DBG_PRINT("process event= %d\r\n", event);
+        DBG_PRINT("event_process: event->state %d->%d\r\n",
+                  ring_data.event, ring_data.state);
+
+        if (fsm->curr->state != ring_data.state) {
+            DBG_PRINT("state shifted, abort\r\n");
+            continue;
+        }
 
         // perform state transition, atomic,
         // will not disturb by new event
-        fsm_event_input(fsm, event, NULL);
+        fsm_event_input(fsm, ring_data.event, NULL);
 
         // // to fix key release efficiently
         // if (last != fsm->curr) // state transited
@@ -279,7 +288,7 @@ int fsm_init(fsm_t *fsm)
         return err;
 
     for (int i = 0; i < NUM_FSM_EVENT_RINGS; i++) {
-        err = ring_buf_reset(&fsm->events[i]);
+        err = event_ring_reset(&fsm->events[i]);
         if (err)
             return err;
     }

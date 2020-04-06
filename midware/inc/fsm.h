@@ -1,7 +1,7 @@
 #ifndef __FSM_H__
 #define __FSM_H__
 
-#include "ring_buf.h"
+#include "fsm_event_ring.h"
 
 // @f must be pointer to fsm
 #define fsm_state_to_node(f, i)         ((f)->states[i])
@@ -16,14 +16,14 @@ typedef struct fsm fsm_t;
 typedef struct fsm_node fsm_node_t;
 typedef struct fsm_handler fsm_handler_t;
 
-typedef enum fsm_event_ring fsm_event_ring_t;
+typedef enum fsm_event_ring_type fsm_event_ring_type_t;
 typedef enum fsm_event fsm_event_t, FSM_EVENT;
 typedef enum fsm_state fsm_state_t, FSM_STATE;
 typedef enum fsm_node_type fsm_node_type_t;
 typedef enum fsm_status fsm_status_t;
 typedef enum fsm_event_accept fsm_event_accept_t;
 
-enum fsm_event_ring {
+enum fsm_event_ring_type {
         FSM_EVENT_RING_PRIO_HI = 0,
         FSM_EVENT_RING_PRIO_LO,
         NUM_FSM_EVENT_RINGS,
@@ -183,7 +183,7 @@ struct fsm_node {
  *                      MUST be terminated with NULL pointer.
  */
 struct fsm {
-        ringbuf_t       events[NUM_FSM_EVENT_RINGS];
+        event_ring_t    events[NUM_FSM_EVENT_RINGS];
 
         fsm_status_t    status;
         fsm_node_t      *curr;
@@ -201,7 +201,7 @@ fsm_state_t fsm_dummy_proc(fsm_node_t *node);
 int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next);
 int fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data);
 
-int fsm_event_post(fsm_t *fsm, fsm_event_ring_t ring, fsm_event_t event);
+int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t ring, fsm_event_t event);
 int fsm_event_process(fsm_t *fsm);
 
 int fsm_start(fsm_t *fsm);

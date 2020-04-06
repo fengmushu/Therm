@@ -5,9 +5,9 @@
 
 #include "app.h"
 
-#include "ring_buf.h"
+#include "fsm_event_ring.h"
 
-int ring_buf_reset(ringbuf_t *ring)
+int event_ring_reset(event_ring_t *ring)
 {
     if (!ring)
         return 1;
@@ -16,7 +16,7 @@ int ring_buf_reset(ringbuf_t *ring)
     return 0;
 }
 
-int ring_buf_is_empty(ringbuf_t *ring)
+int event_ring_is_empty(event_ring_t *ring)
 {
     if (!ring->full && (ring->write == ring->read))
         return 1;
@@ -24,20 +24,20 @@ int ring_buf_is_empty(ringbuf_t *ring)
     return 0;
 }
 
-int ring_buf_is_full(ringbuf_t *ring)
+int event_ring_is_full(event_ring_t *ring)
 {
     return ring->full;
 }
 
-int ring_buf_size(ringbuf_t *ring)
+int event_ring_size(event_ring_t *ring)
 {
     // static alloc
     return sizeof(ring->buf);
 }
 
-int ring_buf_used(ringbuf_t *ring)
+int event_ring_used(event_ring_t *ring)
 {
-    int size = ring_buf_size(ring);
+    int size = event_ring_size(ring);
 
     if (!ring->full) {
         if (ring->write >= ring->read) {
@@ -51,32 +51,32 @@ int ring_buf_used(ringbuf_t *ring)
 }
 
 // if using this, @full is not always true
-void ring_buf_put_override(ringbuf_t *ring, uint8_t data)
+void event_ring_put_override(event_ring_t *ring, event_ring_data_t *data)
 {
-    ring->buf[ring->write] = data;
+    memcpy(&ring->buf[ring->write], data, sizeof(event_ring_data_t));
     ring->write = RING_NEXT_IDX(ring->write);
     ring->full = (ring->write == ring->read);
 }
 
-int ring_buf_put(ringbuf_t *ring, uint8_t data)
+int event_ring_put(event_ring_t *ring, event_ring_data_t *data)
 {
-    if (ring_buf_is_full(ring))
+    if (event_ring_is_full(ring))
         return 1;
 
     __disable_irq();
-    ring_buf_put_override(ring, data);
+    event_ring_put_override(ring, data);
     __enable_irq();
 
     return 0;
 }
 
-int ring_buf_get(ringbuf_t *ring, uint8_t *data)
+int event_ring_get(event_ring_t *ring, event_ring_data_t *data)
 {
-    if (ring_buf_is_empty(ring))
+    if (event_ring_is_empty(ring))
         return 1;
 
     __disable_irq();
-    *data = ring->buf[ring->read];
+    memcpy(data, &ring->buf[ring->read], sizeof(event_ring_data_t));
     ring->read = RING_NEXT_IDX(ring->read);
     ring->full = 0;
     __enable_irq();
