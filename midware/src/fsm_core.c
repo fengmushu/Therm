@@ -210,18 +210,18 @@ int fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
 }
 
 // TODO: data
-int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t idx, fsm_event_t event)
+int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t type, fsm_event_t event)
 {
     event_ring_t *ring;
     event_ring_data_t ring_data;
 
-    if (idx < 0 || idx >= NUM_FSM_EVENT_RINGS)
+    if (type < 0 || type >= NUM_FSM_EVENT_RINGS)
         return 1;
 
-    if (idx == FSM_EVENT_RING_PRIO_LO && is_fsm_shifting(fsm))
+    if (type == FSM_EVENT_RING_PRIO_LO && is_fsm_shifting(fsm))
         return 1;
 
-    ring = &fsm->events[idx];
+    ring = &fsm->events[type];
 
     if (event_ring_is_full(ring)) {
         DBG_PRINT("event ring full\r\n");

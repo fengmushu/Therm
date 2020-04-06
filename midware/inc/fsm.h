@@ -201,7 +201,7 @@ fsm_state_t fsm_dummy_proc(fsm_node_t *node);
 int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next);
 int fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data);
 
-int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t ring, fsm_event_t event);
+int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t type, fsm_event_t event);
 int fsm_event_process(fsm_t *fsm);
 
 int fsm_start(fsm_t *fsm);
