@@ -32,80 +32,80 @@ static struct fn_menu fn_menus[];
 void fn_temp_sel_show(int8_t idx)
 {
     AppLcdSetString(fn_menus[idx].lcd_str);
-    AppLcdSetTempMode(g_save.cfg.temp_unit, TRUE);
+    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
     AppLcdDisplayUpdate();
 }
 
 void fn_temp_sel_btn_minus(int8_t idx)
 {
-    g_save.cfg.temp_unit = Celsius;
+    g_cfg->temp_unit = Celsius;
 }
 
 void fn_temp_sel_btn_plus(int8_t idx)
 {
-    g_save.cfg.temp_unit = Fahrenheit;
+    g_cfg->temp_unit = Fahrenheit;
 }
 
 void fn_body_hi_show(int8_t idx)
 {
-    AppLcdSetTempMode(g_save.cfg.temp_unit, TRUE);
-    AppLcdSetTemp(g_save.cfg.body_hi_temp_C);
+    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
+    AppLcdSetTemp(g_cfg->body_hi_temp_C);
     AppLcdDisplayUpdate();
 }
 
 void fn_body_hi_btn_minus(int8_t idx)
 {
-    uint16_t val = g_save.cfg.body_hi_temp_C - 1;
+    uint16_t val = g_cfg->body_hi_temp_C - 1;
 
     if (val >= BODY_HI_THRESH_MIN && val <= BODY_HI_THRESH_MAX)
-        g_save.cfg.body_hi_temp_C = val;
+        g_cfg->body_hi_temp_C = val;
 }
 
 void fn_body_hi_btn_plus(int8_t idx)
 {
-    uint16_t val = g_save.cfg.body_hi_temp_C + 1;
+    uint16_t val = g_cfg->body_hi_temp_C + 1;
     
     if (val >= BODY_HI_THRESH_MIN && val <= BODY_HI_THRESH_MAX)
-        g_save.cfg.body_hi_temp_C = val;
+        g_cfg->body_hi_temp_C = val;
 }
 
 void fn_cal_offset_show(int8_t idx)
 {
-    AppLcdSetRawNumber(g_save.cfg.cal_offset, TRUE, 2);
+    AppLcdSetRawNumber(g_cfg->cal_offset, TRUE, 2);
     AppLcdDisplayUpdate();
 }
 
 void fn_cal_offset_minus(int8_t idx)
 {
-    int16_t val = g_save.cfg.cal_offset - 1;
+    int16_t val = g_cfg->cal_offset - 1;
 
     if (val >= CAL_OFFSET_MIN && val <= CAL_OFFSET_MAX)
-        g_save.cfg.cal_offset = val;
+        g_cfg->cal_offset = val;
 }
 
 void fn_cal_offset_plus(int8_t idx)
 {
-    int16_t val = g_save.cfg.cal_offset + 1;
+    int16_t val = g_cfg->cal_offset + 1;
     
     if (val >= CAL_OFFSET_MIN && val <= CAL_OFFSET_MAX)
-        g_save.cfg.cal_offset = val;
+        g_cfg->cal_offset = val;
 }
 
 void fn_beep_show(int8_t idx)
 {
     AppLcdSetString(fn_menus[idx].lcd_str);
-    AppLcdSetBuzzer(g_save.cfg.beep_on);
+    AppLcdSetBuzzer(g_cfg->beep_on);
     AppLcdDisplayUpdate();
 }
 
 void fn_beep_minus(int8_t idx)
 {
-    g_save.cfg.beep_on = BEEP_OFF;
+    g_cfg->beep_on = BEEP_OFF;
 }
 
 void fn_beep_plus(int8_t idx)
 {
-    g_save.cfg.beep_on = BEEP_ON;
+    g_cfg->beep_on = BEEP_ON;
 }
 
 static struct fn_menu fn_menus[] = {
