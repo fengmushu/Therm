@@ -176,7 +176,7 @@ void App_SystemInit(void)
     AppVolMonitorInit();
     
     ///< 自动关机模块
-    AppPowerOffModuleInit();
+    AppRtcInit();
 
 #ifdef DEBUG
     ///< 串口初始化

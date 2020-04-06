@@ -281,7 +281,7 @@ void AppBeepBlink(uint32_t u32FreqIndex)
 }
 
 ///< 定时关机模块初始化
-void AppPowerOffModuleInit(void)
+void AppRtcInit(void)
 {
     stc_rtc_initstruct_t RtcInitStruct;
     stc_rtc_alarmtime_t RtcAlmStruct;

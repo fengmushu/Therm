@@ -160,7 +160,7 @@ extern void AppBeepBlink(uint32_t u32FreqIndex);
 extern void AppPmuInit(void);
 extern void AppSystemHalt(void);
 extern void AppSystemResume(void);
-extern void AppPowerOffModuleInit(void);
+extern void AppRtcInit(void);
 extern void AppRtcFeed(void);
 extern uint32_t AppRtcUpdate(void);
 
