@@ -42,9 +42,7 @@ static fsm_node_t state_stop = {
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -73,9 +71,7 @@ static fsm_node_t state_pwron = {
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -100,9 +96,7 @@ static fsm_node_t state_pwroff = {
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -137,9 +131,7 @@ static fsm_node_t state_post = {
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -167,23 +159,17 @@ static fsm_node_t state_sleep = {
     .actions = {
         {
             .event  = FSM_EVENT_PRESS_TRIGGER,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_POST,
         },
         {
             .event  = FSM_EVENT_RELEASE_TRIGGER,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_POST,
         },
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -246,72 +232,52 @@ static fsm_node_t state_main = {
     .actions = {
         {
             .event  = FSM_EVENT_RELEASE_MINUS,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_RELEASE_PLUS,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_PRESS_FN,
-            .pre    = NULL,
             .action = state_main_press_fn,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_RELEASE_FN,
-            .pre    = NULL,
             .action = state_main_release_fn,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_PRESS_TRIGGER,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_SCAN,
         },
         {
             .event  = FSM_EVENT_RELEASE_TRIGGER,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_SCAN,
         },
         {
             .event  = FSM_EVENT_SWITCH_BODY,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_SWITCH_SURFACE,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_IRQ_TIMER3,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_CONFIG,
         },
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -349,23 +315,17 @@ static fsm_node_t state_scan = {
     .actions = {
         {
             .event  = FSM_EVENT_IRQ_ADC,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_RELEASE_FN,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -438,44 +398,32 @@ static fsm_node_t state_config = {
     .actions = {
         {
             .event  = FSM_EVENT_RELEASE_MINUS,
-            .pre    = NULL,
             .action = state_config_release_minus,
-            .post   = NULL,
             .next   = FSM_STATE_CONFIG,
         },
         {
             .event  = FSM_EVENT_RELEASE_PLUS,
-            .pre    = NULL,
             .action = state_config_release_plus,
-            .post   = NULL,
             .next   = FSM_STATE_CONFIG,
         },
         {
             .event  = FSM_EVENT_RELEASE_FN,
-            .pre    = NULL,
             .action = state_config_release_fn,
-            .post   = NULL,
             .next   = FSM_STATE_CONFIG,
         },
         {
             .event  = FSM_EVENT_SWITCH_BODY,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = FSM_EVENT_SWITCH_SURFACE,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = FSM_STATE_MAIN,
         },
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -499,9 +447,7 @@ static fsm_node_t state_factory = {
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },
@@ -527,9 +473,7 @@ static fsm_node_t state_fatal = {
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
             .next   = __FSM_STATE_NONE,
         },
     },

@@ -136,22 +136,12 @@ struct fsm_handler {
         // default next state if handler->action is null
         fsm_state_t     next;
 
-        // callback executed before handler->action
-        // @return:     1. __FSM_STATE_NONE to reject event
-        //              2. __FSM_STATE_OK to continue to handler->action
-        fsm_state_t     (*pre)(fsm_node_t *, fsm_event_t, void *);
-
         // @fsm_node_t:  current node that handling event
         // @fsm_event_t: event now handling
         // @void *:      private data provided by fsm_event_input()
         // @return:      1. next state to goto
         //               2. __FSM_STATE_NONE to reject, handle error
         fsm_state_t     (*action)(fsm_node_t *, fsm_event_t, void *);
-
-        // callback executed after handler->action
-        // @return:     1. __FSM_STATE_NONE to reject event
-        //              2. other states to goto
-        fsm_state_t     (*post)(fsm_node_t *, fsm_event_t, void *);
 };
 
 /**

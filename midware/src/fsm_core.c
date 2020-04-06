@@ -18,9 +18,7 @@ const fsm_node_t state_uninit = {
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
-            .pre    = NULL,
             .action = NULL,
-            .post   = NULL,
         },
     },
 };
@@ -84,13 +82,6 @@ fsm_state_t fsm_event_handle(fsm_t *fsm, fsm_event_t event, void *data)
 
     while (handler->event != __FSM_EVENT_NULL) {
         if (handler->event == event) {
-            if (handler->pre) {
-                next = handler->pre(curr, event, data);
-
-                if (next == __FSM_STATE_NONE)
-                    break;
-            }
-
             if (handler->action) {
                 next = handler->action(curr, event, data);
 
@@ -98,13 +89,6 @@ fsm_state_t fsm_event_handle(fsm_t *fsm, fsm_event_t event, void *data)
                     next = handler->next;
             } else {
                 next = handler->next;
-            }
-
-            if (handler->post) {
-                next = handler->post(curr, event, data);
-
-                if (next == __FSM_STATE_NONE)
-                    break;
             }
 
             break;
