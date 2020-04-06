@@ -125,14 +125,15 @@ static enMState_t enMState = PowerOnMode;
 /******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-///< 环境温度、黑体温度、人体温度
-static float32_t gf32NtcTemp, gfBlackTemp, gfSurfaceTemp, gfHumanTemp;
+
 /******************************************************************************
  * Local variable definitions ('static')                                      *
  ******************************************************************************/
+
 /*****************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
+
 ///< 串口发送重定向
 int fputc(int ch, FILE * file)
 {
@@ -176,10 +177,12 @@ void App_SystemInit(void)
     
     ///< 自动关机模块
     AppPowerOffModuleInit();
-    
+
+#ifdef DEBUG
     ///< 串口初始化
     AppUartInit();
-    
+#endif
+
     ///< 参数调整区初始化0
     AppParaAreaInit();
     
@@ -194,7 +197,7 @@ static boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtc
     uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
     uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
 
-    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); delay1ms(100);
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); delay1ms(200);
 
     ///<*** ADC数据采集     
     {
@@ -230,6 +233,8 @@ static boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtc
     *uViR = u32VirAdcCode;
     *uVNtcH = u32NtcHAdcCode;
     *uVNtcL = u32NtcLAdcCode;
+
+    DBG_PRINT("\tADC- %u %u %u\r\n", u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode);
 
     return TRUE;
 }
@@ -338,7 +343,7 @@ static void AppCalibration(void)
             KEY_CLR_TRIG();
 
             AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman);
-            AppLcdSetTemp(uBlack);
+            AppLcdSetTemp(uBlack/10);
             AppLcdDisplayUpdate();
             delay1ms(300);
         }
@@ -352,6 +357,14 @@ static void AppCalibration(void)
 
     ///< 回写校准数据
     AppCalStore(&Cal);
+}
+
+void AppSystemHalt(void)
+{
+    AppLcdClearAll();
+    Adc_Disable();
+    Bgr_BgrDisable();
+    Lpm_GotoDeepSleep(FALSE);
 }
 
 /**
@@ -368,14 +381,9 @@ int32_t main(void)
     ///< 系统初始化
     App_SystemInit();
 
-    ///< 可用于简单采样测试(需要开启UART及其端口配置)            
-    // DBG_PRINT("Temp Test >>> \r\n");
-
     AppLedEnable(LedLightBlue);
     AppLcdDisplayAll();
     // AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
-
-    // Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); //Always ON
 
     while(1)
     {
@@ -418,6 +426,12 @@ int32_t main(void)
             AppBeepBlink((SystemCoreClock/1500));
         }
 
+        ///< 中间键, 系统休眠
+        if(KEY_MID()) {
+            KEY_CLR_MID();
+            AppSystemHalt();
+        }
+
         delay1ms(100);
     }
 }
@@ -445,8 +459,7 @@ void Lvd_IRQHandler(void)
     ///< 状态切换至关机模式
     Adc_Disable();
     Bgr_BgrDisable();
-    Lpm_GotoDeepSleep(FALSE);    
-
+    Lpm_GotoDeepSleep(FALSE);
 }
 
 
@@ -461,11 +474,8 @@ void PortC_IRQHandler(void)
         {            
             //标定按键按下
             KEY_SET_LEFT();
-        //……    
             //重新标定自动关机时间
             AppRtcFeed();
-            Rtc_Cmd(TRUE);
-            //……
         }
         return;
     }
@@ -477,10 +487,8 @@ void PortC_IRQHandler(void)
         {
             //标定按键按下
             KEY_SET_MID();
-            //……
             //重新标定自动关机时间
             AppRtcFeed();
-            Rtc_Cmd(TRUE);
         }
         return;
     }
@@ -492,7 +500,6 @@ void PortC_IRQHandler(void)
         {
             //标定按键按下
             KEY_SET_RIGHT();
-            //……
             //重新标定自动关机时间
             AppRtcFeed();
             Rtc_Cmd(TRUE);
@@ -512,34 +519,19 @@ void PortD_IRQHandler(void)
         {            
             //标定按键按下
             KEY_SET_TRIG();
-            
             //重新标定自动关机时间
             AppRtcFeed();
-            Rtc_Cmd(TRUE);
-            
-            //……
         }
         return;
     }
 }
 
-
 void Rtc_IRQHandler(void)
 {
-    if (Rtc_GetAlmfItStatus() == TRUE) //闹铃中断
+    if (Rtc_GetPridItStatus() == TRUE) //闹铃中断
     {
-        Rtc_ClearAlmfItStatus();       //清中断标志位
-        //重新标定自动关机时间
-        AppRtcFeed();//重新标定自动关机时间
-        Rtc_Cmd(FALSE);
-        
-        ///<*** 配置IO,关闭LCD，准备进入超低功耗模式
-        AppLcdClearAll();
-        
-        ///< 状态切换至关机模式
-        enMState = PowerOnMode;
-        //Lpm_GotoDeepSleep(FALSE);
-        
+        Rtc_ClearPrdfItStatus();       //清中断标志位
+        AppRtcUpdate();
     }
 }
 

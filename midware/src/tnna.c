@@ -2,6 +2,7 @@
 #include "math.h"
 
 #define USE_FITTING 1
+#define VRA_INIT (0)
 
 static const float32_t VtT_Paras[3] = {-2420154, 54351.00, 495.00};
 static const float32_t VtE_Paras[3] = {1589544, -54351.00, -495.00};
@@ -69,7 +70,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         X1 = (-a1 - N) / a2 / 2;
         X2 = (-a1 + N) / a2 / 2;
 
-        // DBG_PRINT("\t- %f %f\r\n", X1, X2);
+        DBG_PRINT("\t- %f %f\r\n", X1, X2);
         if(revert) {
             return X1;
         } else {
@@ -114,7 +115,8 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
     float32_t fAmp = pCal->fAmp;
     float32_t fTempFixup = pCal->fCalBase;
 
-    // DBG_PRINT("# %2.2f uV\r\n", (float32_t)u32VirAdc * 1000000);
+    DBG_PRINT("# %2.2f uV\r\n", (float32_t)u32VirAdc * 1000000);
+
     if(0 == fAmp) {
         return 0;
     } else {
@@ -125,7 +127,8 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
     // Vi = (Vo - Vbias) * Ri / (Ri:2K + Rr:680K) --- uV
     fVirVolt = ((u32VirAdc) * 1000000) / fAmp / fEpsilon;
 
-    // DBG_PRINT("\t$ %2.2f uV\r\n", fVirVolt);
+    DBG_PRINT("\t$ %2.2f uV\r\n", fVirVolt);
+
   #ifndef USE_FITTING
     // 查表V-Tt
     return TNNA_TempVirFind(fTempEnv, fVirVolt);
@@ -143,7 +146,7 @@ void NNA_CalInit(CalData_t *pCal)
 {
     memset(pCal, 0, sizeof(CalData_t));
 
-    pCal->fTH = pCal->fTL = 0xFFFFFFFF;
+    pCal->fTH = pCal->fTL = VRA_INIT;
     pCal->u8HumanFix = 29;
 }
 
@@ -154,11 +157,12 @@ boolean_t NNA_Calibration(
                             float32_t *fTempGet,
                             uint32_t u32VirAdc)
 {
-    float32_t fTx, fAmp, fCaLBase, fCaHBase;
-    float32_t fTH = pCal->fTH, fTL = pCal->fTL;
+    float32_t fTx, fCaLBase, fCaHBase;
+
+    float32_t fAmp = pCal->fAmp, fTH = pCal->fTH, fTL = pCal->fTL;
     float32_t uVAdcH = pCal->uVAdcH, uVAdcL = pCal->uVAdcL;
 
-    if(pCal->fAmp) {
+    if(fAmp) {
         return TRUE;
     }
 
@@ -185,7 +189,11 @@ boolean_t NNA_Calibration(
         pCal->uVAdcH = uVAdcH = u32VirAdc * 1000000;
     }
 
-    if(fTL != 0xFFFFFFFF && fTH != 0xFFFFFFFF && ((fTL - fTH != 0))) {
+    DBG_PRINT("\tInput: %f, %f, %f\r\n", fAmp, fTL, fTH);
+    if(fTL != VRA_INIT
+          && fTH != VRA_INIT
+          && ((fTL - fTH != 0)))
+    {
         // 线性区间放大
         fAmp = (uVAdcH - uVAdcL) / (fTH - fTL); 
         if (fAmp >= 300 && fAmp <= 900) {
