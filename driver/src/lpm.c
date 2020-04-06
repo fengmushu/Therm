@@ -65,7 +65,13 @@
 
 /*******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
- ******************************************************************************/                                     
+ ******************************************************************************/
+#define IS_VALID_SEVONPEND(x)           (SevPndDisable == (x) ||\
+                                         SevPndEnable  == (x))
+#define IS_VALID_SLEEPDEEP(x)           (SlpDpDisable  == (x) ||\
+                                         SlpDpEnable   == (x))
+#define IS_VALID_SLEEPONEXIT(x)         (SlpExtDisable == (x) ||\
+                                         SlpExtEnable  == (x))                                         
 
 /*******************************************************************************
  * Local type definitions ('typedef')
@@ -82,36 +88,42 @@
 /*******************************************************************************
  * Function implementation - global ('extern') and local ('static')
  ******************************************************************************/
-
 /**
  *****************************************************************************
- ** \brief 进入深度睡眠模式
+ ** \brief 低功耗模式配置
  **
- ** \input bOnExit - TRUE:当退出异常处理后，自动再次进入休眠；
- **                  FALSE：唤醒后不再自动进入休眠
+ **
+ ** \param [in]  pstcConfig           低功耗模式配置结构体指针
  ** 
- ** \retval NULL                                     
+ ** \retval Ok or Error                                      
  *****************************************************************************/
-void Lpm_GotoDeepSleep(boolean_t bOnExit)
+en_result_t Lpm_Config(stc_lpm_config_t* pstcConfig)
 {
-    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-    SCB->SCR |= 1u<<bOnExit;
-    __WFI();
+    en_result_t enResult = Error;
+  
+    ASSERT(IS_VALID_SEVONPEND(pstcConfig->enSEVONPEND));
+    ASSERT(IS_VALID_SLEEPDEEP(pstcConfig->enSLEEPDEEP));
+    ASSERT(IS_VALID_SLEEPONEXIT(pstcConfig->enSLEEPONEXIT));
+    
+    SCB->SCR = pstcConfig->enSEVONPEND   ? (SCB->SCR | SCB_SCR_SEVONPEND_Msk)   : (SCB->SCR & ~SCB_SCR_SEVONPEND_Msk);
+    SCB->SCR = pstcConfig->enSLEEPDEEP   ? (SCB->SCR | SCB_SCR_SLEEPDEEP_Msk)   : (SCB->SCR & ~SCB_SCR_SLEEPDEEP_Msk);
+    SCB->SCR = pstcConfig->enSLEEPONEXIT ? (SCB->SCR | SCB_SCR_SLEEPONEXIT_Msk) : (SCB->SCR & ~SCB_SCR_SLEEPONEXIT_Msk);
+       
+    enResult = Ok;
+    
+    return enResult;
 }
 
 /**
  *****************************************************************************
- ** \brief 进入普通睡眠模式
+ ** \brief 进入睡眠模式
  **
- ** \input bOnExit - TRUE:当退出异常处理后，自动再次进入休眠；
- **                  FALSE：唤醒后不再自动进入休眠
+ **
  ** 
  ** \retval NULL                                     
  *****************************************************************************/
-void Lpm_GotoSleep(boolean_t bOnExit)
+void Lpm_GotoLpmMode(void)
 {
-    SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
-    SCB->SCR |= 1u<<bOnExit;
     __WFI();
 }
                         
