@@ -1,0 +1,413 @@
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "ring_buf.h"
+#include "fsm.h"
+#include "app.h"
+#include "app_key.h"
+
+// XXX: to handle null dereference at start
+const fsm_node_t state_uninit = {
+    .state   = __FSM_STATE_UNINIT,
+    .type    = FSM_NODE_DUMMY,
+    .enter   = NULL,
+    .exit    = NULL,
+    .actions = {
+        {
+            .event  = __FSM_EVENT_NULL,
+            .pre    = NULL,
+            .action = NULL,
+            .post   = NULL,
+        },
+    },
+};
+
+fsm_state_t fsm_dummy_enter(fsm_node_t *node, fsm_event_t event)
+{
+    UNUSED_PARAM(event);
+
+    // return other states for empty shifting
+    return node->state;
+}
+
+void fsm_dummy_exit(fsm_node_t *node, fsm_event_t event)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(event);
+}
+
+fsm_state_t fsm_dummy_proc(fsm_node_t *node)
+{
+    return node->state;
+}
+
+fsm_node_t *fsm_init_state_get(fsm_t *fsm)
+{
+    fsm_node_t *ret = NULL;
+    fsm_node_t *n = NULL;
+    int i = 0;
+
+    while (i < NUM_FSM_STATES) {
+        n = fsm_state_to_node(fsm, i);
+        i++;
+
+        // in case there are holes in state list
+        if (!n)
+            continue;
+
+        if (n->type == FSM_NODE_INIT) {
+            if (ret == NULL) {
+                ret = n;
+            } else {
+                DBG_PRINT("more than one init state found!\n");
+                return NULL;
+            }
+        }
+    }
+
+    return ret;
+}
+
+fsm_state_t fsm_event_handle(fsm_t *fsm, fsm_event_t event, void *data)
+{
+    fsm_node_t *curr;
+    fsm_handler_t *handler;
+    fsm_state_t next = __FSM_STATE_NONE;
+    int i;
+
+    i = 0;
+    curr = fsm->curr;
+    handler = &curr->actions[i];
+
+    while (handler->event != __FSM_EVENT_NULL) {
+        if (handler->event == event) {
+            if (handler->pre) {
+                next = handler->pre(curr, event, data);
+
+                if (next == __FSM_STATE_NONE)
+                    break;
+            }
+
+            if (handler->action) {
+                next = handler->action(curr, event, data);
+
+                if (next == __FSM_STATE_BY_NEXT)
+                    next = handler->next;
+            } else {
+                next = handler->next;
+            }
+
+            if (handler->post) {
+                next = handler->post(curr, event, data);
+
+                if (next == __FSM_STATE_NONE)
+                    break;
+            }
+
+            break;
+        }
+
+        handler = &curr->actions[++i];
+    }
+
+    return next;
+}
+
+fsm_state_t __fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
+{
+    fsm_node_t *curr = fsm->curr;
+
+    if (curr && curr->exit)
+        curr->exit(curr, event);
+
+    fsm->curr = next;
+
+    // next should not be NULL here
+    if (next->enter)
+        return next->enter(next, event);
+
+    return next->state;
+}
+
+int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
+{
+    fsm_state_t next_state;
+
+    // perform multiple empty shift here
+    do {
+        next_state = __fsm_state_enter(fsm, event, next);
+        next = fsm_state_to_node(fsm, next_state);
+
+        if (!next) {
+            DBG_PRINT("bug: next state is not defined in state list\n");
+            return 1;
+        }
+    } while (next != fsm->curr);
+
+    // for startup, fsm->status is set to running after fsm_state_enter()
+    if (fsm->curr->type == FSM_NODE_EXIT)
+        fsm->status = FSM_STATUS_STOPPED;
+
+    return 0;
+}
+
+int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
+{
+    fsm_node_t *next;
+    fsm_state_t ret;
+
+    if (is_fsm_stopped(fsm)) {
+        DBG_PRINT("fsm is stopped\n");
+        return FSM_UNACCEPTED;
+    }
+
+    if (event == __FSM_EVENT_DUMMY)
+        return FSM_ACCEPTED;
+
+    ret = fsm_event_handle(fsm, event, data);
+
+    switch (ret) {
+    case __FSM_STATE_OK:
+    case __FSM_STATE_SELF:
+        return FSM_ACCEPTED;
+
+    case __FSM_STATE_NONE:
+        return FSM_UNACCEPTED;
+
+    default:
+        break;
+    }
+
+    // we need to transit to another state
+    if (ret != fsm->curr->state) {
+        next = fsm_state_to_node(fsm, ret);
+        if (!next) {
+            DBG_PRINT("bug: next state is not defined in state list\n");
+            return FSM_ACCEPTED;
+        }
+
+        if (fsm_state_enter(fsm, event, next))
+            return FSM_ACCEPTED;
+    }
+
+    return FSM_ACCEPTED;
+}
+
+/**
+ * fsm_event_input() - block waiting to input fsm event
+ *
+ * @fsm:        pointer to fsm
+ * @event:      event to input
+ * @data:       data to pass to action handler
+ *
+ * return 0 on success, otherwise failure
+ */
+int fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
+{
+    int ret;
+
+    if (!fsm) {
+        DBG_PRINT("invalid pointer to fsm\n");
+        return FSM_UNACCEPTED;
+    }
+
+    if (is_fsm_running(fsm))
+        WRITE_ONCE(fsm->status, FSM_STATUS_SHIFTING);
+
+    ret = __fsm_event_input(fsm, event, data);
+
+    if (is_fsm_shifting(fsm))
+        WRITE_ONCE(fsm->status, FSM_STATUS_RUNNING);
+
+    return ret;
+}
+
+// TODO: data
+int fsm_event_post(fsm_t *fsm, fsm_event_ring_t idx, fsm_event_t event)
+{
+    ringbuf_t *ring;
+
+    if (idx < 0 || idx >= NUM_FSM_EVENT_RINGS)
+        return 1;
+
+    if (idx == FSM_EVENT_RING_PRIO_LO && is_fsm_shifting(fsm))
+        return 1;
+
+    ring = &fsm->events[idx];
+
+    if (ring_buf_is_full(ring)) {
+        DBG_PRINT("event ring full\r\n");
+        return 1;
+    }
+
+    ring_buf_put(ring, (uint8_t){ event });
+
+    return 0;
+}
+
+int __fsm_event_process(fsm_t *fsm, ringbuf_t *ring)
+{
+    fsm_event_t event;
+    fsm_node_t *last;
+
+    while (!ring_buf_is_empty(ring)) {
+        last = fsm->curr;
+        event = 0; // u8 -> s32, clear other bytes first
+
+        if (ring_buf_get(ring, (void *)&event))
+            return 1;
+
+        DBG_PRINT("process event= %d\r\n", event);
+
+        // perform state transition, atomic,
+        // will not disturb by new event
+        fsm_event_input(fsm, event, NULL);
+
+        // // to fix key release efficiently
+        // if (last != fsm->curr) // state transited
+        //     key_drop_mark();
+    }
+
+    return 0;
+}
+
+int fsm_event_process(fsm_t *fsm)
+{
+    for (int i = 0; i < NUM_FSM_EVENT_RINGS; i++) {
+        if (__fsm_event_process(fsm, &fsm->events[i]))
+            return 1;
+    }
+    
+    return 0;
+}
+
+int fsm_init(fsm_t *fsm)
+{
+    int err;
+
+    DBG_PRINT("enter\n");
+
+    err = fsm_states_init(fsm);
+    if (err)
+        return err;
+
+    for (int i = 0; i < NUM_FSM_EVENT_RINGS; i++) {
+        err = ring_buf_reset(&fsm->events[i]);
+        if (err)
+            return err;
+    }
+
+    return 0;
+}
+
+int fsm_exit(fsm_t *fsm)
+{
+    int err;
+
+    DBG_PRINT("enter\n");
+
+    err = fsm_states_exit(fsm);
+    if (err)
+        return err;
+
+    return 0;
+}
+
+int fsm_start(fsm_t *fsm)
+{
+    fsm_node_t *init;
+
+    if (!fsm)
+        return -EINVAL;
+
+    if (!is_fsm_uninit(fsm)) {
+        DBG_PRINT("fsm is inited\n");
+        return 1;
+    }
+
+    init = fsm_init_state_get(fsm);
+    if (!init) {
+        DBG_PRINT("no init state found\n");
+        return 1;
+    }
+
+    if (fsm_state_enter(fsm, __FSM_EVENT_START, init))
+        return 1;
+
+    fsm->status = FSM_STATUS_RUNNING;
+
+    return 0;
+}
+
+int fsm_process(fsm_t *fsm)
+{
+    fsm_state_t ret;
+    fsm_node_t *next;
+
+    while (!is_fsm_stopped(fsm)) {
+        if (fsm_event_process(fsm))
+            return 1;
+
+        if (is_fsm_stopped(fsm))
+            break;
+
+        if (fsm->curr->proc)
+            ret = fsm->curr->proc(fsm->curr);
+
+        // state proc() require to empty shift to another
+        if (ret != fsm->curr->state) {
+            next = fsm_state_to_node(fsm, ret);
+            if (!next) {
+                return 1;
+            }
+
+            if (fsm_state_enter(fsm, __FSM_EVENT_ANY, next))
+                return 1;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * fsm_shutdown() - halt fsm by force
+ *
+ * try input termination event first,
+ * if not accepted by fsm, use this
+ * to force to goto terminate state.
+ *
+ * @fsm:        pointer to fsm instance
+ * @stop:       termination state to goto
+ *
+ * return 0 on success, otherwise errno
+ */
+int fsm_shutdown(fsm_t *fsm, fsm_state_t stop)
+{
+    fsm_node_t *stop_node;
+    int err = 0;
+
+    if (!fsm)
+        return -EINVAL;
+
+    if (!is_fsm_running(fsm)) {
+        DBG_PRINT("fsm is not running\n");
+        return 1;
+    }
+
+    stop_node = fsm_state_to_node(fsm, stop);
+    if (!stop_node || stop_node->type != FSM_NODE_EXIT) {
+        DBG_PRINT("ivnalied stop state\n");
+        return -EINVAL;
+    }
+
+    // fsm->status is set in fsm_state_enter()
+    if (fsm_state_enter(fsm, __FSM_EVENT_STOP, stop_node)) {
+        DBG_PRINT("failed to enter termination state\n");
+        err = 1;
+    }
+
+    return err;
+}
