@@ -552,6 +552,8 @@ void AppLcdDisplayUpdate()
     {
         sAppLcdDisplaySymbol(pu16LcdRam, i, pstcLcdDisplayCfg->Sym_display[i]);
     }
+
+    delay1ms(20); /* delay for display ok */
     
     return;
 }
@@ -560,6 +562,7 @@ void AppLcdClearAll(void)
 {
     memset(&gstcLcdDisplayCfg, 0, sizeof(gstcLcdDisplayCfg));
     AppLcdClearTemp();
+    AppLcdClearLogTemp();
     return;
 }
 
@@ -647,6 +650,10 @@ void AppLcdDebug(void)
             AppLcdDisplayUpdate();
             delay1ms(500);
         }
+
+        AppLcdClearAll();
+        AppLcdDisplayUpdate();
+        delay1ms(1000);
         
         for (i = 0; i < 40; ++i)
         {
