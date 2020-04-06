@@ -303,8 +303,31 @@ __start:
     return TRUE;  
 }
 
-//#define I2C_DEBUG 1
-#ifdef I2C_DEBUG
+void app_i2c_dump()
+{
+    uint16_t i = 0, j = 0;
+    uint8_t buf[16];
+    printf("----i2c dump, size %u bytes----\r\n", I2C_MAX_SIZE);
+    while (i < I2C_MAX_SIZE)
+    {
+        app_i2c_read_data((uint8_t)i, buf, sizeof(buf));
+        
+        printf("%02x: ", i);
+        j = 0;
+        while (j < sizeof(buf))
+        {
+            printf("%02x ", buf[j++]);
+        }
+        printf("\r\n");
+        i += sizeof(buf);
+    }
+    printf("----i2c dump end----\r\n");
+    return;
+}
+
+
+#define I2C_DEBUG 0
+#if I2C_DEBUG
 void i2c_debug()
 {
     uint16_t i = 0;
@@ -315,6 +338,9 @@ void i2c_debug()
     
     app_i2c_init();
 
+    app_i2c_dump();
+
+    i = 0;
     while (i < I2C_MAX_SIZE)
     {
         uint8_t t = (uint8_t)i;

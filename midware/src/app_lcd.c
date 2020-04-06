@@ -187,7 +187,7 @@ static inline void sAppLcdDisplayRawNumber(int16_t Display, volatile uint16_t* L
     if ( Display < -999 || Display > 9999)
     {
         DBG_PRINT("%s: error display=%d\r\n", __func__, Display);
-        return;
+        Display = 0;
     }
     
     if (is_negative)Display = - Display;
