@@ -79,7 +79,7 @@ static fsm_node_t state_pwron = {
 
 static fsm_state_t state_pwroff_enter(fsm_node_t *node, fsm_event_t event)
 {
-    AppLcdDisplayClear();
+    AppLcdClearAll();
     AppLcdSetString(Str_OFF);
     AppLcdDisplayUpdate();
     delay1ms(2000);
@@ -111,6 +111,8 @@ static fsm_state_t state_post_enter(fsm_node_t *node, fsm_event_t event)
     // TODO: config check
 
     AppLedEnable(LedLightBlue);
+
+    AppLcdInit();
     AppLcdDisplayAll();
     AppLcdBlink();
 
@@ -143,8 +145,10 @@ static fsm_state_t state_sleep_enter(fsm_node_t *node, fsm_event_t event)
 
     UNUSED_PARAM(event);
 
-    AppLcdClearAll();
+    // reset lcd
     AppLcdDisplayClear();
+
+    // turn of backlight
     AppLedDisable();
 
     return next;
@@ -179,7 +183,7 @@ static fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 {
     UNUSED_PARAM(event);
 
-    AppLcdDisplayClear();
+    AppLcdClearAll();
 
     return node->state;
 }
@@ -289,7 +293,7 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
 
     UNUSED_PARAM(event);
 
-    // AppLcdDisplayClear();
+    AppLcdClearAll();
     AppLcdSetLock(TRUE);
     AppLcdDisplayUpdate(); // this thing will clear lcd 
 
