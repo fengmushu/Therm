@@ -65,6 +65,7 @@
 #include "app_adc.h"
 #include "app.h"
 #include "nna.h"
+#include "cal.h"
 
 /******************************************************************************
  * Local pre-processor symbols/macros ('#define')                            
@@ -190,7 +191,6 @@ void App_SystemInit(void)
     AppPmuInit();
 }
 
-
 ///< ADC 修正值获取
 static boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
@@ -281,10 +281,12 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     return TRUE;
 }
 
+
+
 ///< 校准(标定)模式API
 static void AppCalibration(void)
 {
-	CalData_t Cal;
+    CalData_t   Cal;
     float32_t fNtc, fTemp;
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
@@ -357,7 +359,8 @@ static void AppCalibration(void)
     }
 
     ///< 回写校准数据
-    AppCalStore(&Cal);
+    AppCalUpdateAndSaveFactory(&Cal);
+    
 }
 
 /**
@@ -394,7 +397,7 @@ int32_t main(void)
         #endif
 
         ///< 产测数据加载
-        while((pCal = AppCalGet()) == NULL) {
+        while((pCal = AppCalLoad()) == NULL) {
             AppCalibration();
             delay1ms(100);
         }

@@ -86,10 +86,6 @@ extern "C"
 {
 #endif
 
-#define AUTO_PWROFF_TIMEOUT     5
-
-#define CAL_MAGIC_NUM           0x41415ABB
-#define CAL_DATA_ADDR           0xFC00
 #define UID_BASE_ADDR           0x00100E74
 
 /**
@@ -115,15 +111,6 @@ typedef struct {
     uint8_t WaterNumber;
     uint8_t RevID;
 } UID_t;
-typedef struct {
-    ///< 数据校验
-    uint32_t    uMagic;
-    uint16_t    u16Len;
-    uint16_t    u16Crc;
-
-    ///< 校准数据
-    CalData_t   CalData;
-} FactoryData_t;
 
 /******************************************************************************
  * Global definitions
@@ -174,9 +161,6 @@ extern void AppUartInit(void);
 
 ///< 参数标定区初始化
 extern void AppParaAreaInit(void);
-extern CalData_t *AppCalGet(void);
-extern boolean_t AppCalStore(CalData_t *pCal);
-extern void AppCalClean(void);
 
 ///< VIR黑体 校准系数标定
 extern void AppVirLParaMark(uint32_t u32VirLDataCal);

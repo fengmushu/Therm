@@ -53,7 +53,8 @@
  * Include files
  ******************************************************************************/
 #include "app.h"
-
+#include "app_lcd.h"
+#include "app_i2c.h"
 /**
  *******************************************************************************
  ** \addtogroup FlashGroup
@@ -86,25 +87,6 @@
  ******************************************************************************/
 
 static UID_t           gstUID;
-static FactoryData_t   gstFactory;
-static uint32_t        gnJiffies = 0;
-static uint32_t        gnPowerOffTimeout = 0;
-static boolean_t       gInSuspend = FALSE;
-
-static inline uint32_t FlashReadWord(uint32_t uAddr)
-{
-    return *((uint32_t *)uAddr);
-}
-
-static inline uint16_t FlashReadShort(uint32_t uAddr)
-{
-    return *((uint16_t *)uAddr);
-}
-
-static inline uint8_t FlashReadByte(uint32_t uAddr)
-{
-    return *((uint8_t *)uAddr);
-}
 
 static void AppLoadUID(void)
 {
@@ -120,134 +102,6 @@ static void AppLoadUID(void)
     DBG_PRINT("\t%02x-%02x-%02x-%02x-%02x-%02x\r\n", \
             gstUID.LotNumber[0], gstUID.LotNumber[1], gstUID.LotNumber[2],
             gstUID.LotNumber[3], gstUID.LotNumber[4], gstUID.LotNumber[5]);
-}
-
-static boolean_t CalLoad(void)
-{
-    int i;
-    uint32_t uMagic;
-    uint16_t Csum;
-    uint32_t uAddr = CAL_DATA_ADDR;
-    FactoryData_t *pFactory = &gstFactory;
-    uint8_t  *pBuffer = (uint8_t*)&pFactory->CalData;
-
-    uMagic = FlashReadWord(uAddr);
-    if(uMagic != CAL_MAGIC_NUM) {
-        return FALSE;
-    }
-
-    ///< 加载产测数据
-    pFactory->uMagic = uMagic;
-    uAddr += sizeof(pFactory->uMagic);
-    pFactory->u16Len = FlashReadShort(uAddr);
-    uAddr += sizeof(pFactory->u16Len);
-    pFactory->u16Crc = FlashReadShort(uAddr);
-    uAddr += sizeof(pFactory->u16Crc);
-    for(i=0; i<sizeof(CalData_t); i++) {
-        *(pBuffer + i) = FlashReadByte(uAddr + i);
-    }
-
-    ///< 检验和检查
-    Csum = CRC16_Get8(pBuffer, sizeof(CalData_t));
-    if(Csum != pFactory->u16Crc) {
-        return FALSE;
-    }
-
-    ///< DUMP Cal
-  #ifdef DEBUG
-    {
-        DBG_PRINT("### Cal Data:\r\n");
-        DBG_PRINT("\tAMP: %f\r\n", pFactory->CalData.fAmp);
-        DBG_PRINT("\tBase: %f\r\n", pFactory->CalData.fCalBase);
-        DBG_PRINT("\tHuman: %u\r\n", pFactory->CalData.u8HumanFix);
-    }
-  #endif
-
-    return TRUE;
-}
-
-CalData_t *AppCalGet(void)
-{
-    static uint16_t u16CRC = 0xFFFF;
-    FactoryData_t *pFactory = &gstFactory;
-
-    ///< from cacahed data
-    if(u16CRC == pFactory->u16Crc) {
-        return &pFactory->CalData;
-    }
-
-    ///< load from flash
-    if(CalLoad()) {
-        u16CRC = pFactory->u16Crc;
-        return &pFactory->CalData;
-    } else {
-        return NULL;
-    }
-}
-
-boolean_t AppCalStore(CalData_t *pCal)
-{
-    int i;
-    uint16_t u16Crc, u16Len;
-    uint32_t uAddr = CAL_DATA_ADDR;
-    FactoryData_t *pFactory = &gstFactory;
-    uint8_t *pBuffer = (uint8_t*)pCal;
-
-    ASSERT(sizeof(CalData_t) <= 506); //512Byte per Block
-
-    ///< 关闭中断
-    __disable_irq();
-	
-    ///< 写入工厂信息头部
-    u16Crc = CRC16_Get8((uint8_t*)pCal, sizeof(CalData_t));
-    if(u16Crc == 0) {
-        ///< 不处理这种特殊情况(数据区可能都全是0)
-        __enable_irq();
-        return FALSE;
-    }
-
-    ///< 擦除块
-    while(Ok != Flash_SectorErase(uAddr));
-
-    pFactory->uMagic = CAL_MAGIC_NUM;
-    pFactory->u16Len = sizeof(CalData_t);
-    pFactory->u16Crc = u16Crc;
-
-    ///< 写入MAGIC
-    Flash_WriteWord(uAddr, pFactory->uMagic);
-    uAddr += sizeof(pFactory->uMagic);
-    Flash_WriteHalfWord(uAddr, pFactory->u16Len);
-    uAddr += sizeof(pFactory->u16Len);
-    Flash_WriteHalfWord(uAddr, pFactory->u16Crc);
-    uAddr += sizeof(pFactory->u16Crc);
-
-    ///< 写入校准数据
-    for(i=0; i<sizeof(CalData_t); i++) {
-        Flash_WriteByte(uAddr + i, *(pBuffer + i));
-    }
-
-    ///< 还原中断
-    __enable_irq();
-
-    return TRUE;
-}
-
-void AppCalClean(void)
-{
-    ///< 清空缓存数据
-    memset(&gstFactory, 0, sizeof(FactoryData_t));
-
-    ///< 关闭中断
-    __disable_irq();
-
-    ///< 擦除块
-    while(Ok != Flash_SectorErase(CAL_DATA_ADDR));
-
-    ///< 覆盖MAGIC
-    Flash_WriteWord(CAL_DATA_ADDR, 0xFFFFAAAA);
-
-    ///< 还原中断
-    __enable_irq();
 }
 
 void AppParaAreaInit(void)
