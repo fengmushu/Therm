@@ -31,11 +31,9 @@ static struct fn_menu fn_menus[];
 
 void fn_temp_sel_show(int8_t idx)
 {
-    // AppLcdClearAll();
     AppLcdSetString(fn_menus[idx].lcd_str);
     AppLcdSetTempMode(g_save.cfg.temp_unit, TRUE);
     AppLcdDisplayUpdate();
-    delay1ms(500);
 }
 
 void fn_temp_sel_btn_minus(int8_t idx)
@@ -53,7 +51,6 @@ void fn_body_hi_show(int8_t idx)
     AppLcdSetTempMode(g_save.cfg.temp_unit, TRUE);
     AppLcdSetTemp(g_save.cfg.body_hi_temp_C);
     AppLcdDisplayUpdate();
-    delay1ms(500);
 }
 
 void fn_body_hi_btn_minus(int8_t idx)
@@ -74,9 +71,8 @@ void fn_body_hi_btn_plus(int8_t idx)
 
 void fn_cal_offset_show(int8_t idx)
 {
-    AppLcdSetTemp(g_save.cfg.cal_offset);
+    AppLcdSetRawNumber(g_save.cfg.cal_offset, TRUE, 2);
     AppLcdDisplayUpdate();
-    delay1ms(500);
 }
 
 void fn_cal_offset_minus(int8_t idx)
@@ -125,6 +121,8 @@ void app_sub_fn_enter(int8_t idx)
     AppLcdSetString(fn_menus[idx].lcd_str);
     AppLcdDisplayUpdate();
     delay1ms(1000);
+    AppLcdClearAll();
+    AppLcdDisplayUpdate();
 }
 
 void app_fn_next(void)
@@ -170,6 +168,7 @@ int app_fn_proc(void)
         return APP_FN_DONE;
     }
 
+    // lcd cleared here
     if (last_fn != i) {
         last_fn = i;
         app_sub_fn_enter(i);
