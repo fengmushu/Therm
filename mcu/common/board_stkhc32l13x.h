@@ -59,11 +59,11 @@
 
 ///< M GPIO KEYS
 #define M_KEY_LEFT_PORT       GpioPortC
-#define M_KEY_LEFT_PIN        GpioPin10
+#define M_KEY_LEFT_PIN        GpioPin12
 #define M_KEY_MID_PORT       GpioPortC
 #define M_KEY_MID_PIN        GpioPin11
 #define M_KEY_RIGHT_PORT       GpioPortC
-#define M_KEY_RIGHT_PIN        GpioPin12
+#define M_KEY_RIGHT_PIN        GpioPin10
 #define M_KEY_TRIG_PORT       GpioPortD
 #define M_KEY_TRIG_PIN        GpioPin6
 #define M_KEY_SWITCH_PORT       GpioPortD
@@ -149,8 +149,8 @@
 ///< M LED
 #define M_LED1_PORT       GpioPortC
 #define M_LED1_PIN        GpioPin13
-#define M_LED2_PORT       GpioPortD
-#define M_LED2_PIN        GpioPin5
+#define M_LED2_PORT       GpioPortC
+#define M_LED2_PIN        GpioPin14
 // #define M_LED3_PORT       GpioPortC
 // #define M_LED3_PIN        GpioPin15
 
