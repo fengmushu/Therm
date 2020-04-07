@@ -49,24 +49,24 @@ void fn_temp_sel_btn_plus(int8_t idx)
 void fn_body_hi_show(int8_t idx)
 {
     AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdSetTemp(g_cfg->body_hi_temp_C);
+    AppLcdSetTemp(g_cfg->temp_thres[SCAN_BODY].high);
     AppLcdDisplayUpdate();
 }
 
 void fn_body_hi_btn_minus(int8_t idx)
 {
-    uint16_t val = g_cfg->body_hi_temp_C - 1;
+    uint16_t val = g_cfg->temp_thres[SCAN_BODY].high - 1;
 
     if (val >= BODY_HI_THRESH_MIN && val <= BODY_HI_THRESH_MAX)
-        g_cfg->body_hi_temp_C = val;
+        g_cfg->temp_thres[SCAN_BODY].high = val;
 }
 
 void fn_body_hi_btn_plus(int8_t idx)
 {
-    uint16_t val = g_cfg->body_hi_temp_C + 1;
+    uint16_t val = g_cfg->temp_thres[SCAN_BODY].high + 1;
     
     if (val >= BODY_HI_THRESH_MIN && val <= BODY_HI_THRESH_MAX)
-        g_cfg->body_hi_temp_C = val;
+        g_cfg->temp_thres[SCAN_BODY].high = val;
 }
 
 void fn_cal_offset_show(int8_t idx)
