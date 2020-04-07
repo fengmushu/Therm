@@ -6,13 +6,14 @@
 #include "utils.h"
 
 #define BODY_TEMP_LOW_THRES         (300)
-#define BODY_TEMP_HI_THRES          (BODY_HI_THRESH_MAX)
+#define BODY_TEMP_HI_THRES          (440)
 
 #define SURFACE_TEMP_LOW_THRES      (0)
 #define SURFACE_TEMP_HI_THRES       (1000)
 
-#define BODY_HI_THRESH_MIN          (372)
-#define BODY_HI_THRESH_MAX          (386)
+#define BODY_ALARM_THRESH_MIN       (372)
+#define BODY_ALARM_THRESH_DEF       (376)
+#define BODY_ALARM_THRESH_MAX       (386)
 
 #define CAL_OFFSET_MIN              (-32766)
 #define CAL_OFFSET_MAX              (32766)
@@ -62,10 +63,10 @@ typedef struct scan_log {
 } scan_log_t;
 
 typedef struct app_cfg {
-    temp_thres_t temp_thres[NUM_SCAN_MODES];
-    int16_t      cal_offset;     // last digit is consider as float .1
-    uint8_t      temp_unit;
-    uint8_t      beep_on;
+    int16_t cal_offset; // last digit is consider as float .1
+    int16_t body_alarm_C;
+    uint8_t temp_unit;
+    uint8_t beep_on;
 } app_cfg_t;
 
 typedef struct app_save {
@@ -96,6 +97,7 @@ extern app_runtime_t *g_rt;
 extern app_save_t    *g_save;
 extern app_cfg_t     *g_cfg;
 extern scan_log_t    *g_scan_log;
+extern temp_thres_t   g_temp_thres[];
 
 static __always_inline int16_t lcd_show_C2F(int16_t C)
 {

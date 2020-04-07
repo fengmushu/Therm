@@ -13,12 +13,14 @@ app_save_t      *g_save;
 app_cfg_t       *g_cfg;
 scan_log_t      *g_scan_log;
 
+temp_thres_t g_temp_thres[NUM_SCAN_MODES] = {
+    [SCAN_BODY]    = { BODY_TEMP_LOW_THRES,    BODY_TEMP_HI_THRES    },
+    [SCAN_SURFACE] = { SURFACE_TEMP_LOW_THRES, SURFACE_TEMP_HI_THRES },
+};
+
 static app_cfg_t default_cfg = {
-    .temp_thres = {
-        [SCAN_BODY]    = { BODY_TEMP_LOW_THRES,    BODY_TEMP_HI_THRES    },
-        [SCAN_SURFACE] = { SURFACE_TEMP_LOW_THRES, SURFACE_TEMP_HI_THRES },
-    },
     .cal_offset     = 0,
+    .body_alarm_C   = BODY_ALARM_THRESH_DEF,
     .temp_unit      = TUNIT_C,
     .beep_on        = BEEP_ON,
 };

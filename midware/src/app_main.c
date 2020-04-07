@@ -27,7 +27,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 
         DBG_PRINT("fake temp: %d\r\n", g_rt->scan_result);
 
-        if (is_temp_in_range(&g_cfg->temp_thres[scan_mode], g_rt->scan_result)) {
+        if (is_temp_in_range(&g_temp_thres[scan_mode], g_rt->scan_result)) {
             scan_log_write(&g_scan_log[scan_mode], g_rt->scan_result);
             g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
         }
@@ -84,10 +84,10 @@ fsm_state_t state_main_proc(fsm_node_t *node)
     if (scan_done) {
         big_number = g_rt->scan_result;
 
-        if (big_number < g_cfg->temp_thres[scan_mode].low) {
+        if (big_number < g_temp_thres[scan_mode].low) {
             AppLcdSetString(Str_LO);
             goto lcd_update;
-        } else if (big_number > g_cfg->temp_thres[scan_mode].high) {
+        } else if (big_number > g_temp_thres[scan_mode].high) {
             AppLcdSetString(Str_HI);
             goto lcd_update;
         } else {
