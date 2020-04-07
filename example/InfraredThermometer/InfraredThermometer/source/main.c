@@ -209,8 +209,11 @@ void App_SystemInit(void)
 int32_t main(void)
 {
     CalData_t* pCal = NULL;
+
     ///< 系统初始化
     App_SystemInit();
+
+    app_i2c_init();
 
     if (key_pressed_query(KEY_FN))
     {
@@ -226,7 +229,6 @@ int32_t main(void)
     }
 
     timer3_init();
-    app_i2c_init();
     app_runtime_init(&g_runtime);
 
     fsm_init(&g_fsm);
