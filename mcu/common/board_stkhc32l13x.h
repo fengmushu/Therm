@@ -59,11 +59,11 @@
 
 ///< M GPIO KEYS
 #define M_KEY_LEFT_PORT       GpioPortC
-#define M_KEY_LEFT_PIN        GpioPin12
+#define M_KEY_LEFT_PIN        GpioPin10
 #define M_KEY_MID_PORT       GpioPortC
 #define M_KEY_MID_PIN        GpioPin11
 #define M_KEY_RIGHT_PORT       GpioPortC
-#define M_KEY_RIGHT_PIN        GpioPin10
+#define M_KEY_RIGHT_PIN        GpioPin12
 #define M_KEY_TRIG_PORT       GpioPortD
 #define M_KEY_TRIG_PIN        GpioPin6
 #define M_KEY_SWITCH_PORT       GpioPortD
