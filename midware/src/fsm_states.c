@@ -157,16 +157,16 @@ static fsm_node_t state_main = {
     .proc    = state_main_proc,
     .exit    = state_main_exit,
     .actions = {
-        {
-            .event  = FSM_EVENT_RELEASE_MINUS,
-            .action = state_main_release_minus,
-            .next   = __FSM_STATE_NONE,
-        },
-        {
-            .event  = FSM_EVENT_RELEASE_PLUS,
-            .action = state_main_release_plus,
-            .next   = __FSM_STATE_NONE,
-        },
+        // {
+        //     .event  = FSM_EVENT_RELEASE_MINUS,
+        //     .action = state_main_release_minus,
+        //     .next   = __FSM_STATE_NONE,
+        // },
+        // {
+        //     .event  = FSM_EVENT_RELEASE_PLUS,
+        //     .action = state_main_release_plus,
+        //     .next   = __FSM_STATE_NONE,
+        // },
         {
             .event  = FSM_EVENT_PRESS_FN,
             .action = state_main_press_fn,

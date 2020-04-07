@@ -102,6 +102,16 @@ lcd_update:
         delay1ms(1500);
     }
 
+    if (key_pressed_query(KEY_PLUS)) {
+        scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
+        delay1ms(200);
+    }
+
+    if (key_pressed_query(KEY_MINUS)) {
+        scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
+        delay1ms(200);
+    }
+
     g_rt->scan_burst = 0;
     g_rt->scan_mode_last = scan_mode_runtime_update();
 
