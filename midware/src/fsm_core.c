@@ -126,11 +126,6 @@ int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
     do {
         next_state = __fsm_state_enter(fsm, event, next);
         next = fsm_state_to_node(fsm, next_state);
-
-        if (!next) {
-            DBG_PRINT("bug: next state is not defined in state list\n");
-            return 1;
-        }
     } while (next != fsm->curr);
 
     // for startup, fsm->status is set to running after fsm_state_enter()
@@ -144,7 +139,6 @@ int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
 
 int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
 {
-    fsm_node_t *next;
     fsm_state_t ret;
 
     if (is_fsm_stopped(fsm)) {
@@ -171,12 +165,7 @@ int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
 
     // we need to transit to another state
     if (ret != fsm->curr->state) {
-        next = fsm_state_to_node(fsm, ret);
-        if (!next) {
-            DBG_PRINT("bug: next state is not defined in state list\n");
-            return FSM_ACCEPTED;
-        }
-
+        fsm_node_t *next = fsm_state_to_node(fsm, ret);
         fsm_state_enter(fsm, event, next);
     }
 
@@ -328,7 +317,6 @@ int fsm_start(fsm_t *fsm)
 int fsm_process(fsm_t *fsm)
 {
     fsm_state_t ret;
-    fsm_node_t *next;
 
     while (!is_fsm_stopped(fsm)) {
         ret = __FSM_STATE_NONE;
@@ -344,10 +332,7 @@ int fsm_process(fsm_t *fsm)
 
         // state proc() require to empty shift to another
         if (ret != fsm->curr->state && ret != __FSM_STATE_NONE) {
-            next = fsm_state_to_node(fsm, ret);
-            if (!next) {
-                return 1;
-            }
+            fsm_node_t *next = fsm_state_to_node(fsm, ret);
 
             if (fsm_state_enter(fsm, __FSM_EVENT_ANY, next))
                 return 1;
