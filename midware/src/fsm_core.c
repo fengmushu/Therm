@@ -239,11 +239,8 @@ int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t type, fsm_event_t event)
 int __fsm_event_process(fsm_t *fsm, event_ring_t *ring)
 {
     event_ring_data_t ring_data;
-    // fsm_node_t *last;
 
     while (!event_ring_is_empty(ring)) {
-        // last = fsm->curr;
-
         if (event_ring_get(ring, &ring_data))
             return 1;
 
@@ -258,10 +255,6 @@ int __fsm_event_process(fsm_t *fsm, event_ring_t *ring)
         // perform state transition, atomic,
         // will not disturb by new event
         fsm_event_input(fsm, ring_data.event, NULL);
-
-        // // to fix key release efficiently
-        // if (last != fsm->curr) // state transited
-        //     key_drop_mark();
     }
 
     return 0;

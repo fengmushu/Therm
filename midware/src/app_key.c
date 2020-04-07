@@ -15,9 +15,6 @@
 // WARNING: limited key count, enlarge the size of bitmap if over 8 keys
 uint8_t bm_key_pressed;
 
-// when enter a new state, block keys event that entered in last states
-uint8_t bm_key_drop;
-
 typedef struct key_map {
     uint8_t gpio_port;
     uint8_t gpio_pin;
@@ -71,22 +68,6 @@ void key_poll_once(void)
     __enable_irq();
 }
 
-void key_drop_mark(void)
-{
-    key_poll_once();
-    bm_key_drop = bm_key_pressed;
-
-    // workaround: 
-    // not to mark switch key
-    // which might always be high or low
-    clear_bit_u8(&bm_key_drop, KEY_SWITCH);
-}
-
-static inline void key_drop_clear(gpio_key_t key)
-{
-    clear_bit_u8(&bm_key_drop, key);
-}
-
 static inline void key_gpio_irq_handle(int i)
 {
     fsm_event_t event;
@@ -113,11 +94,6 @@ static inline void key_gpio_irq_handle(int i)
             *last_pressed = __FSM_STATE_NONE;
             return;
         }
-
-        // if (test_bit_u8(&bm_key_drop, i)) {
-        //     key_drop_clear(i);
-        //     return;
-        // }
     }
 
     fsm_event_post(&g_fsm, FSM_EVENT_RING_PRIO_LO, event);

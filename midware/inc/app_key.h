@@ -18,12 +18,6 @@ typedef enum gpio_key {
 extern uint8_t bm_key_pressed;
 
 //
-// to avoid posting release event
-// supposed in last state to new state
-//
-void key_drop_mark(void);
-
-//
 // polling all key and update key bitmap
 //
 int key_polling_update(void);
