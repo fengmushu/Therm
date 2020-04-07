@@ -141,6 +141,17 @@ typedef struct {
 /******************************************************************************
  * Global function prototypes (definition in C source)                        
  ******************************************************************************/
+
+static inline void beep_on(void)
+{
+    Gpio_SetIO(M_BEEP_PORT, M_BEEP_PIN);
+}
+
+static inline void beep_off(void)
+{
+    Gpio_ClrIO(M_BEEP_PORT, M_BEEP_PIN);
+}
+
 ///< VCC电压监测功能初始化
 extern void AppVolMonitorInit(void);
 ///< 蜂鸣器滴滴
