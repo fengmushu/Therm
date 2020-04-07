@@ -67,6 +67,10 @@
 #include "nna.h"
 #include "app_cal.h"
 #include "app_key.h"
+#include "app_i2c.h"
+#include "app_data.h"
+#include "app_timer.h"
+#include "fsm.h"
 
 
 /******************************************************************************
