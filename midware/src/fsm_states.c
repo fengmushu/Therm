@@ -108,9 +108,10 @@ static fsm_node_t state_pwroff = {
 
 static fsm_state_t state_sleep_enter(fsm_node_t *node, fsm_event_t event)
 {
-    fsm_state_t next = node->state;
-
     UNUSED_PARAM(event);
+
+    // beep on, in case
+    beep_off();
 
     // reset lcd
     AppLcdDisplayClear();
@@ -118,7 +119,7 @@ static fsm_state_t state_sleep_enter(fsm_node_t *node, fsm_event_t event)
     // turn of backlight
     AppLedDisable();
 
-    return next;
+    return node->state;
 }
 
 static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
