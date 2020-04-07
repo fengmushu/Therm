@@ -87,7 +87,7 @@ extern "C"
 {
 #endif
 
-#define AUTO_PWROFF_TIMEOUT     5
+#define AUTO_PWROFF_TIMEOUT     18
 
 #define UID_BASE_ADDR           0x00100E74
 

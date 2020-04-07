@@ -111,6 +111,8 @@ void PortC_IRQHandler(void)
     // REVIEW: key_switch checked redundantly
     for (int i = KEY_MINUS; i <= KEY_FN; i++)
         key_gpio_irq_handle(i);
+    
+    AppRtcFeed();
 
     printf("%s: key bitmap: %02x\r\n", __func__, bm_key_pressed);
 }
@@ -121,6 +123,8 @@ void PortD_IRQHandler(void)
 
     for (int i = KEY_TRIGGER; i <= KEY_SWITCH; i++)
         key_gpio_irq_handle(i);
+
+    AppRtcFeed();
 
     printf("%s: key bitmap: %02x\r\n", __func__, bm_key_pressed);
 }

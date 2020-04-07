@@ -207,6 +207,7 @@ void AppSystemResume(void)
 
         Adc_Enable();
         Bgr_BgrEnable();
+        Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
         gInSuspend = FALSE;
     }
 }
@@ -223,10 +224,15 @@ void AppPmuInit(void)
     stcConfig.enSLEEPDEEP   = SlpDpEnable;
     stcConfig.enSLEEPONEXIT = SlpExtDisable;
     Lpm_Config(&stcConfig);
+
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); 
 }
 
 void AppSystemHalt(void)
 {
+
+    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+
     ///< alert
     AppLedDisable();
     AppBeepBlink((SystemCoreClock/500));
