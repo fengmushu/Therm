@@ -1,9 +1,10 @@
 /* cal source file */
 
+#include "crc.h"
+
 #include "app.h"
 #include "app_i2c.h"
 #include "app_cal.h"
-#include "crc.h"
 #include "app_key.h"
 
 #define CAL_MAGIC_NUM           0x41415ABB
