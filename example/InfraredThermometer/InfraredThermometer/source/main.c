@@ -208,10 +208,6 @@ int32_t main(void)
     ///< 系统初始化
     App_SystemInit();
 
-    AppLedEnable(LedLightBlue);
-    AppLcdDisplayAll();
-    AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
-
     if (key_pressed_query(KEY_FN))
     {
         AppCalibration();

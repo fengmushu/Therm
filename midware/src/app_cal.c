@@ -349,6 +349,10 @@ void AppCalibration(void)
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
 
+    AppLedEnable(LedLightBlue);
+    AppLcdDisplayAll();
+    AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
+
     NNA_CalInit(&Cal);
 
     AppLcdClearAll();
