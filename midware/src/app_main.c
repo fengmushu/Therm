@@ -93,7 +93,7 @@ fsm_state_t state_main_proc(fsm_node_t *node)
     AppLcdSetRawNumber(big_number, TRUE, 2);
 
 lcd_update:
-    AppLcdDisplayUpdate(50);
+    AppLcdDisplayUpdate(20);
     blink_cnt++;
 
     // scan burst mode
@@ -104,12 +104,12 @@ lcd_update:
 
     if (key_pressed_query(KEY_PLUS)) {
         scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
-        delay1ms(200);
+        delay1ms(150);
     }
 
     if (key_pressed_query(KEY_MINUS)) {
         scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
-        delay1ms(200);
+        delay1ms(150);
     }
 
     g_rt->scan_burst = 0;
