@@ -27,7 +27,8 @@ extern boolean_t AppTempCalculate(CalData_t *pCal,
                         uint32_t *uTNtc, 
                         uint32_t *uTBlack, 
                         uint32_t *uTSurface, 
-                        uint32_t* uTHuman);
+                        uint32_t* uTHuman,
+                        uint32_t* pViR);
 
 void AppCalibration(void);
 

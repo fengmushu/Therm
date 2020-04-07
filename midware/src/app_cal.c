@@ -250,48 +250,20 @@ void AppCalClean(void)
 ///< ADC 修正值获取
 boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
-    uint32_t  u32SampIndex;     ///< 采样次数
-    uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
-    uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
-
-    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); delay1ms(200);
-
     ///<*** ADC数据采集     
     {
         __disable_irq();
 
-        u32SampIndex      = 0x10u;
-        u32VirAdcCodeAcc  = 0;
-        u32NtcHAdcCodeAcc = 0;
-        u32NtcLAdcCodeAcc = 0;
-
-        while(u32SampIndex--)
-        {
-            Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
-            AppAdcVirAvgCodeGet(&u32VirAdcCode);            ///< 表面温度 ADC采样
-            AppAdcNtcHAvgCodeGet(&u32NtcHAdcCode);          ///< 环境温度RH ADC采样
-            AppAdcNtcLAvgCodeGet(&u32NtcLAdcCode);          ///< 表面温度RL ADC采样
-            Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
-
-            u32VirAdcCodeAcc  += u32VirAdcCode;
-            u32NtcHAdcCodeAcc += u32NtcHAdcCode;
-            u32NtcLAdcCodeAcc += u32NtcLAdcCode;
-        }
-
-        u32VirAdcCode  = (u32VirAdcCodeAcc  + 0x8u)>>4u;   ///< 表面温度 ADC CODE    
-        u32NtcHAdcCode = (u32NtcHAdcCodeAcc + 0x8u)>>4u;   ///< 环境温度RH ADC CODE
-        u32NtcLAdcCode = (u32NtcLAdcCodeAcc + 0x8u)>>4u;   ///< 表面温度RL ADC CODE
+        Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
+        AppAdcVirAvgCodeGet(uViR);            ///< 表面温度 ADC采样
+        AppAdcNtcHAvgCodeGet(uVNtcH);          ///< 环境温度RH ADC采样
+        AppAdcNtcLAvgCodeGet(uVNtcL);          ///< 表面温度RL ADC采样
+        Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
 
         __enable_irq();
     }
 
-    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
-
-    *uViR = u32VirAdcCode;
-    *uVNtcH = u32NtcHAdcCode;
-    *uVNtcL = u32NtcLAdcCode;
-
-    DBG_PRINT("\tADC- %u %u %u\r\n", u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode);
+    DBG_PRINT("\tADC- %u %u %u\r\n", *uViR, *uVNtcH, *uVNtcL);
 
     return TRUE;
 }
@@ -303,7 +275,8 @@ boolean_t AppTempCalculate(CalData_t *pCal,
                         uint32_t *uTNtc, 
                         uint32_t *uTBlack, 
                         uint32_t *uTSurface, 
-                        uint32_t* uTHuman)
+                        uint32_t* uTHuman,
+                        uint32_t* pViR)
 {
     static int i = 0;
     uint32_t  u32SampIndex;     ///< 采样次数
@@ -332,6 +305,8 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     fHumanTemp = NNA_HumanBodyTempGet(pCal, fSurfaceTemp);
     *uTHuman = (uint32_t)(fHumanTemp * 100);
 
+    if (pViR)*pViR = uViR;
+
     DBG_PRINT("ViR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n", \
                     uViR, fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp);
     return TRUE;
@@ -348,30 +323,31 @@ void AppCalibration(void)
     uint32_t uNtcH, uNtcL, uViR;
 
     AppLedEnable(LedLightBlue);
-    AppLcdDisplayAll();
-    AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
+    AppLcdClearAll();
+    AppLcdSetRawNumber(8888, FALSE, 4);
+    AppLcdDisplayUpdate(100);
 
     NNA_CalInit(&Cal);
 
-    AppLcdClearAll();
-    AppLcdSetString(Str_LO);
-    AppLedEnable(LedLightBlue);
-    AppLcdDisplayUpdate(10);
+
+    while(!key_pressed_query(KEY_TRIGGER)); //等按键触发
+    AppLcdSetRawNumber(0, FALSE, 4);
+    AppLcdDisplayUpdate(100);
 
     while(1) {
         
         while(!key_pressed_query(KEY_TRIGGER)); //等按键触发
-        
+
+        #if 0
         if(u8CaType == 0) {
             ///< 更新到屏幕
             AppLcdSetString(Str_LO);
-            AppLedEnable(LedLightBlue);
         } else {
             AppLcdSetString(Str_HI);
-            AppLedEnable(LedLightBlue);
         }
         AppLcdDisplayUpdate(0);
-
+        #endif
+            
         ///< 读取ADC
         if(!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL)) {
             while (key_pressed_query(KEY_TRIGGER)); //等按键释放
@@ -384,6 +360,10 @@ void AppCalibration(void)
         if(u8CaType == 0) {
             if(NNA_Calibration(&Cal, fNtc, 37, &fTemp, uViR)) {
                 u8CaType ++;
+                AppLcdSetTemp(37 * 10);
+                /* log set uViR */
+                AppLcdSetLogRawNumber(uViR, FALSE, 1);
+                AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock/1000));
             } else {
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放
@@ -391,7 +371,11 @@ void AppCalibration(void)
             }
         } else {
             if(NNA_Calibration(&Cal, fNtc, 42, &fTemp, uViR)) {
-                AppBeepBlink((SystemCoreClock/500));
+                AppLcdSetTemp(42 * 10);
+                /* log set uViR */
+                AppLcdSetLogRawNumber(uViR, FALSE, 1);
+                AppLcdDisplayUpdate(10);
+                AppBeepBlink((SystemCoreClock/1000));
                 break;
             } else {
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放
@@ -404,23 +388,28 @@ void AppCalibration(void)
     while(1) {
         uint32_t uNtc, uBlack, uSurf, uHuman;
         ///< 用校准后的参数验证测试 & 按键确认
-        while(!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_MINUS)); //等按键触发
+        while(!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_FN)); //等按键触发
 
         if (key_pressed_query(KEY_TRIGGER))
         {
-            AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman);
+            AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman, &uViR);
             AppLcdSetTemp(uBlack/10);
-            AppLcdDisplayUpdate(300);
+            /* log set uViR */
+            AppLcdSetLogRawNumber(uViR, FALSE, 1);
+            AppLcdDisplayUpdate(0);
         }
 
-        if (key_pressed_query(KEY_MINUS))
+        if (key_pressed_query(KEY_FN))
         {
             break;
         }
             
-        while(key_pressed_query(KEY_TRIGGER) || key_pressed_query(KEY_MINUS)); //等按键释放
+        //while(key_pressed_query(KEY_TRIGGER) || key_pressed_query(KEY_FN)); //等按键释放
     }
 
+    AppBeepBlink((SystemCoreClock/1000));
+    AppLcdClearAll();
+    AppLcdDisplayUpdate(100);
     ///< 回写校准数据
     AppCalUpdateAndSaveFactory(&Cal);
     
