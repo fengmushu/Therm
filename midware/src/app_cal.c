@@ -6,13 +6,10 @@
 #include "app_i2c.h"
 #include "app_cal.h"
 #include "app_key.h"
+#include "app_data.h"
 
 #define CAL_MAGIC_NUM           0x41415ABB
 #define CAL_DATA_ADDR           0xFE00 /* last sector, for cal */
-
-/* cal data 在eeprom 里的存放位置 */
-#define I2C_CAL_DATA_ADDR    0xC0
-#define I2C_CAL_DATA_SIZE    0x40
 
 /* flash sector size */
 #define FLASE_SECTOR_SIZE       512
@@ -86,9 +83,9 @@ static boolean_t CalLoadFromI2c(FactoryData_t *pFactory)
 {
     uint16_t Csum;
     
-    ASSERT(sizeof(FactoryData_t) <= I2C_CAL_DATA_SIZE);
+    ASSERT(sizeof(FactoryData_t) <= I2C_CAL_SIZE);
     
-    if (!app_i2c_read_data(I2C_CAL_DATA_ADDR, (uint8_t*)pFactory, sizeof(FactoryData_t)))
+    if (!app_i2c_read_data(I2C_CAL_ADDR, (uint8_t*)pFactory, sizeof(FactoryData_t)))
     {
         DBG_PRINT("%s:%d read cal error\r\n", __func__, __LINE__);
         return FALSE;
@@ -126,8 +123,8 @@ static boolean_t CalLoadFromI2c(FactoryData_t *pFactory)
 
 static boolean_t AppCalStoreToI2c(FactoryData_t *pFactory)
 {
-    ASSERT(sizeof(FactoryData_t) <= I2C_CAL_DATA_SIZE);
-    return app_i2c_write_data(I2C_CAL_DATA_ADDR, (uint8_t*)pFactory, sizeof(FactoryData_t));    
+    ASSERT(sizeof(FactoryData_t) <= I2C_CAL_SIZE);
+    return app_i2c_write_data(I2C_CAL_ADDR, (uint8_t*)pFactory, sizeof(FactoryData_t));    
 }
 
 static boolean_t AppCalStore(FactoryData_t *pFactory)
@@ -246,7 +243,7 @@ void AppCalClean(void)
     __enable_irq();
 
     //擦除i2c factory
-    app_i2c_write_data(I2C_CAL_DATA_ADDR, (uint8_t*)&gstFactory, sizeof(gstFactory));
+    app_i2c_write_data(I2C_CAL_ADDR, (uint8_t*)&gstFactory, sizeof(gstFactory));
     
 }
 
@@ -513,7 +510,7 @@ void cal_debug()
     
     /* erase i2c cal */
     memset(&Fact, 0, sizeof(FactoryData_t));
-    app_i2c_write_data(I2C_CAL_DATA_ADDR, (uint8_t*)&Fact, sizeof(FactoryData_t));
+    app_i2c_write_data(I2C_CAL_ADDR, (uint8_t*)&Fact, sizeof(FactoryData_t));
     
     pCal = AppCalLoad(); //flash cal write to i2c
     if (pCal == NULL)
