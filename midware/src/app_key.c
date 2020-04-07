@@ -18,8 +18,8 @@ uint8_t bm_key_pressed;
 typedef struct key_map {
     uint8_t gpio_port;
     uint8_t gpio_pin;
-    uint8_t event_press;
-    uint8_t event_release;
+    uint8_t event_press;    // currently defined as GPIO LO
+    uint8_t event_release;  // currently defined as GPIO HI
 } key_map_t;
 
 static key_map_t keys_map[] = {
