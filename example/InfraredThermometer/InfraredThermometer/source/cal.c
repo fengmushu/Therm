@@ -247,7 +247,7 @@ void AppCalClean(void)
     
 }
 
-#define CAL_DEBUG 1
+#define CAL_DEBUG 0
 #if CAL_DEBUG
 void cal_debug()
 {

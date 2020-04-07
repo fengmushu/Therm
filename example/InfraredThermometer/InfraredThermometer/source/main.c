@@ -381,12 +381,6 @@ int32_t main(void)
     AppLcdDisplayAll();
     AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
 
-    //for cal test
-    void app_i2c_init();
-    app_i2c_init();
-    void cal_debug();
-    cal_debug();
-
     while(1)
     {
         CalData_t *pCal;
