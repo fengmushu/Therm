@@ -100,7 +100,7 @@ fsm_state_t fsm_event_handle(fsm_t *fsm, fsm_event_t event, void *data)
     return next;
 }
 
-fsm_state_t __fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
+static __always_inline fsm_state_t __fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
 {
     fsm_node_t *curr = fsm->curr;
 
@@ -137,7 +137,7 @@ int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
     return 0;
 }
 
-int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
+static __always_inline int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
 {
     fsm_state_t ret;
 
@@ -222,7 +222,7 @@ int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t type, fsm_event_t event)
     return 0;
 }
 
-int __fsm_event_process(fsm_t *fsm, event_ring_t *ring)
+static __always_inline int __fsm_event_process(fsm_t *fsm, event_ring_t *ring)
 {
     event_ring_data_t ring_data;
 

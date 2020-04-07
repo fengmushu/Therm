@@ -34,12 +34,12 @@ static uint8_t fsm_state_key_pressed[] = {
     [0 ... NUM_GPIO_KEYS ] = __FSM_STATE_NONE,
 };
 
-static inline void key_pressed(gpio_key_t key)
+static __always_inline void __key_pressed(gpio_key_t key)
 {
     set_bit_u8(&bm_key_pressed, key);
 }
 
-static inline void key_released(gpio_key_t key)
+static __always_inline void __key_released(gpio_key_t key)
 {
     clear_bit_u8(&bm_key_pressed, key);
 }
@@ -60,15 +60,15 @@ void key_poll_once(void)
 
     for (int i = 0; i < NUM_GPIO_KEYS; i++) {
         if (key_pressed_query(i))
-            key_pressed(i);
+            __key_pressed(i);
         else
-            key_released(i);
+            __key_released(i);
     }
 
     __enable_irq();
 }
 
-static inline void key_gpio_irq_handle(int i)
+static __always_inline void key_gpio_irq_handle(int i)
 {
     fsm_event_t event;
     uint8_t *last_pressed = &fsm_state_key_pressed[i];
@@ -80,12 +80,12 @@ static inline void key_gpio_irq_handle(int i)
 
     if (GPIO_KEY_PRESS(keys_map[i].gpio_port, keys_map[i].gpio_pin)) {
         event = keys_map[i].event_press;
-        key_pressed(i);
+        __key_pressed(i);
 
         *last_pressed = g_fsm.curr->state;
     } else {
         event = keys_map[i].event_release;
-        key_released(i);
+        __key_released(i);
 
         // avoid posting releasing event into wrong state
         if (*last_pressed != g_fsm.curr->state &&

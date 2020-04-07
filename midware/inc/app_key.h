@@ -31,12 +31,12 @@ int key_released_query(gpio_key_t key);
 //
 // state change by irq handler
 //
-static inline int is_key_pressed(gpio_key_t key)
+static __always_inline int is_key_pressed(gpio_key_t key)
 {
     return test_bit_u8(&bm_key_pressed, key);
 }
 
-static inline int is_key_released(gpio_key_t key)
+static __always_inline int is_key_released(gpio_key_t key)
 {
     return !is_key_pressed(key);
 }

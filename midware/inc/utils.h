@@ -15,6 +15,10 @@
 #define UNUSED_PARAM(x)         (void)(x);
 #endif
 
+#if !defined(__always_inline)
+#define __always_inline __inline __attribute__ ((__always_inline__))
+#endif
+
 #define MACRO_STR_EXPAND(mm)    #mm
 #define MACRO_TO_STR(m)         MACRO_STR_EXPAND(m)
 

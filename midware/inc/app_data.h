@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "utils.h"
+
 #define BODY_TEMP_LOW_THRES         (300)
 #define BODY_TEMP_HI_THRES          (BODY_HI_THRESH_MAX)
 
@@ -90,17 +92,17 @@ extern app_save_t    *g_save;
 extern app_cfg_t     *g_cfg;
 extern scan_log_t    *g_scan_log;
 
-static inline int16_t lcd_show_C2F(int16_t C)
+static __always_inline int16_t lcd_show_C2F(int16_t C)
 {
     return (C * 18 / 10 + 320);
 }
 
-static inline int lcd_show_idx(int i)
+static __always_inline int lcd_show_idx(int i)
 {
     return i + 1;
 }
 
-static inline int is_temp_in_range(temp_thres_t *thrs, int16_t t)
+static __always_inline int is_temp_in_range(temp_thres_t *thrs, int16_t t)
 {
     if (t < thrs->low || t > thrs->high)
         return 0;
@@ -108,12 +110,12 @@ static inline int is_temp_in_range(temp_thres_t *thrs, int16_t t)
     return 1;
 }
 
-static inline void scan_log_idx_increase(uint8_t *idx)
+static __always_inline void scan_log_idx_increase(uint8_t *idx)
 {
     *idx = (*idx + 1) & (SCAN_LOG_SIZE - 1);
 }
 
-static inline void scan_log_idx_decrease(uint8_t *idx)
+static __always_inline void scan_log_idx_decrease(uint8_t *idx)
 {
     *idx = (*idx - 1) & (SCAN_LOG_SIZE - 1);
 }
