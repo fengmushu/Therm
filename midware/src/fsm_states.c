@@ -79,6 +79,10 @@ static fsm_node_t state_pwron = {
 
 static fsm_state_t state_pwroff_enter(fsm_node_t *node, fsm_event_t event)
 {
+
+    if (app_save_i2c_store(g_save))
+        DBG_PRINT("failed to save data to i2c\r\n");
+
     AppLcdClearAll();
     AppLcdSetString(Str_OFF);
     AppLcdDisplayUpdate(2000);
