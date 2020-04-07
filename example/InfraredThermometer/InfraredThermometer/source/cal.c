@@ -248,6 +248,179 @@ void AppCalClean(void)
     
 }
 
+///< ADC 修正值获取
+static boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
+{
+    uint32_t  u32SampIndex;     ///< 采样次数
+    uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
+    uint32_t  u32VirAdcCodeAcc, u32NtcHAdcCodeAcc, u32NtcLAdcCodeAcc;       ///< ADC 累加值
+
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); delay1ms(200);
+
+    ///<*** ADC数据采集     
+    {
+        __disable_irq();
+
+        u32SampIndex      = 0x10u;
+        u32VirAdcCodeAcc  = 0;
+        u32NtcHAdcCodeAcc = 0;
+        u32NtcLAdcCodeAcc = 0;
+
+        while(u32SampIndex--)
+        {
+            Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
+            AppAdcVirAvgCodeGet(&u32VirAdcCode);            ///< 表面温度 ADC采样
+            AppAdcNtcHAvgCodeGet(&u32NtcHAdcCode);          ///< 环境温度RH ADC采样
+            AppAdcNtcLAvgCodeGet(&u32NtcLAdcCode);          ///< 表面温度RL ADC采样
+            Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
+
+            u32VirAdcCodeAcc  += u32VirAdcCode;
+            u32NtcHAdcCodeAcc += u32NtcHAdcCode;
+            u32NtcLAdcCodeAcc += u32NtcLAdcCode;
+        }
+
+        u32VirAdcCode  = (u32VirAdcCodeAcc  + 0x8u)>>4u;   ///< 表面温度 ADC CODE    
+        u32NtcHAdcCode = (u32NtcHAdcCodeAcc + 0x8u)>>4u;   ///< 环境温度RH ADC CODE
+        u32NtcLAdcCode = (u32NtcLAdcCodeAcc + 0x8u)>>4u;   ///< 表面温度RL ADC CODE
+
+        __enable_irq();
+    }
+
+    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+
+    *uViR = u32VirAdcCode;
+    *uVNtcH = u32NtcHAdcCode;
+    *uVNtcL = u32NtcLAdcCode;
+
+    DBG_PRINT("\tADC- %u %u %u\r\n", u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode);
+
+    return TRUE;
+}
+
+///< ADC 采样及温度计算
+// TRUE  - 标准模式(使用标定后的值)
+// FALSE - 标定(测试)模式 
+boolean_t AppTempCalculate(CalData_t *pCal, 
+                        uint32_t *uTNtc, 
+                        uint32_t *uTBlack, 
+                        uint32_t *uTSurface, 
+                        uint32_t* uTHuman)
+{
+    static int i = 0;
+    uint32_t  u32SampIndex;     ///< 采样次数
+    uint32_t  uViR, uVNtcH, uVNtcL;     ///< ADC 采样值
+    float32_t fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp;
+
+    ASSERT(pCal);
+
+    if(FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL)) {
+        return FALSE;
+    }
+
+    ///< 环境温度获取
+    fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL);       ///< NTC 环境温度值获取
+    *uTNtc = (uint32_t)(fNtcTemp * 100);
+
+    ///< 黑体/物体 表面温度
+    fBlackTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
+    *uTBlack = (uint32_t)(fBlackTemp * 100);
+
+    ///< 物体表面 
+    fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
+    *uTSurface = (uint32_t)(fSurfaceTemp * 100);
+
+    ///< 人体温度
+    fHumanTemp = NNA_HumanBodyTempGet(pCal, fSurfaceTemp);
+    *uTHuman = (uint32_t)(fHumanTemp * 100);
+
+    DBG_PRINT("ViR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n", \
+                    uViR, fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp);
+    return TRUE;
+}
+
+
+
+///< 校准(标定)模式API
+static void AppCalibration(void)
+{
+    CalData_t   Cal;
+    float32_t fNtc, fTemp;
+    uint8_t u8CaType = 0;
+    uint32_t uNtcH, uNtcL, uViR;
+
+    KEY_CLR_ALL();
+    NNA_CalInit(&Cal);
+
+    AppLcdClearAll();
+
+    while(1) {
+        ///< 等按键触发
+        if(!KEY_TRIG()) {
+            if(u8CaType == 0) {
+                ///< 更新到屏幕
+                AppLcdSetString(Str_LO);
+                AppLedEnable(1);
+            } else {
+                AppLcdSetString(Str_HI);
+                AppLedEnable(1);
+            }
+            AppLcdDisplayUpdate();
+            delay1ms(200);
+            continue;
+        }
+        ///< 清除按键
+        KEY_CLR_TRIG();
+
+        ///< 读取ADC
+        if(!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL)) {
+            continue;
+        }
+
+        ///< 环境温度
+        fNtc = NNA_NtcTempGet(uNtcH, uNtcL);
+
+        if(u8CaType == 0) {
+            if(NNA_Calibration(&Cal, fNtc, 37, &fTemp, uViR)) {
+                u8CaType ++;
+                AppBeepBlink((SystemCoreClock/1000));
+            } else {
+                continue;
+            }
+        } else {
+            if(NNA_Calibration(&Cal, fNtc, 42, &fTemp, uViR)) {
+                AppBeepBlink((SystemCoreClock/500));
+                break;
+            } else {
+                continue;
+            }
+        }
+    }
+
+    while(1) {
+        uint32_t uNtc, uBlack, uSurf, uHuman;
+        ///< 用校准后的参数验证测试 & 按键确认
+        if(KEY_TRIG()) {
+            KEY_CLR_TRIG();
+
+            AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman);
+            AppLcdSetTemp(uBlack/10);
+            AppLcdDisplayUpdate();
+            delay1ms(300);
+        }
+        if(KEY_LEFT()) {
+            KEY_CLR_LEFT();
+            ///< 保存到Flash
+            break;
+        }
+        delay1ms(100);
+    }
+
+    ///< 回写校准数据
+    AppCalUpdateAndSaveFactory(&Cal);
+    
+}
+
+
 #define CAL_DEBUG 0
 #if CAL_DEBUG
 void cal_debug()
