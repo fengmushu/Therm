@@ -60,8 +60,17 @@ fsm_state_t state_main_proc(fsm_node_t *node)
     AppLcdSetCheckMode(g_rt->scan_mode, TRUE);
 
     // blinking
-    if (g_rt->battery_low)
-        AppLcdSetBattery(blink_cnt & (BLINK_PERIOD_CNT - 1));
+    if (g_rt->battery_low) {
+        uint8_t duty;
+
+        duty = blink_cnt & GENMASK(5, 4);
+        duty >>= 4;
+
+        AppLcdSetBattery(FALSE);
+
+        if (duty == 0x00 || duty == 0x01) // duty 50%
+            AppLcdSetBattery(TRUE);
+    }
 
     // read_idx should have synced to write_idx in enter() if scan_done
     log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
