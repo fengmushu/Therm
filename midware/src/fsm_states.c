@@ -77,8 +77,7 @@ static fsm_state_t state_pwroff_enter(fsm_node_t *node, fsm_event_t event)
 {
     AppLcdClearAll();
     AppLcdSetString(Str_OFF);
-    AppLcdDisplayUpdate();
-    delay1ms(2000);
+    AppLcdDisplayUpdate(2000);
 
     return FSM_STATE_SLEEP;
 }
@@ -218,7 +217,7 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
 
     AppLcdClearAll();
     AppLcdSetLock(TRUE);
-    AppLcdDisplayUpdate(); // this thing will clear lcd 
+    AppLcdDisplayUpdate(0);
 
     return next;
 }
@@ -230,7 +229,7 @@ void state_scan_exit(fsm_node_t *node, fsm_event_t event)
 
     // REVIEW: if we clear lcd in entering MAIN, below can remove
     AppLcdSetLock(FALSE);
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(0);
 }
 
 static fsm_node_t state_scan = {
@@ -261,7 +260,7 @@ static fsm_node_t state_scan = {
 static fsm_state_t state_config_enter(fsm_node_t *node, fsm_event_t event)
 {
     AppLcdClearAll();
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(30);
 
     app_fn_enter();
 

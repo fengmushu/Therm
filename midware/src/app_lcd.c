@@ -598,63 +598,49 @@ void AppLcdDebug(void)
         AppLcdDisplayClear();    ///< LCD 初始状态显示
 
         AppLcdSetRawNumber(-10, TRUE, 2);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetRawNumber(-10, FALSE, 2);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
         
         AppLcdSetRawNumber(-10, TRUE, 3);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetRawNumber(-10, TRUE, 4);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetRawNumber(-100, TRUE, 4);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetBattery(TRUE);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetBuzzer(TRUE);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetCheckMode(Surface, TRUE);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetCheckMode(Body, TRUE);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetLock(TRUE);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetTempMode(Celsius, TRUE);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
 
         AppLcdSetTempMode(Fahrenheit, TRUE);
-        AppLcdDisplayUpdate();
-        delay1ms(500);
+        AppLcdDisplayUpdate(500);
                
         for (i = 0; i < Str_MAX; ++i)
         {
             AppLcdSetString(i);
-            AppLcdDisplayUpdate();
-            delay1ms(500);
+            AppLcdDisplayUpdate(500);
         }
 
         AppLcdClearAll();
-        AppLcdDisplayUpdate();
-        delay1ms(1000);
+        AppLcdDisplayUpdate(1000);
         
         for (i = 0; i < 40; ++i)
         {
@@ -672,9 +658,7 @@ void AppLcdDebug(void)
 					
             AppLcdSetBattery(i%2);
 
-            AppLcdDisplayUpdate();
-
-            delay1ms(500);
+            AppLcdDisplayUpdate(500);
         }
     }
 }

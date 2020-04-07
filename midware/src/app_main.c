@@ -93,7 +93,7 @@ fsm_state_t state_main_proc(fsm_node_t *node)
     AppLcdSetRawNumber(big_number, TRUE, 2);
 
 lcd_update:
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(50);
     blink_cnt++;
 
     // scan burst mode

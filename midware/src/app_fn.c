@@ -9,6 +9,9 @@
 #include "app_lcd.h"
 #include "app_fn.h"
 
+#define FN_SHOW_LCD_STAY_MS             (30)
+#define FN_TITLE_LCD_STAY_MS            (1500)
+
 static int8_t fn_idx;
 static int8_t last_fn = -1;
 
@@ -33,7 +36,7 @@ static void fn_temp_sel_show(int8_t idx)
 {
     AppLcdSetString(fn_menus[idx].lcd_str);
     AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_temp_sel_btn_minus(int8_t idx)
@@ -50,7 +53,7 @@ static void fn_body_hi_show(int8_t idx)
 {
     AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
     AppLcdSetTemp(g_cfg->temp_thres[SCAN_BODY].high);
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_body_hi_btn_minus(int8_t idx)
@@ -72,7 +75,7 @@ static void fn_body_hi_btn_plus(int8_t idx)
 static void fn_cal_offset_show(int8_t idx)
 {
     AppLcdSetRawNumber(g_cfg->cal_offset, TRUE, 2);
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_cal_offset_minus(int8_t idx)
@@ -95,7 +98,7 @@ static void fn_beep_show(int8_t idx)
 {
     AppLcdSetString(fn_menus[idx].lcd_str);
     AppLcdSetBuzzer(g_cfg->beep_on);
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_beep_minus(int8_t idx)
@@ -119,10 +122,9 @@ static void app_sub_fn_enter(int8_t idx)
 {
     AppLcdClearAll();
     AppLcdSetString(fn_menus[idx].lcd_str);
-    AppLcdDisplayUpdate();
-    delay1ms(1000);
+    AppLcdDisplayUpdate(FN_TITLE_LCD_STAY_MS);
     AppLcdClearAll();
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(0);
 }
 
 void app_fn_next(void)
