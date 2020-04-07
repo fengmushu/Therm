@@ -209,6 +209,18 @@ int32_t main(void)
     AppLcdDisplayAll();
     AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
 
+    timer3_init();
+    app_i2c_init();
+    app_runtime_init(&g_runtime);
+
+    fsm_init(&g_fsm);
+    fsm_start(&g_fsm);
+
+    // dead loop inside until fsm exits (will not, though)
+    fsm_process(&g_fsm);
+
+    fsm_shutdown(&g_fsm, FSM_STATE_FATAL);
+
     while(1)
     {
         CalData_t *pCal;
