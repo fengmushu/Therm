@@ -85,8 +85,8 @@ fsm_state_t fsm_event_handle(fsm_t *fsm, fsm_event_t event, void *data)
             if (handler->action) {
                 next = handler->action(curr, event, data);
 
-                if (next == __FSM_STATE_BY_NEXT)
-                    next = handler->next;
+                // if (next == __FSM_STATE_BY_NEXT)
+                //     next = handler->next;
             } else {
                 next = handler->next;
             }

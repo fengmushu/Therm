@@ -89,7 +89,7 @@ enum fsm_state {
                                 // handler->action can be null
                                 // use this within handler->next field
 
-        __FSM_STATE_BY_NEXT,    // next state is handler->next,
+//      __FSM_STATE_BY_NEXT,    // next state is handler->next,
                                 // use this within handler->action field
 
         __FSM_STATE_UNINIT,     // not initialized
