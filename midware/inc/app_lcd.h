@@ -136,7 +136,8 @@ extern void AppLcdSetString(enStrType_t StrType);
 
 extern void AppLcdSetRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits);
 
-extern void AppLcdDisplayUpdate();
+// say a delay ms to allow lcd stay its content on demand
+extern void AppLcdDisplayUpdate(uint32_t delay_ms);
 
 extern void AppLcdClearAll(void);
 

@@ -504,7 +504,7 @@ void AppLcdSetRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits)
  ** \retval enRet 成功或失败
  **
  ******************************************************************************/
-void AppLcdDisplayUpdate()
+void AppLcdDisplayUpdate(uint32_t delay_ms)
 {
     volatile uint16_t *pu16LcdRam;
     uint8_t i = 0;
@@ -553,7 +553,8 @@ void AppLcdDisplayUpdate()
         sAppLcdDisplaySymbol(pu16LcdRam, i, pstcLcdDisplayCfg->Sym_display[i]);
     }
 
-    delay1ms(20); /* delay for display ok */
+    if (delay_ms)
+        delay1ms(delay_ms);
     
     return;
 }
