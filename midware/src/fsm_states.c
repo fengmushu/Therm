@@ -54,7 +54,9 @@ static fsm_state_t state_pwron_enter(fsm_node_t *node, fsm_event_t event)
 {
     UNUSED_PARAM(event);
 
-    // TODO: beep once
+    beep_on();
+    delay1ms(225);
+    beep_off();
 
     return FSM_STATE_SLEEP;
 }
