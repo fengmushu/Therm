@@ -249,7 +249,7 @@ void AppCalClean(void)
 }
 
 ///< ADC 修正值获取
-static boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
+boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
     uint32_t  u32SampIndex;     ///< 采样次数
     uint32_t  u32VirAdcCode, u32NtcHAdcCode, u32NtcLAdcCode;     ///< ADC 采样值
@@ -341,7 +341,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
 
 ///< 校准(标定)模式API
-static void AppCalibration(void)
+void AppCalibration(void)
 {
     CalData_t   Cal;
     float32_t fNtc, fTemp;
