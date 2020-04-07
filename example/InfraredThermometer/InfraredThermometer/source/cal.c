@@ -73,6 +73,8 @@ static boolean_t CalLoad(FactoryData_t *pFactory)
     }
   #endif
 
+    DBG_PRINT("%s Flash load OK\r\n", __func__);
+  
     return TRUE;
 }
 
@@ -83,7 +85,7 @@ static boolean_t CalLoadFromI2c(FactoryData_t *pFactory)
     
     ASSERT(sizeof(FactoryData_t) <= I2C_CAL_DATA_SIZE);
     
-    if (app_i2c_read_data(I2C_CAL_DATA_ADDR, (uint8_t*)pFactory, sizeof(FactoryData_t)))
+    if (!app_i2c_read_data(I2C_CAL_DATA_ADDR, (uint8_t*)pFactory, sizeof(FactoryData_t)))
     {
         DBG_PRINT("%s:%d read cal error\r\n", __func__, __LINE__);
         return FALSE;
@@ -151,6 +153,7 @@ static boolean_t AppCalStore(FactoryData_t *pFactory)
     for(i=0; i<sizeof(CalData_t); i++) {
         Flash_WriteByte(uAddr + i, *(pBuffer + i));
     }
+
 
     ///< 还原中断
     __enable_irq();
@@ -244,4 +247,112 @@ void AppCalClean(void)
     
 }
 
+#define CAL_DEBUG 1
+#if CAL_DEBUG
+void cal_debug()
+{
+    CalData_t  Cal;
+    CalData_t* pCal = NULL;
+    FactoryData_t Fact;
+    
+    AppCalClean();
+    pCal = AppCalLoad();
+    if (pCal != NULL)
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
 
+    Cal.fAmp = 0.1;
+    Cal.fCalBase = 0.2;
+    Cal.fTH = 0.3;
+    Cal.fTL = 0.4;
+    Cal.uVAdcH = 0x12;
+    Cal.uVAdcL = 0x34;
+    Cal.u8HumanFix = 0x29;
+    AppCalUpdateAndSaveFactory(&Cal);
+    
+    if(!CalLoad(&Fact))
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+    pCal = &gstFactory.CalData;
+    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+
+    memset(&Fact, 0, sizeof(FactoryData_t));
+    if(!CalLoadFromI2c(&Fact))
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+    pCal = &Fact.CalData;
+    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+
+    /* erase flash cal */
+    //< 关闭中断
+    __disable_irq();
+
+    ///< 擦除块
+    while(Ok != Flash_SectorErase(CAL_DATA_ADDR));
+
+    ///< 覆盖MAGIC
+    Flash_WriteWord(CAL_DATA_ADDR, 0xFFFFAAAA);
+    __enable_irq();
+    
+    pCal = AppCalLoad(); //i2c cal write to flash
+    if (pCal == NULL)
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+
+    memset(&Fact, 0, sizeof(FactoryData_t));
+    if(!CalLoad(&Fact))
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+    pCal = &Fact.CalData;
+    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+    
+    /* erase i2c cal */
+    memset(&Fact, 0, sizeof(FactoryData_t));
+    app_i2c_write_data(I2C_CAL_DATA_ADDR, (uint8_t*)&Fact, sizeof(FactoryData_t));
+    
+    pCal = AppCalLoad(); //flash cal write to i2c
+    if (pCal == NULL)
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+
+    memset(&Fact, 0, sizeof(FactoryData_t));
+    if(!CalLoadFromI2c(&Fact))
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+    pCal = &Fact.CalData;
+    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
+    {
+        printf("%s:%u error!\r\n", __func__, __LINE__);
+        return;
+    }
+
+    AppCalClean();        
+           
+}
+#endif
