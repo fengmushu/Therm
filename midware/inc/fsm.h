@@ -169,6 +169,9 @@ struct fsm_node {
         // @fsm_event_t: event that causes to exit
         void            (*exit)(fsm_node_t *, fsm_event_t);
 
+        // bit map to fast detect accepted events
+        uint32_t         events;
+
         // need terminate flag
         fsm_handler_t    actions[];
 };

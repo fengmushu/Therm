@@ -14,7 +14,9 @@ const fsm_node_t state_uninit = {
     .state   = __FSM_STATE_UNINIT,
     .type    = FSM_NODE_DUMMY,
     .enter   = NULL,
+    .proc    = NULL,
     .exit    = NULL,
+    .events  = 0,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -145,6 +147,9 @@ static __always_inline int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void
         DBG_PRINT("fsm is stopped\n");
         return FSM_UNACCEPTED;
     }
+
+    if (!(BIT(event) & fsm->curr->events))
+        return FSM_UNACCEPTED;
 
     if (event == __FSM_EVENT_DUMMY)
         return FSM_ACCEPTED;
@@ -305,6 +310,9 @@ int fsm_start(fsm_t *fsm)
         DBG_PRINT("no init state found\n");
         return 1;
     }
+
+    if (NUM_FSM_EVENTS >= (BITS_PER_BYTE * sizeof(init->events)))
+        return 1;
 
     if (fsm_state_enter(fsm, __FSM_EVENT_START, init))
         return 1;

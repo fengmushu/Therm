@@ -40,6 +40,7 @@ static fsm_node_t state_stop = {
     .enter   = state_stop_enter,
     .proc    = NULL,
     .exit    = NULL,
+    .events  = 0,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -64,6 +65,7 @@ static fsm_node_t state_pwron = {
     .enter   = state_pwron_enter,
     .proc    = NULL,
     .exit    = NULL,
+    .events  = 0,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -88,6 +90,7 @@ static fsm_node_t state_pwroff = {
     .enter   = state_pwroff_enter,
     .proc    = NULL,
     .exit    = NULL,
+    .events  = 0,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -130,6 +133,8 @@ static fsm_node_t state_sleep = {
     .enter   = state_sleep_enter,
     .proc    = NULL,
     .exit    = state_sleep_exit,
+    .events  = BIT(FSM_EVENT_PRESS_TRIGGER) |
+               BIT(FSM_EVENT_RELEASE_TRIGGER),
     .actions = {
         {
             .event  = FSM_EVENT_PRESS_TRIGGER,
@@ -155,6 +160,12 @@ static fsm_node_t state_main = {
     .enter   = state_main_enter,
     .proc    = state_main_proc,
     .exit    = state_main_exit,
+    .events  = BIT(FSM_EVENT_PRESS_FN)       |
+               BIT(FSM_EVENT_RELEASE_FN)     |
+               BIT(FSM_EVENT_PRESS_TRIGGER)  |
+               BIT(FSM_EVENT_SWITCH_BODY)    |
+               BIT(FSM_EVENT_SWITCH_SURFACE) |
+               BIT(FSM_EVENT_IRQ_TIMER3),
     .actions = {
         // {
         //     .event  = FSM_EVENT_RELEASE_MINUS,
@@ -238,6 +249,8 @@ static fsm_node_t state_scan = {
     .enter   = state_scan_enter,
     .proc    = NULL,
     .exit    = state_scan_exit,
+    .events  = BIT(FSM_EVENT_RELEASE_FN) |
+               BIT(FSM_EVENT_IRQ_ADC),
     .actions = {
         {
             .event  = FSM_EVENT_IRQ_ADC,
@@ -319,6 +332,9 @@ static fsm_node_t state_config = {
     .enter   = state_config_enter,
     .proc    = state_config_proc,
     .exit    = state_config_exit, 
+    .events  = BIT(FSM_EVENT_RELEASE_MINUS) |
+               BIT(FSM_EVENT_RELEASE_PLUS)  |
+               BIT(FSM_EVENT_RELEASE_FN),
     .actions = {
         {
             .event  = FSM_EVENT_RELEASE_MINUS,
@@ -360,6 +376,7 @@ static fsm_node_t state_fatal = {
     .enter   = state_fatal_enter,
     .proc    = NULL,
     .exit    = NULL,
+    .events  = 0,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
