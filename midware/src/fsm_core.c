@@ -120,7 +120,7 @@ int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
 {
     fsm_state_t next_state;
 
-    WRITE_ONCE(fsm->status, FSM_STATUS_SHIFTING);
+    fsm->status = FSM_STATUS_SHIFTING;
 
     // perform multiple empty shift here
     do {
@@ -128,11 +128,11 @@ int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next)
         next = fsm_state_to_node(fsm, next_state);
     } while (next != fsm->curr);
 
+    fsm->status = FSM_STATUS_RUNNING;
+
     // for startup, fsm->status is set to running after fsm_state_enter()
     if (fsm->curr->type == FSM_NODE_EXIT)
         fsm->status = FSM_STATUS_STOPPED;
-
-    WRITE_ONCE(fsm->status, FSM_STATUS_RUNNING);
 
     return 0;
 }

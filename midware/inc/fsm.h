@@ -211,6 +211,4 @@ int fsm_exit(fsm_t *fsm);
 int fsm_states_init(fsm_t *fsm);
 int fsm_states_exit(fsm_t *fsm);
 
-int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data);
-
 #endif /* __FSM_H__ */
