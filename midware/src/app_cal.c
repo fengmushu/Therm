@@ -355,7 +355,7 @@ void AppCalibration(void)
 
     AppLcdClearAll();
     AppLcdSetString(Str_LO);
-    AppLedEnable(1);
+    AppLedEnable(LedLightBlue);
     AppLcdDisplayUpdate(10);
 
     while(1) {
@@ -365,10 +365,10 @@ void AppCalibration(void)
         if(u8CaType == 0) {
             ///< 更新到屏幕
             AppLcdSetString(Str_LO);
-            AppLedEnable(1);
+            AppLedEnable(LedLightBlue);
         } else {
             AppLcdSetString(Str_HI);
-            AppLedEnable(1);
+            AppLedEnable(LedLightBlue);
         }
         AppLcdDisplayUpdate(0);
 
