@@ -65,7 +65,9 @@
 #include "app_adc.h"
 #include "app.h"
 #include "nna.h"
-#include "cal.h"
+#include "app_cal.h"
+#include "app_key.h"
+
 
 /******************************************************************************
  * Local pre-processor symbols/macros ('#define')                            
@@ -202,12 +204,26 @@ void App_SystemInit(void)
  ******************************************************************************/
 int32_t main(void)
 {
+    CalData_t* pCal = NULL;
     ///< 系统初始化
     App_SystemInit();
 
     AppLedEnable(LedLightBlue);
     AppLcdDisplayAll();
     AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
+
+    if (key_pressed_query(KEY_FN))
+    {
+        AppCalibration();
+    }
+    else
+    {
+        pCal = AppCalLoad();
+        if (!pCal)
+        {
+            AppCalibration();
+        }
+    }
 
     timer3_init();
     app_i2c_init();
@@ -220,56 +236,6 @@ int32_t main(void)
     fsm_process(&g_fsm);
 
     fsm_shutdown(&g_fsm, FSM_STATE_FATAL);
-
-    while(1)
-    {
-        CalData_t *pCal;
-        //for test lcd
-        #if 0
-        {   
-            extern void AppLcdDebug(void);
-            AppLedEnable(LedLightBlue);
-            delay1ms(500);
-            
-            AppLcdDebug();
-            delay1ms(1000);
-        }
-        #endif
-
-        ///< 产测数据加载
-        while((pCal = AppCalLoad()) == NULL) {
-            AppCalibration();
-            delay1ms(100);
-        }
-
-        ///<*** 温度数据采集及转换
-        if(KEY_TRIG()) {
-            KEY_CLR_TRIG();
-            uint32_t uNtc, uBlack, uSurf, uHuman;
-
-            AppTempCalculate(pCal, &uNtc, &uBlack, &uSurf, &uHuman);
-            AppLcdSetTemp(uHuman);
-            AppLcdDisplayUpdate();
-            AppBeepBlink((SystemCoreClock/1500));
-            // AppLcdBlink();
-        }
-
-        ///< 清空产测数据
-        if(KEY_LEFT()) {
-            KEY_CLR_LEFT();
-            AppCalClean();
-            AppLcdBlink();
-            AppBeepBlink((SystemCoreClock/1500));
-        }
-
-        ///< 中间键, 系统休眠
-        if(KEY_MID()) {
-            KEY_CLR_MID();
-            AppSystemHalt();
-        }
-
-        delay1ms(100);
-    }
 }
    
 
@@ -283,75 +249,11 @@ void Lvd_IRQHandler(void)
     while(u8Index--)
     {
         
-        AppLcdDisplayUpdate();
+        AppLcdDisplayUpdate(0);
         delay1ms(300);
         
-        AppLcdDisplayUpdate();
+        AppLcdDisplayUpdate(0);
         delay1ms(300);
-    }
-}
-
-
-///< GPIO 中断服务程序 ———— 测温及选择功能键
-void PortC_IRQHandler(void)
-{
-    delay1ms(10);
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN))
-    {
-        Gpio_ClearIrq(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN))
-        {            
-            //标定按键按下
-            KEY_SET_LEFT();
-            //重新标定自动关机时间
-            AppRtcFeed();
-        }
-        return;
-    }
-    
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_MID_PORT, M_KEY_MID_PIN))
-    {
-        Gpio_ClearIrq(M_KEY_MID_PORT, M_KEY_MID_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_MID_PORT, M_KEY_MID_PIN))
-        {
-            //标定按键按下
-            KEY_SET_MID();
-            //重新标定自动关机时间
-            AppRtcFeed();
-        }
-        return;
-    }
-    
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
-    {
-        Gpio_ClearIrq(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN))
-        {
-            //标定按键按下
-            KEY_SET_RIGHT();
-            //重新标定自动关机时间
-            AppRtcFeed();
-            Rtc_Cmd(TRUE);
-        }
-        return;
-    }
-}
-
-///< GPIO 中断服务程序 ———— 模式功能键
-void PortD_IRQHandler(void)
-{
-    delay1ms(100);
-    if (TRUE == Gpio_GetIrqStatus(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN))
-    {
-        Gpio_ClearIrq(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN);
-        if(FALSE == Gpio_GetInputIO(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN))
-        {            
-            //标定按键按下
-            KEY_SET_TRIG();
-            //重新标定自动关机时间
-            AppRtcFeed();
-        }
-        return;
     }
 }
 

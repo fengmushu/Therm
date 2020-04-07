@@ -2,8 +2,9 @@
 
 #include "app.h"
 #include "app_i2c.h"
-#include "cal.h"
+#include "app_cal.h"
 #include "crc.h"
+#include "app_key.h"
 
 #define CAL_MAGIC_NUM           0x41415ABB
 #define CAL_DATA_ADDR           0xFE00 /* last sector, for cal */
@@ -348,31 +349,30 @@ void AppCalibration(void)
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
 
-    KEY_CLR_ALL();
     NNA_CalInit(&Cal);
 
     AppLcdClearAll();
+    AppLcdSetString(Str_LO);
+    AppLedEnable(1);
+    AppLcdDisplayUpdate(10);
 
     while(1) {
-        ///< 等按键触发
-        if(!KEY_TRIG()) {
-            if(u8CaType == 0) {
-                ///< 更新到屏幕
-                AppLcdSetString(Str_LO);
-                AppLedEnable(1);
-            } else {
-                AppLcdSetString(Str_HI);
-                AppLedEnable(1);
-            }
-            AppLcdDisplayUpdate();
-            delay1ms(200);
-            continue;
+        
+        while(!key_pressed_query(KEY_TRIGGER)); //等按键触发
+        
+        if(u8CaType == 0) {
+            ///< 更新到屏幕
+            AppLcdSetString(Str_LO);
+            AppLedEnable(1);
+        } else {
+            AppLcdSetString(Str_HI);
+            AppLedEnable(1);
         }
-        ///< 清除按键
-        KEY_CLR_TRIG();
+        AppLcdDisplayUpdate(0);
 
         ///< 读取ADC
         if(!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL)) {
+            while (key_pressed_query(KEY_TRIGGER)); //等按键释放
             continue;
         }
 
@@ -384,6 +384,7 @@ void AppCalibration(void)
                 u8CaType ++;
                 AppBeepBlink((SystemCoreClock/1000));
             } else {
+                while (key_pressed_query(KEY_TRIGGER)); //等按键释放
                 continue;
             }
         } else {
@@ -391,28 +392,31 @@ void AppCalibration(void)
                 AppBeepBlink((SystemCoreClock/500));
                 break;
             } else {
+                while (key_pressed_query(KEY_TRIGGER)); //等按键释放
                 continue;
             }
         }
+            
     }
 
     while(1) {
         uint32_t uNtc, uBlack, uSurf, uHuman;
         ///< 用校准后的参数验证测试 & 按键确认
-        if(KEY_TRIG()) {
-            KEY_CLR_TRIG();
+        while(!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_MINUS)); //等按键触发
 
+        if (key_pressed_query(KEY_TRIGGER))
+        {
             AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman);
             AppLcdSetTemp(uBlack/10);
-            AppLcdDisplayUpdate();
-            delay1ms(300);
+            AppLcdDisplayUpdate(300);
         }
-        if(KEY_LEFT()) {
-            KEY_CLR_LEFT();
-            ///< 保存到Flash
+
+        if (key_pressed_query(KEY_MINUS))
+        {
             break;
         }
-        delay1ms(100);
+            
+        while(key_pressed_query(KEY_TRIGGER) || key_pressed_query(KEY_MINUS)); //等按键释放
     }
 
     ///< 回写校准数据

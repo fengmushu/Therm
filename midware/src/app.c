@@ -203,7 +203,7 @@ void AppSystemResume(void)
         AppBeepBlink((SystemCoreClock/500));
 
         AppLcdDisplayAll();
-        AppLcdDisplayUpdate();
+        AppLcdDisplayUpdate(0);
 
         Adc_Enable();
         Bgr_BgrEnable();
@@ -232,7 +232,7 @@ void AppSystemHalt(void)
     AppBeepBlink((SystemCoreClock/500));
 
     AppLcdClearAll();
-    AppLcdDisplayUpdate();
+    AppLcdDisplayUpdate(0);
 
     Adc_Disable();
     Bgr_BgrDisable();

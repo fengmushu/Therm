@@ -407,11 +407,6 @@
               <FileType>1</FileType>
               <FilePath>..\source\main.c</FilePath>
             </File>
-            <File>
-              <FileName>cal.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\source\cal.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -492,6 +487,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\driver\src\i2c.c</FilePath>
             </File>
+            <File>
+              <FileName>timer3.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\driver\src\timer3.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -526,6 +526,51 @@
               <FileName>app_i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\midware\src\app_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_cal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_cal.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_key.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_fn.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_fn.c</FilePath>
+            </File>
+            <File>
+              <FileName>fsm_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\fsm_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>fsm_event_ring.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\fsm_event_ring.c</FilePath>
+            </File>
+            <File>
+              <FileName>fsm_states.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\fsm_states.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_data.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_data.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_timer.c</FilePath>
             </File>
           </Files>
         </Group>
