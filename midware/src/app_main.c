@@ -20,9 +20,12 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
     switch (event) {
     case FSM_EVENT_RELEASE_FN: // REMOVE ME
     case FSM_EVENT_IRQ_ADC: // enter from scan done
-        g_rt->scan_done = 1;
-        // TODO: get scan result from somewhere
-        g_rt->scan_result = 295 + (blink_cnt & 1);
+        g_rt->scan_done = 1; // to keep big number showing last scan result
+        g_rt->scan_burst = 1;
+        g_rt->scan_result = 295 + (blink_cnt & 127);         // TODO: get scan result from somewhere
+        g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
+
+        DBG_PRINT("fake temp: %d\r\n", g_rt->scan_result);
 
         if (is_temp_in_range(&g_cfg->temp_thres[scan_mode], g_rt->scan_result)) {
             scan_log_write(&g_scan_log[scan_mode], g_rt->scan_result);
@@ -33,6 +36,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 
     default: // display last write result
         g_rt->scan_done = 0;
+        g_rt->scan_burst = 0;
         g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
         AppLcdClearAll();
         break;
@@ -44,13 +48,11 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 fsm_state_t state_main_proc(fsm_node_t *node)
 {
     fsm_state_t next = node->state;
-    uint8_t scan_mode = scan_mode_runtime_update();
+    uint8_t scan_done = g_rt->scan_done;
+    uint8_t scan_mode = g_rt->scan_mode_last;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
-    int16_t last_result;
-    int16_t last_log;
-
-    if (key_pressed_query(KEY_TRIGGER))
-        next = FSM_STATE_SCAN;
+    int16_t big_number;
+    int16_t log_number;
 
     AppLcdSetLock(FALSE);
     AppLcdSetBuzzer(g_cfg->beep_on);
@@ -61,37 +63,47 @@ fsm_state_t state_main_proc(fsm_node_t *node)
     if (g_rt->battery_low)
         AppLcdSetBattery(blink_cnt & (BLINK_PERIOD_CNT - 1));
 
-    last_log = scan_log_read(&g_scan_log[scan_mode], read_idx);
+    // read_idx should have synced to write_idx in enter() if scan_done
+    log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
 
     if (g_cfg->temp_unit == TUNIT_F)
-        last_log = lcd_show_C2F(last_log);
+        log_number = lcd_show_C2F(log_number);
 
-    AppLcdSetLogTemp(last_log, lcd_show_idx(read_idx));
+    AppLcdSetLogTemp(log_number, lcd_show_idx(read_idx));
 
-    if (g_rt->scan_done) {
-        last_result = g_rt->scan_result;
+    // if last state was SCAN and done
+    if (scan_done) {
+        big_number = g_rt->scan_result;
 
-        if (last_result < g_cfg->temp_thres[scan_mode].low) {
+        if (big_number < g_cfg->temp_thres[scan_mode].low) {
             AppLcdSetString(Str_LO);
-        } else if (last_result > g_cfg->temp_thres[scan_mode].high) {
+            goto lcd_update;
+        } else if (big_number > g_cfg->temp_thres[scan_mode].high) {
             AppLcdSetString(Str_HI);
+            goto lcd_update;
         } else {
             if (g_cfg->temp_unit == TUNIT_F)
-                last_result = lcd_show_C2F(last_result);
-
-            AppLcdSetRawNumber(last_result, TRUE, 2);
+                big_number = lcd_show_C2F(big_number);
         }
-
-        delay1ms(500); // for burst mode
-        goto out;
+    } else {
+        // user is viewing log update big number, too
+        big_number = log_number;
     }
 
-    last_result = last_log;
-    AppLcdSetRawNumber(last_result, TRUE, 2);
+    AppLcdSetRawNumber(big_number, TRUE, 2);
 
-out:
+lcd_update:
     AppLcdDisplayUpdate();
     blink_cnt++;
+
+    // scan burst mode
+    if (key_pressed_query(KEY_TRIGGER) && g_rt->scan_burst) {
+        next = FSM_STATE_SCAN;
+        delay1ms(1500);
+    }
+
+    g_rt->scan_burst = 0;
+    g_rt->scan_mode_last = scan_mode_runtime_update();
 
     return next;
 }

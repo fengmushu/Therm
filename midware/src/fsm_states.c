@@ -182,11 +182,11 @@ static fsm_node_t state_main = {
             .action = NULL,
             .next   = FSM_STATE_SCAN,
         },
-        {
-            .event  = FSM_EVENT_RELEASE_TRIGGER,
-            .action = NULL,
-            .next   = FSM_STATE_SCAN,
-        },
+        // {
+        //     .event  = FSM_EVENT_RELEASE_TRIGGER,
+        //     .action = NULL,
+        //     .next   = FSM_STATE_SCAN,
+        // },
         {
             .event  = FSM_EVENT_SWITCH_BODY,
             .action = state_main_scan_mode_switch,

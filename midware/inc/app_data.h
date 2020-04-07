@@ -78,11 +78,16 @@ typedef struct app_save {
 // variables that required for runtime
 //
 typedef struct app_runtime {
+    uint8_t    scan_mode;
+    uint8_t    scan_mode_last;
     int16_t    scan_result;
     uint8_t    scan_done;
-    uint8_t    scan_mode;
-    uint8_t    battery_low;
+    uint8_t    scan_burst;
+
     uint8_t    read_idx[NUM_SCAN_MODES];
+
+    uint8_t    battery_low;
+
     app_save_t save;
 } app_runtime_t;
 

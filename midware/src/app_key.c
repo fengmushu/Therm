@@ -87,6 +87,11 @@ static __always_inline void key_gpio_irq_handle(int i)
         event = keys_map[i].event_release;
         __key_released(i);
 
+        // BUG:
+        // if return back to same state,
+        // the key just released, release event still will input
+        // need to clear to prevent input which was intended for previous state
+
         // avoid posting releasing event into wrong state
         if (*last_pressed != g_fsm.curr->state &&
             *last_pressed != __FSM_STATE_NONE) {
