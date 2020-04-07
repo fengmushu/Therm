@@ -100,15 +100,17 @@ typedef struct stc_lcd_display_cfg
     boolean_t  bRawNum;         /* 是否显示原始格式 */
     boolean_t  bTempDis;        /* 是否显示当前温度 */
     boolean_t  bLogTempDis;     /* 是否显示log温度 */
-    boolean_t  bRaw_dis_dot;    /* 是否显示点号 */
+    boolean_t  bLogRawNum;       /* 日志数字显示原始格式 */
 
     boolean_t  bLogChanged;     /* log温度是否修改 */
     boolean_t  bTempChanged;    /* 温度是否修改 */
     
     uint8_t   bRaw_digits_num;  /* 数字个数 */
+    uint8_t   bLogRaw_digits_num;  /* 数字个数 */
+    
     uint16_t  u16LogIndex;   /* log index */
     int16_t   u16Temp;       /* *10去掉小数点后的十进制温度值" */
-    uint16_t  u16LogTemp;    /* log index对应的温度，*10去掉小数点后的值 */
+    int16_t   u16LogTemp;    /* log index对应的温度，*10去掉小数点后的值 */
     
 }stc_lcd_display_cfg_t;
 
@@ -442,9 +444,10 @@ void AppLcdClearTemp(void)
 void AppLcdSetLogTemp(uint16_t Temp, uint16_t Index)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
-    pstcLcdDisplayCfg->u16LogTemp = Temp;
+    pstcLcdDisplayCfg->u16LogTemp = (uint16_t)Temp;
     pstcLcdDisplayCfg->u16LogIndex = Index;
     pstcLcdDisplayCfg->bLogTempDis = TRUE;
+    pstcLcdDisplayCfg->bLogRawNum = FALSE;
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, TRUE);
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_T_DT_SYM, TRUE);
     pstcLcdDisplayCfg->bLogChanged = TRUE;
@@ -455,11 +458,27 @@ void AppLcdClearLogTemp(void)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
     pstcLcdDisplayCfg->bLogTempDis = FALSE;
+    pstcLcdDisplayCfg->bLogRawNum = FALSE;
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, FALSE);
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_T_DT_SYM, FALSE);
     pstcLcdDisplayCfg->bLogChanged = TRUE;
     return;
 }
+
+void AppLcdSetLogRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits)
+{
+    stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
+    pstcLcdDisplayCfg->u16LogTemp = Temp;
+    pstcLcdDisplayCfg->bLogRawNum = TRUE;
+    pstcLcdDisplayCfg->bLogTempDis = FALSE;
+    pstcLcdDisplayCfg->bLogRaw_digits_num = min_digits > 4 ? 4 : min_digits;
+
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_T_DT_SYM, dis_dot);
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, FALSE);
+    pstcLcdDisplayCfg->bLogChanged = TRUE;
+    return;
+}
+
 
 
 void AppLcdSetString(enStrType_t StrType)
@@ -493,6 +512,7 @@ void AppLcdSetRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits)
     pstcLcdDisplayCfg->bTempChanged = TRUE;
     return;
 }
+
 
 
 /**
@@ -543,6 +563,11 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
             
             /* log temp display */        
             sAppLcdDisplayLogTemp(pstcLcdDisplayCfg);
+        }
+        else if(pstcLcdDisplayCfg->bLogRawNum)
+        {
+            sAppLcdDisplayRawNumber(pstcLcdDisplayCfg->u16LogTemp, 
+                pu16LcdRam, 0, pstcLcdDisplayCfg->bLogRaw_digits_num);
         }
         pstcLcdDisplayCfg->bLogChanged = FALSE;
     }

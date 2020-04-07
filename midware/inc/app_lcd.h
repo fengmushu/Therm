@@ -132,6 +132,9 @@ extern void AppLcdSetLogTemp(uint16_t Temp, uint16_t Index);
 
 extern void AppLcdClearLogTemp(void);
 
+extern void AppLcdSetLogRawNumber(int16_t Temp, 
+    boolean_t dis_dot, uint8_t min_digits);
+
 extern void AppLcdSetString(enStrType_t StrType);
 
 extern void AppLcdSetRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits);
