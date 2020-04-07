@@ -80,11 +80,14 @@
 
 #define time_after(a,b) ((long)(b)-(long)(a)<0)
 
+
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#define AUTO_PWROFF_TIMEOUT     5
 
 #define UID_BASE_ADDR           0x00100E74
 

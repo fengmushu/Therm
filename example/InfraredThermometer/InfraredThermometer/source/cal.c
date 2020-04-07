@@ -3,6 +3,7 @@
 #include "app.h"
 #include "app_i2c.h"
 #include "cal.h"
+#include "crc.h"
 
 #define CAL_MAGIC_NUM           0x41415ABB
 #define CAL_DATA_ADDR           0xFE00 /* last sector, for cal */

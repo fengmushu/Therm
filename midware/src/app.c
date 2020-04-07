@@ -87,6 +87,10 @@
  ******************************************************************************/
 
 static UID_t           gstUID;
+static uint32_t        gnJiffies = 0;
+static uint32_t        gnPowerOffTimeout = 0;
+static boolean_t       gInSuspend = FALSE;
+
 
 static void AppLoadUID(void)
 {
