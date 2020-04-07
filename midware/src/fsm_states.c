@@ -11,6 +11,7 @@
 #include "app_key.h"
 #include "app_data.h"
 #include "app_fn.h"
+#include "app_main.h"
 
 #include "fsm.h"
 
@@ -37,8 +38,8 @@ static fsm_node_t state_stop = {
     .state   = FSM_STATE_STOP,
     .type    = FSM_NODE_EXIT,
     .enter   = state_stop_enter,
-    .proc    = fsm_dummy_proc,
-    .exit    = fsm_dummy_exit,
+    .proc    = NULL,
+    .exit    = NULL,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -50,24 +51,19 @@ static fsm_node_t state_stop = {
 
 static fsm_state_t state_pwron_enter(fsm_node_t *node, fsm_event_t event)
 {
-    fsm_state_t next = node->state;
-
     UNUSED_PARAM(event);
 
-    if (g_save.calibrated)
-        next = FSM_STATE_SLEEP;
-    else
-        next = FSM_STATE_POST;
+    // TODO: beep once
 
-    return next;
+    return FSM_STATE_SLEEP;
 }
 
 static fsm_node_t state_pwron = {
     .state   = FSM_STATE_PWRON,
     .type    = FSM_NODE_INIT,
     .enter   = state_pwron_enter,
-    .proc    = fsm_dummy_proc,
-    .exit    = fsm_dummy_exit, 
+    .proc    = NULL,
+    .exit    = NULL,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -91,45 +87,8 @@ static fsm_node_t state_pwroff = {
     .state   = FSM_STATE_PWROFF,
     .type    = FSM_NODE_NORMAL,
     .enter   = state_pwroff_enter,
-    .proc    = fsm_dummy_proc,
-    .exit    = fsm_dummy_exit, 
-    .actions = {
-        {
-            .event  = __FSM_EVENT_NULL,
-            .action = NULL,
-            .next   = __FSM_STATE_NONE,
-        },
-    },
-};
-
-static fsm_state_t state_post_enter(fsm_node_t *node, fsm_event_t event)
-{
-    fsm_state_t next = node->state;
-
-    UNUSED_PARAM(event);
-
-    // TODO: config check
-
-    AppLedEnable(LedLightBlue);
-
-    AppLcdInit();
-    AppLcdDisplayAll();
-    AppLcdBlink();
-
-    if (g_save.calibrated)
-        next = FSM_STATE_SCAN;
-    else
-        next = FSM_STATE_FACTORY;
-
-    return next;
-}
-
-static fsm_node_t state_post = {
-    .state   = FSM_STATE_POST,
-    .type    = FSM_NODE_NORMAL,
-    .enter   = state_post_enter,
-    .proc    = fsm_dummy_proc,
-    .exit    = fsm_dummy_exit, 
+    .proc    = NULL,
+    .exit    = NULL,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -154,22 +113,34 @@ static fsm_state_t state_sleep_enter(fsm_node_t *node, fsm_event_t event)
     return next;
 }
 
+static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
+{
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(event);
+
+    AppLedEnable(LedLightBlue);
+
+    AppLcdInit();
+    AppLcdDisplayAll();
+    AppLcdBlink();
+}
+
 static fsm_node_t state_sleep = {
     .state   = FSM_STATE_SLEEP,
     .type    = FSM_NODE_NORMAL,
     .enter   = state_sleep_enter,
-    .proc    = fsm_dummy_proc,
-    .exit    = fsm_dummy_exit, 
+    .proc    = NULL,
+    .exit    = state_sleep_exit,
     .actions = {
         {
             .event  = FSM_EVENT_PRESS_TRIGGER,
             .action = NULL,
-            .next   = FSM_STATE_POST,
+            .next   = FSM_STATE_SCAN,
         },
         {
             .event  = FSM_EVENT_RELEASE_TRIGGER,
             .action = NULL,
-            .next   = FSM_STATE_POST,
+            .next   = FSM_STATE_SCAN,
         },
         {
             .event  = __FSM_EVENT_NULL,
@@ -179,80 +150,32 @@ static fsm_node_t state_sleep = {
     },
 };
 
-static fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
-{
-    UNUSED_PARAM(event);
-
-    AppLcdClearAll();
-
-    return node->state;
-}
-
-static fsm_state_t state_main_proc(fsm_node_t *node)
-{
-    UNUSED_PARAM(node);
-
-    AppLcdBlink();
-
-    return node->state;
-}
-
-static void fn_hold_timer(void *data)
-{
-    printf("%s: trigger\r\n", __func__);
-
-    // double check
-    if (key_released_query(KEY_FN))
-        return;
-
-    fsm_event_post(&g_fsm, FSM_EVENT_RING_PRIO_HI, FSM_EVENT_IRQ_TIMER3);
-}
-
-static fsm_state_t state_main_press_fn(fsm_node_t *node,
-                                       fsm_event_t event,
-                                       void *data)
-{
-    timer3_set(TIM3_PCLK_4M256D_2SEC, 1, fn_hold_timer, NULL);
-    timer3_start();
-
-    return node->state;
-}
-
-static fsm_state_t state_main_release_fn(fsm_node_t *node,
-                                         fsm_event_t event,
-                                         void *data)
-{
-    timer3_stop();
-
-    return node->state;
-}
-
 static fsm_node_t state_main = {
     .state   = FSM_STATE_MAIN,
     .type    = FSM_NODE_NORMAL,
     .enter   = state_main_enter,
     .proc    = state_main_proc,
-    .exit    = fsm_dummy_exit, 
+    .exit    = state_main_exit,
     .actions = {
         {
             .event  = FSM_EVENT_RELEASE_MINUS,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
+            .action = state_main_release_minus,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_RELEASE_PLUS,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
+            .action = state_main_release_plus,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_PRESS_FN,
             .action = state_main_press_fn,
-            .next   = FSM_STATE_MAIN,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_RELEASE_FN,
             .action = state_main_release_fn,
-            .next   = FSM_STATE_MAIN,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_PRESS_TRIGGER,
@@ -266,13 +189,13 @@ static fsm_node_t state_main = {
         },
         {
             .event  = FSM_EVENT_SWITCH_BODY,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
+            .action = state_main_scan_mode_switch,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_SWITCH_SURFACE,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
+            .action = state_main_scan_mode_switch,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_IRQ_TIMER3,
@@ -314,7 +237,7 @@ static fsm_node_t state_scan = {
     .state   = FSM_STATE_SCAN,
     .type    = FSM_NODE_NORMAL,
     .enter   = state_scan_enter,
-    .proc    = fsm_dummy_proc,
+    .proc    = NULL,
     .exit    = state_scan_exit,
     .actions = {
         {
@@ -349,13 +272,11 @@ static fsm_state_t state_config_proc(fsm_node_t *node)
 {
     int ret;
 
-    // internal empty shift:
-    // according to design, if config is done by btn_fn, goto pwroff
     switch ((ret = app_fn_proc())) {
     case APP_FN_DONE:
-        return FSM_STATE_PWROFF;
+        return FSM_STATE_MAIN; // fsm internal empty shift
 
-    case APP_FN_ERR: // TODO
+    case APP_FN_ERR: // TODO: lcd show Err..
     case APP_FN_OK:
     default:
         break;
@@ -403,52 +324,18 @@ static fsm_node_t state_config = {
         {
             .event  = FSM_EVENT_RELEASE_MINUS,
             .action = state_config_release_minus,
-            .next   = FSM_STATE_CONFIG,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_RELEASE_PLUS,
             .action = state_config_release_plus,
-            .next   = FSM_STATE_CONFIG,
+            .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_RELEASE_FN,
             .action = state_config_release_fn,
-            .next   = FSM_STATE_CONFIG,
-        },
-        {
-            .event  = FSM_EVENT_SWITCH_BODY,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
-        },
-        {
-            .event  = FSM_EVENT_SWITCH_SURFACE,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
-        },
-        {
-            .event  = __FSM_EVENT_NULL,
-            .action = NULL,
             .next   = __FSM_STATE_NONE,
         },
-    },
-};
-
-static fsm_state_t state_factory_enter(fsm_node_t *node, fsm_event_t event)
-{
-    fsm_state_t next = node->state;
-
-    UNUSED_PARAM(event);
-
-    return next;
-}
-
-static fsm_node_t state_factory = {
-    .state   = FSM_STATE_FACTORY,
-    .type    = FSM_NODE_NORMAL,
-    .enter   = state_factory_enter,
-    .proc    = fsm_dummy_proc,
-    .exit    = fsm_dummy_exit,
-    .actions = {
         {
             .event  = __FSM_EVENT_NULL,
             .action = NULL,
@@ -469,11 +356,11 @@ static fsm_state_t state_fatal_enter(fsm_node_t *node, fsm_event_t event)
 }
 
 static fsm_node_t state_fatal = {
-    .state   = FSM_STATE_FACTORY,
+    .state   = FSM_STATE_FATAL,
     .type    = FSM_NODE_EXIT,
     .enter   = state_fatal_enter,
-    .proc    = fsm_dummy_proc,
-    .exit    = fsm_dummy_exit,
+    .proc    = NULL,
+    .exit    = NULL,
     .actions = {
         {
             .event  = __FSM_EVENT_NULL,
@@ -491,12 +378,10 @@ fsm_t g_fsm = {
         [FSM_STATE_STOP]        = &state_stop,
         [FSM_STATE_PWRON]       = &state_pwron,
         [FSM_STATE_PWROFF]      = &state_pwroff,
-        [FSM_STATE_POST]        = &state_post,
         [FSM_STATE_SLEEP]       = &state_sleep,
         [FSM_STATE_MAIN]        = &state_main,
         [FSM_STATE_SCAN]        = &state_scan,
         [FSM_STATE_CONFIG]      = &state_config,
-        [FSM_STATE_FACTORY]     = &state_factory,
         [FSM_STATE_FATAL]       = &state_fatal,
         NULL,
     },

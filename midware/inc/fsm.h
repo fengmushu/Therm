@@ -70,12 +70,10 @@ enum fsm_state {
 
         FSM_STATE_PWRON,
         FSM_STATE_PWROFF,
-        FSM_STATE_POST,
         FSM_STATE_SLEEP,
         FSM_STATE_MAIN,
         FSM_STATE_SCAN,
         FSM_STATE_CONFIG,
-        FSM_STATE_FACTORY,
         FSM_STATE_FATAL,
 
         NUM_FSM_STATES,         // user state count
