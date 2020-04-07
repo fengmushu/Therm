@@ -9,7 +9,7 @@
 /* 256 bytes */
 #define I2C_MAX_SIZE 0x100 
 /* page size */
-#define I2C_PAGE_SIZE 16
+#define I2C_PAGE_SIZE 8
 /* 状态等待时间 100 * 10 us */
 #define MAX_WAIT_CNT 100 
 
