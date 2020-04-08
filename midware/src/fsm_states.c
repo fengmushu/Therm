@@ -278,20 +278,33 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
     return next;
 }
 
+// NOTE: least 2 digit is float .2, delta = .XX
+int16_t markov_chain_trick(int16_t previous, int16_t current, uint16_t delta)
+{
+    int16_t ret = previous;
+
+    // if current is not in range (previous +- delta), return current
+    if (abs(previous - current) > (delta * 2))
+        ret = current;
+
+    return ret;
+}
+
 static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
 {
-    uint32_t body, surface;
+    uint32_t result[NUM_SCAN_MODES];
 
     // prevent sleep
     AppRtcFeed();
 
-    AppTempCalculate(g_cal, NULL, &surface, &body, NULL);
+    // AppTempCalculate() return least 2 digit as float points
+    AppTempCalculate(g_cal, NULL, &result[SCAN_SURFACE], &result[SCAN_BODY], NULL);
 
-    // AppTempCalculate() return 2 float positions
-    g_rt->scan_result[SCAN_BODY]    = (uint16_t)body / 10;
-    g_rt->scan_result[SCAN_SURFACE] = (uint16_t)surface / 10;
-
-    DBG_PRINT("body: %d surface: %d\n", body, surface);
+    for (uint8_t i = 0; i < NUM_SCAN_MODES; i++) {
+        int16_t last_written = scan_log_last_written(&g_scan_log[i]);
+        g_rt->scan_result[i] = markov_chain_trick(last_written, result[i], 5);
+        g_rt->scan_result[i] /= 10; // display goes with one float digit
+    }
 
     state_proc_event_set(out, FSM_EVENT_SCAN_DONE);
 

@@ -133,6 +133,11 @@ static __always_inline void scan_log_idx_decrease(uint8_t *idx)
     *idx = (*idx - 1) & (SCAN_LOG_SIZE - 1);
 }
 
+static __always_inline int16_t scan_log_last_written(scan_log_t *log)
+{
+    return log->data[log->last_write];
+}
+
 void app_runtime_init(app_runtime_t *rt);
 
 int app_save_verify(app_save_t *save);
