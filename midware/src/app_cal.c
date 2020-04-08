@@ -272,11 +272,11 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 // TRUE  - 标准模式(使用标定后的值)
 // FALSE - 标定(测试)模式 
 boolean_t AppTempCalculate(CalData_t *pCal, 
-                        uint32_t *uTNtc, 
-                        uint32_t *uTBlack, 
-                        uint32_t *uTSurface, 
-                        uint32_t* uTHuman,
-                        uint32_t* pViR)
+                           uint32_t  *uTNtc, 
+                           uint32_t  *uTBlack, 
+                           uint32_t  *uTSurface, 
+                           uint32_t  *uTHuman,
+                           uint32_t  *pViR)
 {
     static int i = 0;
     uint32_t  u32SampIndex;     ///< 采样次数
@@ -291,21 +291,26 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
     ///< 环境温度获取
     fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL);       ///< NTC 环境温度值获取
-    *uTNtc = (uint32_t)(fNtcTemp * 100);
+    if (uTNtc)
+        *uTNtc = (uint32_t)(fNtcTemp * 100);
 
     ///< 黑体/物体 表面温度
     fBlackTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
-    *uTBlack = (uint32_t)(fBlackTemp * 100);
+    if (uTBlack)
+        *uTBlack = (uint32_t)(fBlackTemp * 100);
 
     ///< 物体表面 
     fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
-    *uTSurface = (uint32_t)(fSurfaceTemp * 100);
+    if (uTSurface)
+        *uTSurface = (uint32_t)(fSurfaceTemp * 100);
 
     ///< 人体温度
     fHumanTemp = NNA_HumanBodyTempGet(pCal, fSurfaceTemp);
-    *uTHuman = (uint32_t)(fHumanTemp * 100);
+    if (uTHuman)
+        *uTHuman = (uint32_t)(fHumanTemp * 100);
 
-    if (pViR)*pViR = uViR;
+    if (pViR)
+        *pViR = uViR;
 
     DBG_PRINT("ViR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n", \
                     uViR, fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp);
