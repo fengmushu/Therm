@@ -62,44 +62,45 @@ extern "C"
 {
 #endif
 
-/**
+    /**
  ******************************************************************************
  ** \defgroup BGR
   **
  ******************************************************************************/
-//@{
+    //@{
 
-/******************************************************************************
+    /******************************************************************************
  * Global type definitions
  ******************************************************************************/
 
-typedef struct {
-    ///< 运放放大系数
-    float32_t   fAmp;
-    ///< 温度偏移基数
-    float32_t   fCalBase;
-    ///< 校准过程中间参数
-    float32_t   fTH, fTL;
-    uint32_t    uVAdcH, uVAdcL;
-    ///< 人体温度修正偏移: 29
-    uint8_t     u8HumanFix;
-} CalData_t;
+    typedef struct
+    {
+        ///< 运放放大系数
+        float32_t fAmp;
+        ///< 温度偏移基数
+        float32_t fCalBase;
+        ///< 校准过程中间参数
+        float32_t fTH, fTL;
+        uint32_t uVAdcH, uVAdcL;
+        ///< 人体温度修正偏移: 29
+        uint8_t u8HumanFix;
+    } CalData_t;
 
-/******************************************************************************
+    /******************************************************************************
  * Local type definitions ('typedef')
  ******************************************************************************/
 
-/******************************************************************************
+    /******************************************************************************
  * Global variable definitions ('extern')
  ******************************************************************************/
 
-/******************************************************************************
+    /******************************************************************************
  * Global function prototypes (definition in C source)                        
  ******************************************************************************/
 
-extern void NNA_CalInit(CalData_t *pCal);
+    extern void NNA_CalInit(CalData_t *pCal);
 
-/**
+    /**
  *******************************************************************************
  ** \brief NTC   环境温度获取
  ** \param [in]  u32AdcNtcHCode Ntc H ADC采样值
@@ -107,9 +108,9 @@ extern void NNA_CalInit(CalData_t *pCal);
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode);
+    extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode);
 
-/**
+    /**
  *******************************************************************************
  ** \brief VIR 黑体/物体 温度
  ** \param [in]  f32NtcTemp     Ntc温度
@@ -119,21 +120,20 @@ extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-extern float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t f32NtcTemp, uint32_t u32VirAdcCode, float32_t fEpsilon);
+    extern float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t f32NtcTemp, uint32_t u32VirAdcCode, float32_t fEpsilon);
 
-/**
+    /**
  *******************************************************************************
  ** \brief VIR 人体温度获取
  ** \param [in]  fSurfaceTemp   表面温度
 
  ** \retval                         人体温度
  ******************************************************************************/
-extern float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fSurfaceTemp);
+    extern float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fSurfaceTemp);
 
+    extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, float32_t *fTemp, uint32_t u32VirAdc);
+    //@} // APP Group
 
-extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, float32_t *fTemp, uint32_t u32VirAdc);
-//@} // APP Group
-   
 #ifdef __cplusplus
 }
 #endif
@@ -142,4 +142,3 @@ extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t 
 /******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-
