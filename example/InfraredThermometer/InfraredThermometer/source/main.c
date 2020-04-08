@@ -72,76 +72,7 @@
 #include "app_timer.h"
 #include "fsm.h"
 
-
-/******************************************************************************
- * Local pre-processor symbols/macros ('#define')                            
- ******************************************************************************/
-
-///< 
-/******************************************************************************
- * Local type definitions ('typedef')                                         
- ******************************************************************************/
-typedef enum enMState
-{
-    InitialMode     = 0u,
-    TempMeasureMode = 1u,
-    TempShowMode    = 2u,
-    PowerOffMode    = 3u,
-    MemoryMode      = 4u,
-    TempScanMode    = 5u,
-    PowerOnMode     = 6u,
-    CalibrationMode = 7u
-}enMState_t;
-
-typedef enum enMKeyType
-{
-    Key_Left = 0u,
-    Key_Mid,
-    Key_Right,
-    Key_Trig,
-    Key_Switch,
-    Key_Max,
-}enMKeyType_t;
-
-/******************************************************************************
- * Global variable definitions (declared in header file with 'extern')
- ******************************************************************************/
-static uint32_t gu32AdcNtcResult = 0, gu32AdcVirResult = 0;
-static uint32_t gu32UserKeyFlag = 0;
-static enMState_t enMState = PowerOnMode;
-
-#define KEY_LEFT()     (gu32UserKeyFlag & (1UL << Key_Left))
-#define KEY_MID()      (gu32UserKeyFlag & (1UL << Key_Mid))
-#define KEY_RIGHT()    (gu32UserKeyFlag & (1UL << Key_Right))
-#define KEY_TRIG()     (gu32UserKeyFlag & (1UL << Key_Trig))
-#define KEY_SWITCH()   (gu32UserKeyFlag & (1UL << Key_Switch))
-
-#define KEY_SET_LEFT()     (gu32UserKeyFlag |= (1UL << Key_Left))
-#define KEY_SET_MID()      (gu32UserKeyFlag |= (1UL << Key_Mid))
-#define KEY_SET_RIGHT()    (gu32UserKeyFlag |= (1UL << Key_Right))
-#define KEY_SET_TRIG()     (gu32UserKeyFlag |= (1UL << Key_Trig))
-#define KEY_SET_SWITCH()   (gu32UserKeyFlag |= (1UL << Key_Switch))
-
-#define KEY_CLR_LEFT()     (gu32UserKeyFlag &= ~(1UL << Key_Left))
-#define KEY_CLR_MID()      (gu32UserKeyFlag &= ~(1UL << Key_Mid))
-#define KEY_CLR_RIGHT()    (gu32UserKeyFlag &= ~(1UL << Key_Right))
-#define KEY_CLR_TRIG()     (gu32UserKeyFlag &= ~(1UL << Key_Trig))
-#define KEY_CLR_SWITCH()   (gu32UserKeyFlag &= ~(1UL << Key_Switch))
-#define KEY_CLR_ALL()      (gu32UserKeyFlag = 0)
-
-/******************************************************************************
- * Local function prototypes ('static')
- ******************************************************************************/
-
-/******************************************************************************
- * Local variable definitions ('static')                                      *
- ******************************************************************************/
-
-/*****************************************************************************
- * Function implementation - global ('extern') and local ('static')
- ******************************************************************************/
-
-///< 串口发送重定向
+// 串口发送重定向
 int fputc(int ch, FILE * file)
 {
     Uart_SendDataPoll(DBG_CONSOLE,ch);
@@ -149,7 +80,7 @@ int fputc(int ch, FILE * file)
     return ch;
 }
 
-///< App 系统时钟/总线初始化
+// App 系统时钟/总线初始化
 void AppSysInit(void)
 {
     stc_sysctrl_clk_cfg_t stcCfg;
@@ -164,7 +95,6 @@ void AppSysInit(void)
     Sysctrl_SetPeripheralGate(SysctrlPeripheralCrc, TRUE);  //需要校验和时钟
 }
 
-///< 系统初始化
 void App_SystemInit(void)
 {
     ///< 系统时钟/总线初始化
@@ -197,18 +127,8 @@ void App_SystemInit(void)
     AppPmuInit();
 }
 
-/**
- ******************************************************************************
- ** \brief  Main function of project
- **
- ** \return uint32_t return value, if needed
- **
- ** This sample
- **
- ******************************************************************************/
-int32_t main(void)
+int main(void)
 {
-    ///< 系统初始化
     App_SystemInit();
 
     app_i2c_init();
@@ -244,15 +164,8 @@ void Lvd_IRQHandler(void)
 
 void Rtc_IRQHandler(void)
 {
-    if (Rtc_GetPridItStatus() == TRUE) //闹铃中断
-    {
-        Rtc_ClearPrdfItStatus();       //清中断标志位
+    if (Rtc_GetPridItStatus() == TRUE) {
+        Rtc_ClearPrdfItStatus();
         AppRtcUpdate();
     }
 }
-
-/******************************************************************************
- * EOF (not truncated)
- ******************************************************************************/
-
-
