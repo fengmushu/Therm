@@ -24,10 +24,15 @@ void sys_resume(void)
     Adc_Enable();
     Bgr_BgrEnable();
     Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+
+    Rtc_Cmd(TRUE);
 }
 
 void sys_halt(void)
 {
+    // turn off rtc counter
+    Rtc_Cmd(FALSE);
+
     // beep on, in case
     beep_off();
 

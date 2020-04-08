@@ -49,8 +49,6 @@ void AppRtcInit(void)
 
 void AppRtcFeed(void)
 {
-    Rtc_Cmd(TRUE);
-
     last_feed = g_jiffies;
 }
 
