@@ -109,6 +109,7 @@ static void fn_beep_minus(int8_t idx)
 static void fn_beep_plus(int8_t idx)
 {
     g_cfg->beep_on = BEEP_ON;
+    beep_once(250);
 }
 
 static struct fn_menu fn_menus[] = {
