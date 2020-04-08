@@ -362,11 +362,15 @@ void AppCalibration(void)
         }
 
         ///< 环境温度
+        // it looks like this embedded processor
+        // cannot be intterrupted in float processing
+        __disable_irq();
         fNtc = NNA_NtcTempGet(uNtcH, uNtcL);
 
         if(u8CaType == 0) {
             if(NNA_Calibration(&Cal, fNtc, 37, &fTemp, uViR)) {
                 u8CaType ++;
+                __enable_irq();
                 AppLcdSetTemp(37 * 10);
                 /* log set uViR */
                 AppLcdSetLogRawNumber(uViR, FALSE, 1);
@@ -374,11 +378,13 @@ void AppCalibration(void)
                 AppBeepBlink((SystemCoreClock/1000));
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放
             } else {
+                __enable_irq();
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放
                 continue;
             }
         } else {
             if(NNA_Calibration(&Cal, fNtc, 42, &fTemp, uViR)) {
+                __enable_irq();
                 AppLcdSetTemp(42 * 10);
                 /* log set uViR */
                 AppLcdSetLogRawNumber(uViR, FALSE, 1);
@@ -387,6 +393,7 @@ void AppCalibration(void)
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放
                 break;
             } else {
+                __enable_irq();
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放
                 continue;
             }
