@@ -33,6 +33,21 @@ int app_save_verify(app_save_t *save)
     if (save->magic != SAVE_MAGIC)
         return 1;
 
+    for (int i = 0; i < NUM_SCAN_MODES; i++) {
+        if (save->scan_log[i].write_idx >= SCAN_LOG_SIZE)
+            return 1;
+
+        if (save->scan_log[i].last_write >= SCAN_LOG_SIZE)
+            return 1;
+    }
+
+    // not allow to change sleep time out now
+    if (save->cfg.sleep_jiffies != AUTO_SLEEP_TIMEOUT)
+        return 1;
+
+    if (save->cfg.temp_unit >= NUM_TEMP_UNITS)
+        return 1;
+
     return 0;
 }
 
