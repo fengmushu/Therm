@@ -39,8 +39,10 @@ void fsm_dummy_exit(fsm_node_t *node, fsm_event_t event)
     UNUSED_PARAM(event);
 }
 
-fsm_state_t fsm_dummy_proc(fsm_node_t *node)
+fsm_state_t fsm_dummy_proc(fsm_node_t *node, fsm_event_t *out)
 {
+    UNUSED_PARAM(out);
+
     return node->state;
 }
 
@@ -325,8 +327,10 @@ int fsm_start(fsm_t *fsm)
 int fsm_process(fsm_t *fsm)
 {
     fsm_state_t ret;
+    fsm_event_t event;
 
     while (!is_fsm_stopped(fsm)) {
+        event = __FSM_EVENT_ANY;
         ret = __FSM_STATE_NONE;
 
         if (fsm_event_process(fsm))
@@ -336,13 +340,13 @@ int fsm_process(fsm_t *fsm)
             break;
 
         if (fsm->curr->proc)
-            ret = fsm->curr->proc(fsm->curr);
+            ret = fsm->curr->proc(fsm->curr, &event);
 
         // state proc() require to empty shift to another
         if (ret != fsm->curr->state && ret != __FSM_STATE_NONE) {
             fsm_node_t *next = fsm_state_to_node(fsm, ret);
 
-            if (fsm_state_enter(fsm, __FSM_EVENT_ANY, next))
+            if (fsm_state_enter(fsm, event, next))
                 return 1;
         }
     }

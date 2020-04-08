@@ -1,6 +1,8 @@
 #ifndef __FSM_H__
 #define __FSM_H__
 
+#include "utils.h"
+
 #include "fsm_event_ring.h"
 
 // @f must be pointer to fsm
@@ -163,8 +165,9 @@ struct fsm_node {
         fsm_state_t     (*enter)(fsm_node_t *, fsm_event_t);
 
         // @fsm_node_t:  node that will enter (this node)
+        // @fsm_event_t: (internal) event for node to shift
         // @return:      node to shift to
-        fsm_state_t     (*proc)(fsm_node_t *);
+        fsm_state_t     (*proc)(fsm_node_t *, fsm_event_t *);
 
         // @fsm_node_t:  node that will leave (this node)
         // @fsm_event_t: event that causes to exit
@@ -196,9 +199,16 @@ struct fsm {
 extern const fsm_node_t state_uninit;
 extern fsm_t g_fsm;
 
+static __always_inline void state_proc_event_set(fsm_event_t *out,
+                                                 fsm_event_t event)
+{
+        if (out)
+                *out = event;
+}
+
 fsm_state_t fsm_dummy_enter(fsm_node_t *node, fsm_event_t event);
 void fsm_dummy_exit(fsm_node_t *node, fsm_event_t event);
-fsm_state_t fsm_dummy_proc(fsm_node_t *node);
+fsm_state_t fsm_dummy_proc(fsm_node_t *node, fsm_event_t *out);
 
 int fsm_state_enter(fsm_t *fsm, fsm_event_t event, fsm_node_t *next);
 int fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data);

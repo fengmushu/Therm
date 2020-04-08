@@ -238,7 +238,7 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
     return next;
 }
 
-static fsm_state_t state_scan_proc(fsm_node_t *node)
+static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
 {
     uint32_t body, surface;
 
@@ -254,6 +254,8 @@ static fsm_state_t state_scan_proc(fsm_node_t *node)
 
     g_rt->scan_result[SCAN_BODY]    = (uint16_t)body;
     g_rt->scan_result[SCAN_SURFACE] = (uint16_t)surface;
+
+    state_proc_event_set(out, FSM_EVENT_SCAN_DONE);
 
     return FSM_STATE_MAIN;
 }
@@ -299,7 +301,7 @@ static fsm_state_t state_config_enter(fsm_node_t *node, fsm_event_t event)
     return node->state;
 }
 
-static fsm_state_t state_config_proc(fsm_node_t *node)
+static fsm_state_t state_config_proc(fsm_node_t *node, fsm_event_t *out)
 {
     int ret;
 

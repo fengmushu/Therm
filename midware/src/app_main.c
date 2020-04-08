@@ -73,7 +73,7 @@ static inline int16_t body_alarm_beep_once(int beep_once, uint16_t temp)
     return __body_beep_alarm();
 }
 
-fsm_state_t state_main_proc(fsm_node_t *node)
+fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 {
     fsm_state_t next = node->state;
     uint8_t scan_done = g_rt->scan_done;
