@@ -234,24 +234,12 @@ int32_t main(void)
 
     fsm_shutdown(&g_fsm, FSM_STATE_FATAL);
 }
-   
 
-///< LVD 中断服务函数
 void Lvd_IRQHandler(void)
 {
-    uint8_t u8Index;
     Lvd_ClearIrq();
 
-    u8Index = 5;
-    while(u8Index--)
-    {
-        
-        AppLcdDisplayUpdate(0);
-        delay1ms(300);
-        
-        AppLcdDisplayUpdate(0);
-        delay1ms(300);
-    }
+    g_rt->battery_low = 1;
 }
 
 void Rtc_IRQHandler(void)
