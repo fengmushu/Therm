@@ -278,8 +278,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
                            uint32_t *uTNtc,
                            uint32_t *uTSurface,
                            uint32_t *uTHuman,
-                           uint32_t *pViR,
-                           uint8_t float_cnt)
+                           uint32_t *pViR)
 {
     static int i = 0;
     uint32_t u32SampIndex;         ///< 采样次数
@@ -301,12 +300,12 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     ///< 环境温度获取
     fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL); ///< NTC 环境温度值获取
     if (uTNtc)
-        *uTNtc = (uint32_t)(fNtcTemp * pow(10, float_cnt));
+        *uTNtc = (uint32_t)(fNtcTemp * 100);
 
     ///< 物体表面
     fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
     if (uTSurface)
-        *uTSurface = (uint32_t)(fSurfaceTemp * pow(10, float_cnt));
+        *uTSurface = (uint32_t)(fSurfaceTemp * 100);
 
     // 人体体表
     fSkinTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
@@ -314,7 +313,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     ///< 人体温度
     fHumanTemp = NNA_HumanBodyTempGet(pCal, fNtcTemp, fSkinTemp);
     if (uTHuman)
-        *uTHuman = (uint32_t)(fHumanTemp * pow(10, float_cnt));
+        *uTHuman = (uint32_t)(fHumanTemp * 100);
 
     if (pViR)
         *pViR = uViR;
@@ -423,7 +422,7 @@ void AppCalibration(void)
 
         if (key_pressed_query(KEY_TRIGGER))
         {
-            AppTempCalculate(&Cal, &uNtc, &uSurf, &uHuman, &uViR, 2);
+            AppTempCalculate(&Cal, &uNtc, &uSurf, &uHuman, &uViR);
             AppLcdSetTemp(uSurf / 10);
             /* log set uViR */
             AppLcdSetLogRawNumber(uViR, FALSE, 1);
