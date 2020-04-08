@@ -164,8 +164,7 @@ static fsm_node_t state_sleep = {
     .enter   = state_sleep_enter,
     .proc    = NULL,
     .exit    = state_sleep_exit,
-    .events  = BIT(FSM_EVENT_PRESS_TRIGGER) |
-               BIT(FSM_EVENT_RELEASE_TRIGGER),
+    .events  = 0,
     .actions = {
         {
             .event  = FSM_EVENT_PRESS_TRIGGER,
@@ -191,12 +190,7 @@ static fsm_node_t state_main = {
     .enter   = state_main_enter,
     .proc    = state_main_proc,
     .exit    = state_main_exit,
-    .events  = BIT(FSM_EVENT_PRESS_FN)       |
-               BIT(FSM_EVENT_RELEASE_FN)     |
-               BIT(FSM_EVENT_PRESS_TRIGGER)  |
-               BIT(FSM_EVENT_SWITCH_BODY)    |
-               BIT(FSM_EVENT_SWITCH_SURFACE) |
-               BIT(FSM_EVENT_IRQ_TIMER3),
+    .events  = 0,
     .actions = {
         // {
         //     .event  = FSM_EVENT_RELEASE_MINUS,
@@ -301,7 +295,7 @@ static fsm_node_t state_scan = {
     .enter   = state_scan_enter,
     .proc    = state_scan_proc,
     .exit    = state_scan_exit,
-    .events  = BIT(FSM_EVENT_RELEASE_FN),
+    .events  = 0,
     .actions = {
         {
             .event  = FSM_EVENT_RELEASE_FN,
@@ -378,9 +372,7 @@ static fsm_node_t state_config = {
     .enter   = state_config_enter,
     .proc    = state_config_proc,
     .exit    = state_config_exit, 
-    .events  = BIT(FSM_EVENT_RELEASE_MINUS) |
-               BIT(FSM_EVENT_RELEASE_PLUS)  |
-               BIT(FSM_EVENT_RELEASE_FN),
+    .events  = 0,
     .actions = {
         {
             .event  = FSM_EVENT_RELEASE_MINUS,
@@ -449,9 +441,32 @@ fsm_t g_fsm = {
     },
 };
 
+void fsm_event_bitmap_mark(fsm_t *fsm)
+{
+    fsm_node_t *n = NULL;
+    fsm_handler_t *handler = NULL;
+    int i = 0;
+
+    while (i < NUM_FSM_STATES) {
+        n = fsm_state_to_node(fsm, i);
+        i++;
+
+        // in case there are holes in state list
+        if (!n)
+            continue;
+
+        handler = &n->actions[0];
+        while (handler->event != __FSM_EVENT_NULL) {
+            n->events |= BIT(handler->event);
+            handler++;
+        }
+    }
+}
+
+
 int fsm_states_init(fsm_t *fsm)
 {
-    UNUSED_PARAM(fsm);
+    fsm_event_bitmap_mark(fsm);
 
     return 0;
 }
