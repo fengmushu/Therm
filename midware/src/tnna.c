@@ -243,42 +243,42 @@ boolean_t NNA_Calibration(
     return TRUE;
 }
 
-float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fSurfaceTemp)
+float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fSkinTemp)
 {
-    if (fSurfaceTemp < 28)
+    if (fSkinTemp < 28)
     {
         return 0; //Lo
     }
 
-    if (fSurfaceTemp > 42)
+    if (fSkinTemp > 42)
     {
         return 100; //Hi
     }
 
     if (fNtcTemp < 20)
     {
-        if (fSurfaceTemp <= 35.2)
+        if (fSkinTemp <= 35.2)
         {
-            fSurfaceTemp += 1;
+            fSkinTemp += 1;
         }
     }
     else
     {
-        if (fSurfaceTemp <= 31)
+        if (fSkinTemp <= 31)
         {
-            fSurfaceTemp += 1;
+            fSkinTemp += 1;
         }
     }
 
-    if (fSurfaceTemp <= 36.2)
+    if (fSkinTemp <= 36.2)
     {
-        return pCal->u8HumanFix + 0.22 * fSurfaceTemp;
+        return pCal->u8HumanFix + 0.22 * fSkinTemp;
     }
 
-    if (fSurfaceTemp <= 38)
+    if (fSkinTemp <= 38)
     {
-        return fSurfaceTemp + 0.8;
+        return fSkinTemp + 0.8;
     }
 
-    return fSurfaceTemp + 1.3;
+    return fSkinTemp + 1.3;
 }

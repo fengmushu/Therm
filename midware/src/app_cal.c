@@ -276,7 +276,6 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 // FALSE - 标定(测试)模式
 boolean_t AppTempCalculate(CalData_t *pCal,
                            uint32_t *uTNtc,
-                           uint32_t *uTBlack,
                            uint32_t *uTSurface,
                            uint32_t *uTHuman,
                            uint32_t *pViR,
@@ -285,7 +284,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     static int i = 0;
     uint32_t u32SampIndex;         ///< 采样次数
     uint32_t uViR, uVNtcH, uVNtcL; ///< ADC 采样值
-    float32_t fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp;
+    float32_t fNtcTemp, fSurfaceTemp, fSkinTemp, fHumanTemp;
 
     ASSERT(pCal);
 
@@ -304,26 +303,24 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     if (uTNtc)
         *uTNtc = (uint32_t)(fNtcTemp * pow(10, float_cnt));
 
-    ///< 黑体/物体 表面温度
-    fBlackTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
-    if (uTBlack)
-        *uTBlack = (uint32_t)(fBlackTemp * pow(10, float_cnt));
-
     ///< 物体表面
-    fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
+    fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
     if (uTSurface)
         *uTSurface = (uint32_t)(fSurfaceTemp * pow(10, float_cnt));
 
+    // 人体体表
+    fSkinTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
+
     ///< 人体温度
-    fHumanTemp = NNA_HumanBodyTempGet(pCal, fNtcTemp, fSurfaceTemp);
+    fHumanTemp = NNA_HumanBodyTempGet(pCal, fNtcTemp, fSkinTemp);
     if (uTHuman)
         *uTHuman = (uint32_t)(fHumanTemp * pow(10, float_cnt));
 
     if (pViR)
         *pViR = uViR;
 
-    DBG_PRINT("ViR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n",
-              uViR, fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp);
+    DBG_PRINT("ViR: %u Ntc: %2.2f Surf: %2.2f Skin: %2.2f Hum: %2.2f\r\n",
+              uViR, fNtcTemp, fSurfaceTemp, fSkinTemp, fHumanTemp);
 
     __enable_irq();
     return TRUE;
@@ -419,15 +416,15 @@ void AppCalibration(void)
 
     while (1)
     {
-        uint32_t uNtc, uBlack, uSurf, uHuman;
+        uint32_t uNtc, uSurf, uHuman;
         ///< 用校准后的参数验证测试 & 按键确认
         while (!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_FN))
             ; //等按键触发
 
         if (key_pressed_query(KEY_TRIGGER))
         {
-            AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman, &uViR, 2);
-            AppLcdSetTemp(uBlack / 10);
+            AppTempCalculate(&Cal, &uNtc, &uSurf, &uHuman, &uViR, 2);
+            AppLcdSetTemp(uSurf / 10);
             /* log set uViR */
             AppLcdSetLogRawNumber(uViR, FALSE, 1);
             AppLcdDisplayUpdate(0);

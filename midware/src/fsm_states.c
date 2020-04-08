@@ -285,7 +285,7 @@ static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
     // prevent sleep
     AppRtcFeed();
 
-    AppTempCalculate(g_cal, NULL, NULL, &surface, &body, NULL, 1);
+    AppTempCalculate(g_cal, NULL, &surface, &body, NULL, 1);
 
     g_rt->scan_result[SCAN_BODY]    = (uint16_t)body;
     g_rt->scan_result[SCAN_SURFACE] = (uint16_t)surface;

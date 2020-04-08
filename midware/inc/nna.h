@@ -129,7 +129,7 @@ extern "C"
 
  ** \retval                         人体温度
  ******************************************************************************/
-    extern float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fSurfaceTemp);
+    extern float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fSkinTemp);
 
     extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, float32_t *fTemp, uint32_t u32VirAdc);
     //@} // APP Group
