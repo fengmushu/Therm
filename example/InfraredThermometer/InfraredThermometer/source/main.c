@@ -122,15 +122,8 @@ int main(void)
 
     app_i2c_init();
 
-    // hold [FN] on PWRON to force calibration mode
-    if (key_pressed_query(KEY_FN)) {
-        AppCalibration();
-    } else {
-        // if no cal data stored, goto calibration
-        if (AppCalLoad() == NULL) {
-            AppCalibration();
-        }
-    }
+    /* load cal data */
+    AppCalInit();
 
     sys_late_init();
 
