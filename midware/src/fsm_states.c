@@ -264,12 +264,7 @@ static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
     // prevent sleep
     AppRtcFeed();
 
-    // if error, will scan again...
-    // actually we should return 'Err' and the control to user
-    if (AppTempCalculate(g_cal, NULL, NULL, &surface, &body, NULL) == FALSE) {
-        DBG_PRINT("error on scan\r\n");
-        return node->state; // TODO: Err
-    }
+    AppTempCalculate(g_cal, NULL, NULL, &surface, &body, NULL, 1);
 
     g_rt->scan_result[SCAN_BODY]    = (uint16_t)body;
     g_rt->scan_result[SCAN_SURFACE] = (uint16_t)surface;

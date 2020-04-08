@@ -1,5 +1,7 @@
 /* cal source file */
 
+#include <math.h>
+
 #include "crc.h"
 
 #include "app.h"
@@ -276,7 +278,8 @@ boolean_t AppTempCalculate(CalData_t *pCal,
                            uint32_t  *uTBlack, 
                            uint32_t  *uTSurface, 
                            uint32_t  *uTHuman,
-                           uint32_t  *pViR)
+                           uint32_t  *pViR,
+                           uint8_t   float_cnt)
 {
     static int i = 0;
     uint32_t  u32SampIndex;     ///< 采样次数
@@ -292,22 +295,22 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     ///< 环境温度获取
     fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL);       ///< NTC 环境温度值获取
     if (uTNtc)
-        *uTNtc = (uint32_t)(fNtcTemp * 100);
+        *uTNtc = (uint32_t)(fNtcTemp * pow(10, float_cnt));
 
     ///< 黑体/物体 表面温度
     fBlackTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
     if (uTBlack)
-        *uTBlack = (uint32_t)(fBlackTemp * 100);
+        *uTBlack = (uint32_t)(fBlackTemp * pow(10, float_cnt));
 
     ///< 物体表面 
     fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
     if (uTSurface)
-        *uTSurface = (uint32_t)(fSurfaceTemp * 100);
+        *uTSurface = (uint32_t)(fSurfaceTemp * pow(10, float_cnt));
 
     ///< 人体温度
     fHumanTemp = NNA_HumanBodyTempGet(pCal, fSurfaceTemp);
     if (uTHuman)
-        *uTHuman = (uint32_t)(fHumanTemp * 100);
+        *uTHuman = (uint32_t)(fHumanTemp * pow(10, float_cnt));
 
     if (pViR)
         *pViR = uViR;
@@ -397,7 +400,7 @@ void AppCalibration(void)
 
         if (key_pressed_query(KEY_TRIGGER))
         {
-            AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman, &uViR);
+            AppTempCalculate(&Cal, &uNtc, &uBlack, &uSurf, &uHuman, &uViR, 2);
             AppLcdSetTemp(uBlack/10);
             /* log set uViR */
             AppLcdSetLogRawNumber(uViR, FALSE, 1);
