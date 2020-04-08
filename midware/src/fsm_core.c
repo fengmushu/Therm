@@ -145,10 +145,8 @@ static __always_inline int __fsm_event_input(fsm_t *fsm, fsm_event_t event, void
 {
     fsm_state_t ret;
 
-    if (is_fsm_stopped(fsm)) {
-        DBG_PRINT("fsm is stopped\n");
+    if (is_fsm_stopped(fsm) || is_fsm_uninit(fsm))
         return FSM_UNACCEPTED;
-    }
 
     if (!(BIT(event) & fsm->curr->events))
         return FSM_UNACCEPTED;
@@ -202,11 +200,13 @@ int fsm_event_input(fsm_t *fsm, fsm_event_t event, void *data)
     return ret;
 }
 
-// TODO: data
 int fsm_event_post(fsm_t *fsm, fsm_event_ring_type_t type, fsm_event_t event)
 {
     event_ring_t *ring;
     event_ring_data_t ring_data;
+
+    if (is_fsm_stopped(fsm) || is_fsm_uninit(fsm))
+        return 1;
 
     if (type < 0 || type >= NUM_FSM_EVENT_RINGS)
         return 1;
