@@ -41,4 +41,9 @@ static __always_inline int is_key_released(gpio_key_t key)
     return !is_key_pressed(key);
 }
 
+static __always_inline int is_any_key_pressed(void)
+{
+    return bm_key_pressed & ~BIT(KEY_SWITCH);
+}
+
 #endif /* __APP_KEY_H__ */
