@@ -154,8 +154,13 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
 
     sys_resume();
 
+    AppLcdClearAll();
+    AppLcdDisplayClear();
     AppLcdDisplayAll();
-    AppLcdDisplayUpdate(2000);
+    delay1ms(2000);
+
+    AppLcdClearAll();
+    AppLcdDisplayUpdate(0);
 }
 
 static fsm_node_t state_sleep = {
