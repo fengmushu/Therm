@@ -23,7 +23,7 @@ extern void AppCalClean(void);
 
 extern boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL);
 
-boolean_t AppTempCalculate(CalData_t *pCal, 
+extern boolean_t AppTempCalculate(CalData_t *pCal, 
                            uint32_t  *uTNtc, 
                            uint32_t  *uTBlack, 
                            uint32_t  *uTSurface, 
@@ -31,7 +31,10 @@ boolean_t AppTempCalculate(CalData_t *pCal,
                            uint32_t  *pViR,
                            uint8_t   float_cnt);
 
-void AppCalibration(void);
+extern void AppCalibration(void);
+
+extern void AppCalInit();
+
 
 
 #endif /* end __CAL_H__ */

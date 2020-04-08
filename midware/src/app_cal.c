@@ -431,6 +431,20 @@ void AppCalibration(void)
     
 }
 
+void AppCalInit()
+{
+    // hold [FN] on PWRON to force calibration mode
+    if (key_pressed_query(KEY_FN)) {
+        AppCalibration();
+    } else {
+        // if no cal data stored, goto calibration
+        if (AppCalLoad() == NULL) {
+            AppCalibration();
+        }
+    }
+    return;
+}
+
 
 #define CAL_DEBUG 0
 #if CAL_DEBUG
