@@ -338,7 +338,8 @@ void AppCalibration(void)
 
     while(!key_pressed_query(KEY_TRIGGER)); //等按键触发
     AppLcdSetRawNumber(0, FALSE, 4);
-    AppLcdDisplayUpdate(100);
+    AppLcdDisplayUpdate(0);
+    while (key_pressed_query(KEY_TRIGGER)); //等按键释放
 
     while(1) {
         
@@ -361,6 +362,7 @@ void AppCalibration(void)
                 AppLcdSetLogRawNumber(uViR, FALSE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock/1000));
+                while (key_pressed_query(KEY_TRIGGER)); //等按键释放
             } else {
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放
                 continue;
@@ -372,6 +374,7 @@ void AppCalibration(void)
                 AppLcdSetLogRawNumber(uViR, FALSE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock/1000));
+                while (key_pressed_query(KEY_TRIGGER)); //等按键释放
                 break;
             } else {
                 while (key_pressed_query(KEY_TRIGGER)); //等按键释放

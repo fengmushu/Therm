@@ -161,8 +161,6 @@ void AppPmuInit(void)
     stcConfig.enSLEEPDEEP   = SlpDpEnable;
     stcConfig.enSLEEPONEXIT = SlpExtDisable;
     Lpm_Config(&stcConfig);
-
-    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); 
 }
 
 void AppLedEnable(en_led_colour_t enLedColour)
