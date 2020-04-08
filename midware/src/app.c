@@ -91,6 +91,20 @@ static uint32_t        gnJiffies = 0;
 static uint32_t        gnPowerOffTimeout = 0;
 static boolean_t       gInSuspend = FALSE;
 
+// App 系统时钟/总线初始化
+void AppSysClkInit(void)
+{
+    stc_sysctrl_clk_cfg_t stcCfg;
+
+    stcCfg.enClkSrc = SysctrlClkRCH;
+    stcCfg.enHClkDiv = SysctrlHclkDiv1;
+    stcCfg.enPClkDiv = SysctrlPclkDiv1;
+
+    Sysctrl_ClkInit(&stcCfg);
+    Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);           //使能内部RCL时钟作为RTC时钟
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc, TRUE);  //RTC模块时钟打开
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralCrc, TRUE);  //需要校验和时钟
+}
 
 static void AppLoadUID(void)
 {

@@ -159,6 +159,8 @@ static inline void beep_once(uint16_t ms)
     beep_off();
 }
 
+void AppSysClkInit(void);
+
 ///< VCC电压监测功能初始化
 extern void AppVolMonitorInit(void);
 ///< 蜂鸣器滴滴

@@ -80,25 +80,10 @@ int fputc(int ch, FILE * file)
     return ch;
 }
 
-// App 系统时钟/总线初始化
-void AppSysInit(void)
-{
-    stc_sysctrl_clk_cfg_t stcCfg;
-
-    stcCfg.enClkSrc = SysctrlClkRCH;
-    stcCfg.enHClkDiv = SysctrlHclkDiv1;
-    stcCfg.enPClkDiv = SysctrlPclkDiv1;
-
-    Sysctrl_ClkInit(&stcCfg);
-    Sysctrl_ClkSourceEnable(SysctrlClkRCL, TRUE);           //使能内部RCL时钟作为RTC时钟
-    Sysctrl_SetPeripheralGate(SysctrlPeripheralRtc, TRUE);  //RTC模块时钟打开
-    Sysctrl_SetPeripheralGate(SysctrlPeripheralCrc, TRUE);  //需要校验和时钟
-}
-
-void App_SystemInit(void)
+void sys_init(void)
 {
     ///< 系统时钟/总线初始化
-    AppSysInit();
+    AppSysClkInit();
 
     ///< GPIO 初始化
     AppMGpioInit();
@@ -108,12 +93,6 @@ void App_SystemInit(void)
     
     ///< LCD 模块初始化
     AppLcdInit();
-    
-    ///< 电量监测模块初始化
-    AppVolMonitorInit();
-    
-    ///< 自动关机模块
-    AppRtcInit();
 
 #ifdef DEBUG
     ///< 串口初始化
@@ -122,14 +101,23 @@ void App_SystemInit(void)
 
     ///< 参数调整区初始化0
     AppParaAreaInit();
-    
-    ///< 唤醒相关
+}
+
+void sys_late_init(void)
+{
+    // battery low irq
+    AppVolMonitorInit();
+
+    // deep sleep enter
+    AppRtcInit();
+
+    // deep sleep wake up
     AppPmuInit();
 }
 
 int main(void)
 {
-    App_SystemInit();
+    sys_init();
 
     app_i2c_init();
 
@@ -142,6 +130,8 @@ int main(void)
             AppCalibration();
         }
     }
+
+    sys_late_init();
 
     timer3_init();
     app_runtime_init(&g_runtime);
