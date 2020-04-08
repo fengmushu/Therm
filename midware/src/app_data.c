@@ -114,5 +114,7 @@ int16_t scan_log_read(scan_log_t *log, uint8_t idx)
 void scan_log_write(scan_log_t *log, int16_t data)
 {
     log->last_write = log->write_idx;
-    log->data[log->write_idx++] = data;
+    log->data[log->write_idx] = data;
+
+    scan_log_idx_increase(&log->write_idx);
 }
