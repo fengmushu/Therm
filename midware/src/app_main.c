@@ -36,7 +36,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
             beep_on();
 
         // well, utilize this block waiting for beep and lock icon
-        delay1ms(500);
+        delay1ms(100);
         beep_off();
 
         break;
@@ -92,7 +92,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     uint8_t read_idx = g_rt->read_idx[scan_mode];
     int16_t big_number;
     int16_t log_number;
-    int16_t burst_delay = 500;
+    int16_t burst_delay = 100;
 
     AppLcdSetLock(FALSE);
     AppLcdSetBuzzer(g_cfg->beep_on);
@@ -152,7 +152,8 @@ lcd_update:
 
     // scan burst mode
     if (key_pressed_query(KEY_TRIGGER) && g_rt->scan_burst) {
-        delay1ms(burst_delay < 0 ? 0 : burst_delay);
+        if (!g_cfg->beep_on)
+            delay1ms(burst_delay < 0 ? 0 : burst_delay);
         next = FSM_STATE_SCAN;
         goto out; // jump to scan asap
     }
