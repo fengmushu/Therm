@@ -12,6 +12,7 @@
 #include "app_data.h"
 #include "app_fn.h"
 #include "app_main.h"
+#include "app_cal.h"
 
 #include "fsm.h"
 
@@ -54,9 +55,7 @@ static fsm_state_t state_pwron_enter(fsm_node_t *node, fsm_event_t event)
 {
     UNUSED_PARAM(event);
 
-    beep_on();
-    delay1ms(225);
-    beep_off();
+    beep_once(225);
 
     return FSM_STATE_SLEEP;
 }
@@ -233,11 +232,30 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
 
     UNUSED_PARAM(event);
 
-    AppLcdClearAll();
     AppLcdSetLock(TRUE);
     AppLcdDisplayUpdate(0);
 
     return next;
+}
+
+static fsm_state_t state_scan_proc(fsm_node_t *node)
+{
+    uint32_t body, surface;
+
+    // prevent sleep
+    AppRtcFeed();
+
+    // if error, will scan again...
+    // actually we should return 'Err' and the control to user
+    if (AppTempCalculate(g_cal, NULL, NULL, &surface, &body, NULL) == FALSE) {
+        DBG_PRINT("error on scan\r\n");
+        return node->state; // TODO: Err
+    }
+
+    g_rt->scan_result[SCAN_BODY]    = (uint16_t)body;
+    g_rt->scan_result[SCAN_SURFACE] = (uint16_t)surface;
+
+    return FSM_STATE_MAIN;
 }
 
 void state_scan_exit(fsm_node_t *node, fsm_event_t event)
@@ -254,16 +272,10 @@ static fsm_node_t state_scan = {
     .state   = FSM_STATE_SCAN,
     .type    = FSM_NODE_NORMAL,
     .enter   = state_scan_enter,
-    .proc    = NULL,
+    .proc    = state_scan_proc,
     .exit    = state_scan_exit,
-    .events  = BIT(FSM_EVENT_RELEASE_FN) |
-               BIT(FSM_EVENT_IRQ_ADC),
+    .events  = BIT(FSM_EVENT_RELEASE_FN),
     .actions = {
-        {
-            .event  = FSM_EVENT_IRQ_ADC,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
-        },
         {
             .event  = FSM_EVENT_RELEASE_FN,
             .action = NULL,

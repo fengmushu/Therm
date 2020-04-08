@@ -16,21 +16,20 @@ static uint8_t blink_cnt;
 fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 {
     uint8_t scan_mode = scan_mode_runtime_update();
+    uint16_t last_result = g_rt->scan_result[scan_mode];
 
     switch (event) {
-    case FSM_EVENT_RELEASE_FN: // REMOVE ME
-    case FSM_EVENT_IRQ_ADC: // enter from scan done
+    case FSM_EVENT_SCAN_DONE:
         g_rt->scan_done = 1; // to keep big number showing last scan result
         g_rt->scan_burst = 1;
-        g_rt->scan_result = 295 + (blink_cnt & 127);         // TODO: get scan result from somewhere
         g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
 
-        DBG_PRINT("fake temp: %d\r\n", g_rt->scan_result);
-
-        if (is_temp_in_range(&g_temp_thres[scan_mode], g_rt->scan_result)) {
-            scan_log_write(&g_scan_log[scan_mode], g_rt->scan_result);
+        if (is_temp_in_range(&g_temp_thres[scan_mode], last_result)) {
+            scan_log_write(&g_scan_log[scan_mode], last_result);
             g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
         }
+
+        beep_once(500);
 
         break;
 
@@ -45,6 +44,35 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
     return node->state;
 }
 
+static inline int16_t __body_beep_alarm(void)
+{
+    static const int16_t a_delay = 150;
+    int16_t ret = 0;
+
+    for (uint8_t i = 0; i < 4; i++) {
+        beep_on();
+        delay1ms(a_delay);
+        beep_off();
+        delay1ms(a_delay);
+    }
+
+    return ret;
+}
+
+static inline int16_t body_alarm_beep_once(int beep_once, uint16_t temp)
+{
+    if (!beep_once)
+        return 0;
+
+    if (!g_cfg->beep_on)
+        return 0;
+
+    if (temp < g_cfg->body_alarm_C)
+        return 0;
+
+    return __body_beep_alarm();
+}
+
 fsm_state_t state_main_proc(fsm_node_t *node)
 {
     fsm_state_t next = node->state;
@@ -53,6 +81,7 @@ fsm_state_t state_main_proc(fsm_node_t *node)
     uint8_t read_idx = g_rt->read_idx[scan_mode];
     int16_t big_number;
     int16_t log_number;
+    int16_t burst_delay = 1500;
 
     AppLcdSetLock(FALSE);
     AppLcdSetBuzzer(g_cfg->beep_on);
@@ -82,7 +111,7 @@ fsm_state_t state_main_proc(fsm_node_t *node)
 
     // if last state was SCAN and done
     if (scan_done) {
-        big_number = g_rt->scan_result;
+        big_number = g_rt->scan_result[scan_mode];
 
         if (big_number < g_temp_thres[scan_mode].low) {
             AppLcdSetString(Str_LO);
@@ -95,7 +124,7 @@ fsm_state_t state_main_proc(fsm_node_t *node)
                 big_number = lcd_show_C2F(big_number);
         }
     } else {
-        // user is viewing log update big number, too
+        // user is viewing log, show big number as log number, too
         big_number = log_number;
     }
 
@@ -105,10 +134,16 @@ lcd_update:
     AppLcdDisplayUpdate(20);
     blink_cnt++;
 
+    // scan_burst will be oneshot after scan done
+    // NOTE: temp may have changed to F above
+    burst_delay -= body_alarm_beep_once(g_rt->scan_burst && (scan_mode == SCAN_BODY),
+                                        g_rt->scan_result[scan_mode]);
+
     // scan burst mode
     if (key_pressed_query(KEY_TRIGGER) && g_rt->scan_burst) {
+        delay1ms(burst_delay < 0 ? 0 : burst_delay);
         next = FSM_STATE_SCAN;
-        delay1ms(1500);
+        goto out; // jump to scan asap
     }
 
     if (key_pressed_query(KEY_PLUS)) {
@@ -121,6 +156,7 @@ lcd_update:
         delay1ms(150);
     }
 
+out:
     g_rt->scan_burst = 0;
     g_rt->scan_mode_last = scan_mode_runtime_update();
 

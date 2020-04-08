@@ -50,9 +50,10 @@ enum fsm_event {
         FSM_EVENT_SWITCH_SURFACE,
 
         FSM_EVENT_IRQ_TIMER3,
-        FSM_EVENT_IRQ_ADC,
         FSM_EVENT_IRQ_RTC,
-        FSM_EVENT_IRQ_LVD,
+        FSM_EVENT_IRQ_LVD,      // TODO: set low battery directly, not to bore fsm
+
+        FSM_EVENT_SCAN_DONE,    // internal event, to notice main->enter()
 
         NUM_FSM_EVENTS,         // user event count
 

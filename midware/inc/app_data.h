@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "app_cal.h"
 #include "utils.h"
 
 #define BODY_TEMP_LOW_THRES         (300)
@@ -15,11 +16,12 @@
 #define BODY_ALARM_THRESH_DEF       (376)
 #define BODY_ALARM_THRESH_MAX       (386)
 
+// TODO: define right range
 #define CAL_OFFSET_MIN              (-32766)
 #define CAL_OFFSET_MAX              (32766)
 
 // TODO: app version detection
-#define SAVE_MAGIC                  (0xCC01)
+#define SAVE_MAGIC                  (0xC0CAFE00U)
 
 // require to be pow of 2
 #define SCAN_LOG_SIZE               (1 << 5)
@@ -70,7 +72,7 @@ typedef struct app_cfg {
 } app_cfg_t;
 
 typedef struct app_save {
-    uint16_t   magic;
+    uint32_t   magic;
     app_cfg_t  cfg;
     scan_log_t scan_log[NUM_SCAN_MODES];
 } app_save_t;
@@ -81,12 +83,10 @@ typedef struct app_save {
 typedef struct app_runtime {
     uint8_t    scan_mode;
     uint8_t    scan_mode_last;
-    int16_t    scan_result;
     uint8_t    scan_done;
     uint8_t    scan_burst;
-
+    int16_t    scan_result[NUM_SCAN_MODES];
     uint8_t    read_idx[NUM_SCAN_MODES];
-
     uint8_t    battery_low;
 
     app_save_t save;
@@ -98,6 +98,7 @@ extern app_save_t    *g_save;
 extern app_cfg_t     *g_cfg;
 extern scan_log_t    *g_scan_log;
 extern temp_thres_t   g_temp_thres[];
+extern CalData_t     *g_cal;
 
 static __always_inline int16_t lcd_show_C2F(int16_t C)
 {

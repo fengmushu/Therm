@@ -13,6 +13,8 @@ app_save_t      *g_save;
 app_cfg_t       *g_cfg;
 scan_log_t      *g_scan_log;
 
+CalData_t       *g_cal;
+
 temp_thres_t g_temp_thres[NUM_SCAN_MODES] = {
     [SCAN_BODY]    = { BODY_TEMP_LOW_THRES,    BODY_TEMP_HI_THRES    },
     [SCAN_SURFACE] = { SURFACE_TEMP_LOW_THRES, SURFACE_TEMP_HI_THRES },
@@ -80,12 +82,9 @@ void app_runtime_init(app_runtime_t *rt)
     g_cfg      = &rt->save.cfg;
     g_scan_log = rt->save.scan_log;
 
-    rt->battery_low = 1; // REMOVE ME
+    g_cal      = AppCalGet();
 
-    if (app_save_i2c_load(&rt->save)) {
-        DBG_PRINT("%s: failed to load data from i2c\n", __func__);
-        app_save_reset(&rt->save);
-    } else if (app_save_verify(&rt->save)) {
+    if (app_save_i2c_load(&rt->save) || app_save_verify(&rt->save)) {
         app_save_reset(&rt->save);
     }
 
