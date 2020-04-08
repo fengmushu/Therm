@@ -255,7 +255,7 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
     delay1ms(100); /* 等适应了再采集数据 */
     ///<*** ADC数据采集     
     {
-        __disable_irq();
+        // __disable_irq();
 
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
         AppAdcVirAvgCodeGet(uViR);            ///< 表面温度 ADC采样
@@ -263,7 +263,7 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
         AppAdcNtcLAvgCodeGet(uVNtcL);          ///< 表面温度RL ADC采样
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
 
-        __enable_irq();
+        // __enable_irq();
     }
 
     DBG_PRINT("\tADC- %u %u %u\r\n", *uViR, *uVNtcH, *uVNtcL);
@@ -289,7 +289,12 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
     ASSERT(pCal);
 
+    // it looks like this embedded processor
+    // cannot be intterrupted in float processing
+    __disable_irq();
+
     if(FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL)) {
+        __enable_irq();
         return FALSE;
     }
 
@@ -318,6 +323,8 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
     DBG_PRINT("ViR: %u Ntc: %2.2f Black: %2.2f Surf: %2.2f Hum: %2.2f\r\n", \
                     uViR, fNtcTemp, fBlackTemp, fSurfaceTemp, fHumanTemp);
+
+    __enable_irq();
     return TRUE;
 }
 
