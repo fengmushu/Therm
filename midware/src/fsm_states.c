@@ -262,7 +262,7 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
     UNUSED_PARAM(event);
 
     AppLcdSetLock(TRUE);
-    AppLcdDisplayUpdate(0);
+    AppLcdDisplayUpdate(500);
 
     return next;
 }
