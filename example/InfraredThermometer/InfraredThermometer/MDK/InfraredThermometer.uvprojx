@@ -572,6 +572,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\midware\src\app_timer.c</FilePath>
             </File>
+            <File>
+              <FileName>app_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_rtc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

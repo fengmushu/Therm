@@ -53,6 +53,7 @@
  ******************************************************************************/
 #include "adc.h"
 #include "app_adc.h"
+#include "app.h"
 #include "bgr.h"
 /**
  ******************************************************************************
@@ -139,6 +140,7 @@ void AppMAdcInit(void)
     stcAdcCfg.enAdcAlign        = AdcAlignRight;                ///<转换结果对齐方式-右
     Adc_Init(&stcAdcCfg);
     
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); 
 }
 
 ///< ADC通道数据读取
