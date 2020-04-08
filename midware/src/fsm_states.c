@@ -266,8 +266,9 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
 
     UNUSED_PARAM(event);
 
+    // waited in main->enter()
     AppLcdSetLock(TRUE);
-    AppLcdDisplayUpdate(500);
+    AppLcdDisplayUpdate(0);
 
     return next;
 }
@@ -294,9 +295,9 @@ void state_scan_exit(fsm_node_t *node, fsm_event_t event)
     UNUSED_PARAM(node);
     UNUSED_PARAM(event);
 
-    // REVIEW: if we clear lcd in entering MAIN, below can remove
-    AppLcdSetLock(FALSE);
-    AppLcdDisplayUpdate(0);
+    // cleared in main->enter()
+    // AppLcdSetLock(FALSE);
+    // AppLcdDisplayUpdate(0);
 }
 
 static fsm_node_t state_scan = {

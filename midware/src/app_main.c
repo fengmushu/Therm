@@ -8,6 +8,7 @@
 #include "app_data.h"
 #include "app_timer.h"
 #include "app_main.h"
+#include "app_rtc.h"
 
 #define BLINK_PERIOD_CNT                (1 << 1)
 
@@ -20,6 +21,8 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 
     switch (event) {
     case FSM_EVENT_SCAN_DONE:
+        AppRtcFeed();
+
         g_rt->scan_done = 1; // to keep big number showing last scan result
         g_rt->scan_burst = 1;
         g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
@@ -29,7 +32,12 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
             g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
         }
 
-        beep_once(500);
+        if (g_cfg->beep_on)
+            beep_on();
+
+        // well, utilize this block waiting for beep and lock icon
+        delay1ms(500);
+        beep_off();
 
         break;
 
@@ -52,8 +60,11 @@ static inline int16_t __body_beep_alarm(void)
     for (uint8_t i = 0; i < 4; i++) {
         beep_on();
         delay1ms(a_delay);
+        ret += a_delay;
+
         beep_off();
         delay1ms(a_delay);
+        ret += a_delay;
     }
 
     return ret;
@@ -81,7 +92,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     uint8_t read_idx = g_rt->read_idx[scan_mode];
     int16_t big_number;
     int16_t log_number;
-    int16_t burst_delay = 1500;
+    int16_t burst_delay = 500;
 
     AppLcdSetLock(FALSE);
     AppLcdSetBuzzer(g_cfg->beep_on);
@@ -149,11 +160,13 @@ lcd_update:
     if (key_pressed_query(KEY_PLUS)) {
         scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
         delay1ms(150);
+        goto out;
     }
 
     if (key_pressed_query(KEY_MINUS)) {
         scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
         delay1ms(150);
+        goto out;
     }
 
 out:
