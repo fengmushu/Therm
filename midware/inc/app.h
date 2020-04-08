@@ -152,6 +152,13 @@ static inline void beep_off(void)
     Gpio_ClrIO(M_BEEP_PORT, M_BEEP_PIN);
 }
 
+static inline void beep_once(uint16_t ms)
+{
+    beep_on();
+    delay1ms(ms);
+    beep_off();
+}
+
 ///< VCC电压监测功能初始化
 extern void AppVolMonitorInit(void);
 ///< 蜂鸣器滴滴
