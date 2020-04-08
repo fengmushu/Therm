@@ -290,6 +290,8 @@ static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
     g_rt->scan_result[SCAN_BODY]    = (uint16_t)body;
     g_rt->scan_result[SCAN_SURFACE] = (uint16_t)surface;
 
+    DBG_PRINT("body: %d surface: %d\n", body, surface);
+
     state_proc_event_set(out, FSM_EVENT_SCAN_DONE);
 
     return FSM_STATE_MAIN;
