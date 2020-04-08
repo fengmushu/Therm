@@ -142,7 +142,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     AppLcdSetRawNumber(big_number, TRUE, 2);
 
 lcd_update:
-    AppLcdDisplayUpdate(20);
+    AppLcdDisplayUpdate(30);
     blink_cnt++;
 
     // scan_burst will be oneshot after scan done
