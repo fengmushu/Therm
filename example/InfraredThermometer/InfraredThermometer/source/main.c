@@ -208,22 +208,17 @@ void App_SystemInit(void)
  ******************************************************************************/
 int32_t main(void)
 {
-    CalData_t* pCal = NULL;
-
     ///< 系统初始化
     App_SystemInit();
 
     app_i2c_init();
 
-    if (key_pressed_query(KEY_FN))
-    {
+    // hold [FN] on PWRON to force calibration mode
+    if (key_pressed_query(KEY_FN)) {
         AppCalibration();
-    }
-    else
-    {
-        pCal = AppCalLoad();
-        if (!pCal)
-        {
+    } else {
+        // if no cal data stored, goto calibration
+        if (AppCalLoad() == NULL) {
             AppCalibration();
         }
     }
