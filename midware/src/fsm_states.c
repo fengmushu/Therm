@@ -358,29 +358,29 @@ static void state_config_exit(fsm_node_t *node, fsm_event_t event)
     app_fn_exit();
 }
 
-static fsm_state_t state_config_release_fn(fsm_node_t *node,
-                                           fsm_event_t event,
-                                           void *data)
-{
-    app_fn_next();
-    return node->state;
-}
+// static fsm_state_t state_config_release_fn(fsm_node_t *node,
+//                                            fsm_event_t event,
+//                                            void *data)
+// {
+//     app_fn_next();
+//     return node->state;
+// }
 
-static fsm_state_t state_config_release_minus(fsm_node_t *node,
-                                              fsm_event_t event,
-                                              void *data)
-{
-    app_fn_btn_minus();
-    return node->state;
-}
+// static fsm_state_t state_config_release_minus(fsm_node_t *node,
+//                                               fsm_event_t event,
+//                                               void *data)
+// {
+//     app_fn_btn_minus();
+//     return node->state;
+// }
 
-static fsm_state_t state_config_release_plus(fsm_node_t *node,
-                                              fsm_event_t event,
-                                              void *data)
-{
-    app_fn_btn_plus();
-    return node->state;
-}
+// static fsm_state_t state_config_release_plus(fsm_node_t *node,
+//                                               fsm_event_t event,
+//                                               void *data)
+// {
+//     app_fn_btn_plus();
+//     return node->state;
+// }
 
 static fsm_node_t state_config = {
     .state   = FSM_STATE_CONFIG,
@@ -390,21 +390,21 @@ static fsm_node_t state_config = {
     .exit    = state_config_exit, 
     .events  = 0,
     .actions = {
-        {
-            .event  = FSM_EVENT_RELEASE_MINUS,
-            .action = state_config_release_minus,
-            .next   = __FSM_STATE_NONE,
-        },
-        {
-            .event  = FSM_EVENT_RELEASE_PLUS,
-            .action = state_config_release_plus,
-            .next   = __FSM_STATE_NONE,
-        },
-        {
-            .event  = FSM_EVENT_RELEASE_FN,
-            .action = state_config_release_fn,
-            .next   = __FSM_STATE_NONE,
-        },
+        // {
+        //     .event  = FSM_EVENT_RELEASE_MINUS,
+        //     .action = state_config_release_minus,
+        //     .next   = __FSM_STATE_NONE,
+        // },
+        // {
+        //     .event  = FSM_EVENT_RELEASE_PLUS,
+        //     .action = state_config_release_plus,
+        //     .next   = __FSM_STATE_NONE,
+        // },
+        // {
+        //     .event  = FSM_EVENT_RELEASE_FN,
+        //     .action = state_config_release_fn,
+        //     .next   = __FSM_STATE_NONE,
+        // },
         {
             .event  = FSM_EVENT_SYS_HALT,
             .action = NULL,
