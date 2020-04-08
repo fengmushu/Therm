@@ -106,25 +106,16 @@ static __always_inline void key_gpio_irq_handle(int i)
 
 void PortC_IRQHandler(void)
 {
-    delay1ms(100);
-
-    // REVIEW: key_switch checked redundantly
-    for (int i = KEY_MINUS; i <= KEY_FN; i++)
-        key_gpio_irq_handle(i);
-    
     AppRtcFeed();
 
-    printf("%s: key bitmap: %02x\r\n", __func__, bm_key_pressed);
+    for (int i = KEY_MINUS; i <= KEY_FN; i++)
+        key_gpio_irq_handle(i);
 }
 
 void PortD_IRQHandler(void)
 {
-    delay1ms(100);
+    AppRtcFeed();
 
     for (int i = KEY_TRIGGER; i <= KEY_SWITCH; i++)
         key_gpio_irq_handle(i);
-
-    AppRtcFeed();
-
-    printf("%s: key bitmap: %02x\r\n", __func__, bm_key_pressed);
 }
