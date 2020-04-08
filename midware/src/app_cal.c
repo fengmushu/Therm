@@ -250,6 +250,7 @@ void AppCalClean(void)
 ///< ADC 修正值获取
 boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
+    delay1ms(100); /* 等适应了再采集数据 */
     ///<*** ADC数据采集     
     {
         __disable_irq();
@@ -342,16 +343,6 @@ void AppCalibration(void)
     while(1) {
         
         while(!key_pressed_query(KEY_TRIGGER)); //等按键触发
-
-        #if 0
-        if(u8CaType == 0) {
-            ///< 更新到屏幕
-            AppLcdSetString(Str_LO);
-        } else {
-            AppLcdSetString(Str_HI);
-        }
-        AppLcdDisplayUpdate(0);
-        #endif
             
         ///< 读取ADC
         if(!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL)) {
