@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "fsm.h"
 #include "app.h"
@@ -17,7 +18,8 @@ static uint8_t blink_cnt;
 fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 {
     uint8_t scan_mode = scan_mode_runtime_update();
-    uint16_t last_result = g_rt->scan_result[scan_mode];
+    int16_t last_result = g_rt->scan_result[scan_mode];
+    scan_log_t *scan_log = &g_scan_log[scan_mode];
 
     switch (event) {
     case FSM_EVENT_SCAN_DONE:
@@ -28,8 +30,9 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
         g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
 
         if (is_temp_in_range(&g_temp_thres[scan_mode], last_result)) {
-            scan_log_write(&g_scan_log[scan_mode], last_result);
-            g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
+            // last_write++ in scan_log_write()
+            scan_log_write(scan_log, last_result);
+            g_rt->read_idx[scan_mode] = scan_log->last_write;
         }
 
         if (g_cfg->beep_on)
@@ -44,7 +47,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
     default: // display last write result
         g_rt->scan_done = 0;
         g_rt->scan_burst = 0;
-        g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
+        g_rt->read_idx[scan_mode] = scan_log->last_write;
         AppLcdClearAll();
         break;
     }
