@@ -87,8 +87,6 @@ extern "C"
 {
 #endif
 
-#define AUTO_PWROFF_TIMEOUT     18
-
 #define UID_BASE_ADDR           0x00100E74
 
 /**
@@ -166,13 +164,8 @@ extern void AppVolMonitorInit(void);
 ///< 蜂鸣器滴滴
 extern void AppBeepBlink(uint32_t u32FreqIndex);
 
-///< 自动关机模块初始化
+// 电源管理
 extern void AppPmuInit(void);
-extern void AppSystemHalt(void);
-extern void AppSystemResume(void);
-extern void AppRtcInit(void);
-extern void AppRtcFeed(void);
-extern uint32_t AppRtcUpdate(void);
 
 //@} // APP Group
 ///< LED背光灯控制

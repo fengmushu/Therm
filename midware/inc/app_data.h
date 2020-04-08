@@ -20,6 +20,9 @@
 #define CAL_OFFSET_MIN              (-32766)
 #define CAL_OFFSET_MAX              (32766)
 
+// current config: 1 jiffy = 1 sec
+#define AUTO_SLEEP_TIMEOUT          (15)
+
 // TODO: app version detection
 #define SAVE_MAGIC                  (0xC0CAFE00U)
 
@@ -69,12 +72,14 @@ typedef struct app_cfg {
     int16_t body_alarm_C;
     uint8_t temp_unit;
     uint8_t beep_on;
+
+    uint8_t sleep_jiffies;
 } app_cfg_t;
 
 typedef struct app_save {
     uint32_t   magic;
-    app_cfg_t  cfg;
     scan_log_t scan_log[NUM_SCAN_MODES];
+    app_cfg_t  cfg;
 } app_save_t;
 
 //

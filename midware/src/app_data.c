@@ -21,10 +21,11 @@ temp_thres_t g_temp_thres[NUM_SCAN_MODES] = {
 };
 
 static app_cfg_t default_cfg = {
-    .cal_offset     = 0,
-    .body_alarm_C   = BODY_ALARM_THRESH_DEF,
-    .temp_unit      = TUNIT_C,
-    .beep_on        = BEEP_ON,
+    .cal_offset    = 0,
+    .body_alarm_C  = BODY_ALARM_THRESH_DEF,
+    .temp_unit     = TUNIT_C,
+    .beep_on       = BEEP_ON,
+    .sleep_jiffies = AUTO_SLEEP_TIMEOUT,
 };
 
 int app_save_verify(app_save_t *save)

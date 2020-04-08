@@ -52,7 +52,8 @@ enum fsm_event {
         FSM_EVENT_SWITCH_SURFACE,
 
         FSM_EVENT_IRQ_TIMER3,
-        FSM_EVENT_IRQ_RTC,
+
+        FSM_EVENT_SYS_HALT,
 
         FSM_EVENT_SCAN_DONE,    // internal event, to notice main->enter()
 

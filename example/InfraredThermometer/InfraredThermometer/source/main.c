@@ -70,6 +70,7 @@
 #include "app_i2c.h"
 #include "app_data.h"
 #include "app_timer.h"
+#include "app_rtc.h"
 #include "fsm.h"
 
 // 串口发送重定向
@@ -150,12 +151,4 @@ void Lvd_IRQHandler(void)
     Lvd_ClearIrq();
 
     g_rt->battery_low = 1;
-}
-
-void Rtc_IRQHandler(void)
-{
-    if (Rtc_GetPridItStatus() == TRUE) {
-        Rtc_ClearPrdfItStatus();
-        AppRtcUpdate();
-    }
 }

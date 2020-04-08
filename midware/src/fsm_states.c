@@ -13,8 +13,41 @@
 #include "app_fn.h"
 #include "app_main.h"
 #include "app_cal.h"
+#include "app_rtc.h"
 
 #include "fsm.h"
+
+void sys_resume(void)
+{
+    AppLedEnable(1);
+
+    Adc_Enable();
+    Bgr_BgrEnable();
+    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+}
+
+void sys_halt(void)
+{
+    // beep on, in case
+    beep_off();
+
+    // reset lcd
+    AppLcdDisplayClear();
+
+    // turn of backlight
+    AppLedDisable();
+
+    AppLcdClearAll();
+    AppLcdDisplayUpdate(0);
+
+    // power save
+    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+    Adc_Disable();
+    Bgr_BgrDisable();
+
+    // go deep sleep
+    Lpm_GotoLpmMode();
+}
 
 static fsm_state_t state_stop_enter(fsm_node_t *node, fsm_event_t event)
 {
@@ -109,14 +142,7 @@ static fsm_state_t state_sleep_enter(fsm_node_t *node, fsm_event_t event)
 {
     UNUSED_PARAM(event);
 
-    // beep on, in case
-    beep_off();
-
-    // reset lcd
-    AppLcdDisplayClear();
-
-    // turn of backlight
-    AppLedDisable();
+    sys_halt();
 
     return node->state;
 }
@@ -126,11 +152,10 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
     UNUSED_PARAM(node);
     UNUSED_PARAM(event);
 
-    AppLedEnable(LedLightBlue);
+    sys_resume();
 
-    AppLcdInit();
     AppLcdDisplayAll();
-    AppLcdBlink();
+    AppLcdDisplayUpdate(2000);
 }
 
 static fsm_node_t state_sleep = {

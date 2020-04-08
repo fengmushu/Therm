@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "app_gpio.h"
 #include "app_key.h"
+#include "app_rtc.h"
 
 #define GPIO_LO                     (FALSE)
 #define GPIO_HI                     (TRUE)
@@ -110,6 +111,8 @@ void PortC_IRQHandler(void)
 
     for (int i = KEY_MINUS; i <= KEY_FN; i++)
         key_gpio_irq_handle(i);
+
+    DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }
 
 void PortD_IRQHandler(void)
@@ -118,4 +121,6 @@ void PortD_IRQHandler(void)
 
     for (int i = KEY_TRIGGER; i <= KEY_SWITCH; i++)
         key_gpio_irq_handle(i);
+
+    DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }
