@@ -333,7 +333,7 @@ void AppCalibration(void)
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
 
-    AppLedEnable(LedLightBlue);
+    AppLedEnable(LedOrange);
     AppLcdClearAll();
     AppLcdSetRawNumber(8888, FALSE, 4);
     AppLcdDisplayUpdate(100);

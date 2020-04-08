@@ -154,12 +154,12 @@ void _AppLedPortInit(void)
     stcGpioCfg.enPd       = GpioPdDisable;
     stcGpioCfg.enPu       = GpioPuDisable;
     
-    Gpio_Init(M_LED1_PORT, M_LED1_PIN, &stcGpioCfg);
-    Gpio_Init(M_LED2_PORT, M_LED2_PIN, &stcGpioCfg);
+    Gpio_Init(M_LED_RED_PORT, M_LED_RED_PIN, &stcGpioCfg);
+    Gpio_Init(M_LED_GREEN_PORT, M_LED_GREEN_PIN, &stcGpioCfg);
     // Gpio_Init(M_LED3_PORT, M_LED3_PIN, &stcGpioCfg);
 
-    Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
-    Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
+    Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
+    Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
 }
 
 ///< BEEP 初始化

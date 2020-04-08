@@ -163,37 +163,27 @@ void AppPmuInit(void)
     Lpm_Config(&stcConfig);
 }
 
-void AppLedEnable(en_led_colour_t enLedColour)
+void AppLedEnable(en_led_colour_t uColor)
 {
-    if(LedRed == enLedColour)
+    if(LedRed & uColor)
     {
-        Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
-        Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
-        // Gpio_ClrIO(M_LED3_PORT, M_LED3_PIN);
+        Gpio_ClrIO(M_LED_RED_PORT, M_LED_RED_PIN);
+    } else {
+        Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
     }
-    else if(LedLightBlue == enLedColour)
+
+    if(LedGreen & uColor)
     {
-        Gpio_ClrIO(M_LED1_PORT, M_LED1_PIN);
-        Gpio_ClrIO(M_LED2_PORT, M_LED2_PIN);
-        // Gpio_SetIO(M_LED3_PORT, M_LED3_PIN);
-    }
-    else
-    {
-        if(Gpio_ReadOutputIO(M_LED1_PORT, M_LED1_PIN)) {
-            Gpio_ClrIO(M_LED1_PORT, M_LED1_PIN);
-            Gpio_ClrIO(M_LED2_PORT, M_LED2_PIN);
-        } else {
-            Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
-            Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
-        }
+        Gpio_ClrIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
+    } else {
+        Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
     }
 }
 
 void AppLedDisable(void)
 {
-    Gpio_SetIO(M_LED1_PORT, M_LED1_PIN);
-    Gpio_SetIO(M_LED2_PORT, M_LED2_PIN);
-    // Gpio_SetIO(M_LED3_PORT, M_LED3_PIN);
+    Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
+    Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
 }
 
 ///< VCC 电量监测模块初始化

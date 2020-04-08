@@ -147,12 +147,10 @@
 #define M_BEEP_PIN        GpioPin7
 
 ///< M LED
-#define M_LED1_PORT       GpioPortC
-#define M_LED1_PIN        GpioPin13
-#define M_LED2_PORT       GpioPortC
-#define M_LED2_PIN        GpioPin14
-// #define M_LED3_PORT       GpioPortC
-// #define M_LED3_PIN        GpioPin15
+#define M_LED_RED_PORT       GpioPortC
+#define M_LED_RED_PIN        GpioPin14
+#define M_LED_GREEN_PORT       GpioPortC
+#define M_LED_GREEN_PIN        GpioPin13
 
 ///< M I2C EEPROM
 #define M_E2_I2C0_SCL_PORT       GpioPortB

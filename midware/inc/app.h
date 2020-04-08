@@ -101,8 +101,9 @@ extern "C"
  ******************************************************************************/
 typedef enum en_led_colour
 {
-    LedRed       = 0x00u,                 ///< 红色
-    LedLightBlue = 0x40u,                 ///< 浅蓝色
+    LedRed      = 0x1u,                 ///< 红色
+    LedGreen    = 0x2u,                 ///< 绿色
+    LedOrange   = 0x3u,
 }en_led_colour_t;
 
 typedef struct {

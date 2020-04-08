@@ -128,12 +128,25 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         big_number = g_rt->scan_result[scan_mode];
 
         if (big_number < g_temp_thres[scan_mode].low) {
+            AppLedEnable(LedOrange);
             AppLcdSetString(Str_LO);
             goto lcd_update;
         } else if (big_number > g_temp_thres[scan_mode].high) {
+            AppLedEnable(LedRed);
             AppLcdSetString(Str_HI);
             goto lcd_update;
         } else {
+            if(scan_mode == SCAN_BODY) {
+                if (big_number < 372) {
+                    AppLedEnable(LedGreen);
+                } else if(big_number <= 380) {
+                    AppLedEnable(LedOrange);
+                } else {
+                    AppLedEnable(LedRed);
+                }
+            } else {
+                AppLedEnable(LedGreen);
+            }
             if (g_cfg->temp_unit == TUNIT_F)
                 big_number = lcd_show_C2F(big_number);
         }

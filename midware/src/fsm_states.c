@@ -19,7 +19,7 @@
 
 void sys_resume(void)
 {
-    AppLedEnable(1);
+    AppLedEnable(LedGreen);
 
     Adc_Enable();
     Bgr_BgrEnable();
