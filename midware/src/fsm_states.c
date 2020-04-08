@@ -159,6 +159,11 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
     AppLcdDisplayAll();
     delay1ms(2000);
 
+    if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
+        app_save_reset(g_save);
+        AppLcdBlink();
+    }
+
     AppLcdClearAll();
     AppLcdDisplayUpdate(0);
 }
