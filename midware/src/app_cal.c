@@ -259,12 +259,15 @@ static uint32_t SampleCal(uint32_t *aSum)
     uint8_t i;
     uint32_t uVal = 0, uMin = 0xFFFFFFFF, uMax = 0;
 
-    for(i=1; i<=aSum[0]; i++) {
+    for (i = 1; i <= aSum[0]; i++)
+    {
         uVal += aSum[i];
-        if(uMin > aSum[i]) {
+        if (uMin > aSum[i])
+        {
             uMin = aSum[i];
         }
-        if(uMax < aSum[i]) {
+        if (uMax < aSum[i])
+        {
             uMax = aSum[i];
         }
     }
@@ -279,7 +282,8 @@ static void SampleDump(uint32_t *aSum)
     int8_t i;
 
     DBG_PRINT("N: %u\r\n   ", aSum[0]);
-    for(i=1; i<=aSum[0]; i++) {
+    for (i = 1; i <= aSum[0]; i++)
+    {
         DBG_PRINT(" %u", aSum[i]);
     }
     DBG_PRINT("\r\n");
@@ -296,7 +300,8 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 
     ///<*** ADC数据采集
     uSumViR[0] = uSumVNtcH[0] = uSumVNtcL[0] = 0;
-    while (iSampleCount --) {
+    while (iSampleCount--)
+    {
         uint32_t uAdcCode;
 
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
@@ -304,10 +309,10 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
         AppAdcVirAvgCodeGet(&uAdcCode); ///< 表面温度 ADC采样
         SampleInsert(uSumViR, uAdcCode);
 
-        AppAdcNtcHAvgCodeGet(&uAdcCode);   ///< 环境温度RH ADC采样
+        AppAdcNtcHAvgCodeGet(&uAdcCode); ///< 环境温度RH ADC采样
         SampleInsert(uSumVNtcH, uAdcCode);
 
-        AppAdcNtcLAvgCodeGet(&uAdcCode);   ///< 表面温度RL ADC采样
+        AppAdcNtcLAvgCodeGet(&uAdcCode); ///< 表面温度RL ADC采样
         SampleInsert(uSumVNtcL, uAdcCode);
 
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
@@ -363,7 +368,11 @@ boolean_t AppTempCalculate(CalData_t *pCal,
         *uTSurface = (uint32_t)(fSurfaceTemp * 100);
 
     // 人体体表
-    fSkinTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
+    fSkinTemp = fSurfaceTemp;
+    if (fSkinTemp < 36)
+    {
+        fSkinTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
+    }
 
     ///< 人体温度
     fHumanTemp = NNA_HumanBodyTempGet(pCal, fNtcTemp, fSkinTemp);
