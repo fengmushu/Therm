@@ -253,16 +253,16 @@ static fsm_node_t state_main = {
         //     .action = NULL,
         //     .next   = FSM_STATE_SCAN,
         // },
-        {
-            .event  = FSM_EVENT_SWITCH_BODY,
-            .action = state_main_scan_mode_switch,
-            .next   = __FSM_STATE_NONE,
-        },
-        {
-            .event  = FSM_EVENT_SWITCH_SURFACE,
-            .action = state_main_scan_mode_switch,
-            .next   = __FSM_STATE_NONE,
-        },
+        // {
+        //     .event  = FSM_EVENT_SWITCH_BODY,
+        //     .action = state_main_scan_mode_switch,
+        //     .next   = __FSM_STATE_NONE,
+        // },
+        // {
+        //     .event  = FSM_EVENT_SWITCH_SURFACE,
+        //     .action = state_main_scan_mode_switch,
+        //     .next   = __FSM_STATE_NONE,
+        // },
         {
             .event  = FSM_EVENT_IRQ_TIMER3,
             .action = NULL,

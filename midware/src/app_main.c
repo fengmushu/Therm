@@ -188,8 +188,11 @@ out:
     g_rt->scan_mode_last = scan_mode_runtime_update();
 
     // user switched scan mode
-    if (g_rt->scan_mode_last != scan_mode)
+    if (g_rt->scan_mode_last != scan_mode) {
         g_rt->scan_show = 0;
+        scan_mode = g_rt->scan_mode_last;
+        g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
+    }
 
     blink_cnt++;
 
