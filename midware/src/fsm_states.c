@@ -346,11 +346,6 @@ static fsm_node_t state_scan = {
     .events  = 0,
     .actions = {
         {
-            .event  = FSM_EVENT_RELEASE_FN,
-            .action = NULL,
-            .next   = FSM_STATE_MAIN,
-        },
-        {
             .event  = __FSM_EVENT_NULL,
             .action = NULL,
             .next   = __FSM_STATE_NONE,
