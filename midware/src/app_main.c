@@ -13,6 +13,8 @@
 
 #define BLINK_PERIOD_CNT                (1 << 1)
 
+#define BEEP_SCAN_DONE_MS               (100)
+
 static uint8_t blink_cnt;
 
 fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
@@ -35,13 +37,6 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
             g_rt->read_idx[scan_mode] = scan_log->last_write;
         }
 
-        if (g_cfg->beep_on)
-            beep_on();
-
-        // well, utilize this block waiting for beep and lock icon
-        delay1ms(100);
-        beep_off();
-
         break;
 
     default: // display last write result
@@ -55,7 +50,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
     return node->state;
 }
 
-static inline int16_t __body_beep_alarm(void)
+static inline int16_t body_beep_alarm(void)
 {
     static const int16_t a_delay = 150;
     int16_t ret = 0;
@@ -71,20 +66,6 @@ static inline int16_t __body_beep_alarm(void)
     }
 
     return ret;
-}
-
-static inline int16_t body_alarm_beep_once(int beep_once, uint16_t temp)
-{
-    if (!beep_once)
-        return 0;
-
-    if (!g_cfg->beep_on)
-        return 0;
-
-    if (temp < g_cfg->body_alarm_C)
-        return 0;
-
-    return __body_beep_alarm();
 }
 
 fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
@@ -157,36 +138,48 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 
 lcd_update:
     AppLcdDisplayUpdate(30);
-    blink_cnt++;
 
     // scan_burst will be oneshot after scan done
-    // NOTE: if temp unit is F, value is changed above
-    burst_delay -= body_alarm_beep_once(g_rt->scan_burst && (scan_mode == SCAN_BODY),
-                                        g_rt->scan_result[scan_mode]);
+    if (g_rt->scan_burst) {
+        if (g_cfg->beep_on) {
+            if (scan_mode == SCAN_BODY && big_number >= g_cfg->body_alarm_C) {
+                burst_delay -= body_beep_alarm();
+            } else {
+                // user may wanna release trigger after hearing beep
+                // so put a little delay here
+                beep_on();
+                delay1ms(BEEP_SCAN_DONE_MS);
+                burst_delay -= BEEP_SCAN_DONE_MS;
+            }
+        }
 
-    // scan burst mode
-    if (key_pressed_query(KEY_TRIGGER) && g_rt->scan_burst) {
-        if (!g_cfg->beep_on)
-            delay1ms(burst_delay < 0 ? 0 : burst_delay);
-        next = FSM_STATE_SCAN;
-        goto out; // jump to scan asap
+        // hold trigger to burst scan
+        if (key_pressed_query(KEY_TRIGGER)) {
+            if (burst_delay > 0)
+                delay1ms(burst_delay);
+
+            next = FSM_STATE_SCAN;
+            goto out; // jump out
+        }
     }
 
     if (key_pressed_query(KEY_PLUS)) {
         scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
         delay1ms(150);
-        goto out;
+        goto out; // jump out
     }
 
     if (key_pressed_query(KEY_MINUS)) {
         scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
         delay1ms(150);
-        goto out;
+        goto out; // jump out
     }
 
 out:
+    beep_off();
     g_rt->scan_burst = 0;
     g_rt->scan_mode_last = scan_mode_runtime_update();
+    blink_cnt++;
 
     return next;
 }
