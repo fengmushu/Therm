@@ -42,8 +42,11 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
     default: // display last write result
         g_rt->scan_show = 0;
         g_rt->scan_done = 0;
+        g_rt->scan_mode_last = scan_mode;
         g_rt->read_idx[scan_mode] = scan_log->last_write;
+
         AppLcdClearAll();
+
         break;
     }
 
