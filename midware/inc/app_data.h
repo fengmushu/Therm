@@ -93,7 +93,7 @@ typedef struct app_save {
 typedef struct app_runtime {
     uint8_t    scan_mode;
     uint8_t    scan_mode_last;
-    uint8_t    scan_done;
+    uint8_t    scan_show;
     uint8_t    scan_burst;
     int16_t    scan_result[NUM_SCAN_MODES];
     uint8_t    read_idx[NUM_SCAN_MODES];

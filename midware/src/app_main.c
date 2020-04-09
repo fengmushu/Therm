@@ -27,7 +27,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
     case FSM_EVENT_SCAN_DONE:
         AppRtcFeed();
 
-        g_rt->scan_done = 1; // to keep big number showing last scan result
+        g_rt->scan_show = 1; // to keep big number showing last scan result
         g_rt->scan_burst = 1;
         g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
 
@@ -40,7 +40,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
         break;
 
     default: // display last write result
-        g_rt->scan_done = 0;
+        g_rt->scan_show = 0;
         g_rt->scan_burst = 0;
         g_rt->read_idx[scan_mode] = scan_log->last_write;
         AppLcdClearAll();
@@ -71,7 +71,7 @@ static inline int16_t body_beep_alarm(void)
 fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 {
     fsm_state_t next = node->state;
-    uint8_t scan_done = g_rt->scan_done;
+    uint8_t scan_show = g_rt->scan_show;
     uint8_t scan_mode = g_rt->scan_mode_last;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
     int16_t big_number;
@@ -99,7 +99,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
             AppLcdSetBattery(TRUE);
     }
 
-    // read_idx should have synced to write_idx in enter() if scan_done
+    // read_idx should have synced to write_idx in enter() if comes from scan
     log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
 
     AppLcdSetLogTemp(C2F_by_setting(log_number), lcd_show_idx(read_idx));
@@ -107,8 +107,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     // user is viewing log, show big number as log number
     big_number = log_number;
 
-    // if last state was SCAN and done
-    if (scan_done) {
+    if (scan_show) {
         big_number = g_rt->scan_result[scan_mode];
 
         if (big_number < g_temp_thres[scan_mode].underflow) {
@@ -184,7 +183,7 @@ out:
 
     // user switched scan mode
     if (g_rt->scan_mode_last != scan_mode)
-        g_rt->scan_done = 0;
+        g_rt->scan_show = 0;
 
     blink_cnt++;
 
@@ -213,7 +212,7 @@ fsm_state_t state_main_scan_mode_switch(fsm_node_t *node, fsm_event_t event, voi
     // to display history
     uint8_t scan_mode = scan_mode_runtime_update();
 
-    g_rt->scan_done = 0;
+    g_rt->scan_show = 0;
     g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
 
     return node->state;
