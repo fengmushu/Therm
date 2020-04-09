@@ -189,24 +189,24 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
     AppLcdDisplayUpdate(0);
 }
 
+static fsm_state_t state_sleep_proc(fsm_node_t *node, fsm_event_t *out)
+{
+    fsm_state_t next = node->state;
+
+    if (key_pressed_query(KEY_TRIGGER))
+        next = FSM_STATE_SCAN;
+
+    return next;
+}
+
 static fsm_node_t state_sleep = {
     .state   = FSM_STATE_SLEEP,
     .type    = FSM_NODE_NORMAL,
     .enter   = state_sleep_enter,
-    .proc    = NULL,
+    .proc    = state_sleep_proc,
     .exit    = state_sleep_exit,
     .events  = 0,
     .actions = {
-        {
-            .event  = FSM_EVENT_PRESS_TRIGGER,
-            .action = NULL,
-            .next   = FSM_STATE_SCAN,
-        },
-        {
-            .event  = FSM_EVENT_RELEASE_TRIGGER,
-            .action = NULL,
-            .next   = FSM_STATE_SCAN,
-        },
         {
             .event  = __FSM_EVENT_NULL,
             .action = NULL,
