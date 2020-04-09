@@ -159,8 +159,10 @@ lcd_update:
                 delay1ms(burst_delay);
 
             next = FSM_STATE_SCAN;
-            goto out; // jump out
         }
+
+        // block btn [+] [-] after scan done
+        goto out; // jump out
     }
 
     if (key_pressed_query(KEY_PLUS)) {
