@@ -181,6 +181,11 @@ out:
     beep_off();
     g_rt->scan_burst = 0;
     g_rt->scan_mode_last = scan_mode_runtime_update();
+
+    // user switched scan mode
+    if (g_rt->scan_mode_last != scan_mode)
+        g_rt->scan_done = 0;
+
     blink_cnt++;
 
     return next;
