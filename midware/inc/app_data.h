@@ -22,9 +22,8 @@
 #define BODY_FEVER_HIGH             (391)   // =39.1 ~ =40.0
 #define BODY_FEVER_DEAD             (410)   // =41.0 ~
 
-// TODO: define right range
-#define CAL_OFFSET_MIN              (-32766)
-#define CAL_OFFSET_MAX              (32766)
+#define BODY_CAL_TWEAK_MIN          (-30)
+#define BODY_CAL_TWEAK_MAX          (30)
 
 // current config: 1 jiffy = 1 sec
 #define AUTO_SLEEP_TIMEOUT          (15)
@@ -74,7 +73,7 @@ typedef struct scan_log {
 } scan_log_t;
 
 typedef struct app_cfg {
-    int16_t cal_offset; // last digit is consider as float .1
+    int16_t body_cal_tweak; // least digit is float .1
     int16_t body_alarm_C;
     uint8_t temp_unit;
     uint8_t beep_on;

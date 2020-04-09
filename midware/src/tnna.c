@@ -1,6 +1,8 @@
 #include "app.h"
 #include "math.h"
 
+#include "app_data.h"
+
 #define USE_FITTING 1
 #define VRA_INIT (0)
 
@@ -286,6 +288,14 @@ boolean_t NNA_Calibration(
 
 float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fSkinTemp)
 {
+    float32_t cal_tweak;
+
+    if (!g_cfg) {
+        cal_tweak = 0.0f;
+    } else {
+        cal_tweak = (float32_t)(g_cfg->body_cal_tweak) / 10;
+    }
+
     if (fSkinTemp < 28)
     {
         return 0; //Lo
@@ -313,7 +323,7 @@ float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fS
 
     if (fSkinTemp <= 36.2)
     {
-        return pCal->u8HumanFix + 0.22 * fSkinTemp;
+        return pCal->u8HumanFix + cal_tweak + 0.22 * fSkinTemp;
     }
 
     if (fSkinTemp <= 38)

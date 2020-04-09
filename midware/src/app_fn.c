@@ -18,7 +18,7 @@ static int8_t last_fn = -1;
 enum {
     FN_TEMP_SEL = 0,
     FN_BODY_ALARM,
-    FN_CAL_OFFSET,
+    FN_BODY_CAL,
     FN_BEEP_ON,
     NUM_FN,
 };
@@ -72,26 +72,26 @@ static void fn_body_alarm_btn_plus(int8_t idx)
         g_cfg->body_alarm_C = val;
 }
 
-static void fn_cal_offset_show(int8_t idx)
+static void fn_body_cal_show(int8_t idx)
 {
-    AppLcdSetRawNumber(g_cfg->cal_offset, TRUE, 2);
+    AppLcdSetRawNumber(g_cfg->body_cal_tweak, TRUE, 2);
     AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
-static void fn_cal_offset_minus(int8_t idx)
+static void fn_body_cal_minus(int8_t idx)
 {
-    int16_t val = g_cfg->cal_offset - 1;
+    int16_t val = g_cfg->body_cal_tweak - 1;
 
-    if (val >= CAL_OFFSET_MIN && val <= CAL_OFFSET_MAX)
-        g_cfg->cal_offset = val;
+    if (val >= BODY_CAL_TWEAK_MIN && val <= BODY_CAL_TWEAK_MAX)
+        g_cfg->body_cal_tweak = val;
 }
 
-static void fn_cal_offset_plus(int8_t idx)
+static void fn_body_cal_plus(int8_t idx)
 {
-    int16_t val = g_cfg->cal_offset + 1;
+    int16_t val = g_cfg->body_cal_tweak + 1;
     
-    if (val >= CAL_OFFSET_MIN && val <= CAL_OFFSET_MAX)
-        g_cfg->cal_offset = val;
+    if (val >= BODY_CAL_TWEAK_MIN && val <= BODY_CAL_TWEAK_MAX)
+        g_cfg->body_cal_tweak = val;
 }
 
 static void fn_beep_show(int8_t idx)
@@ -115,7 +115,7 @@ static void fn_beep_plus(int8_t idx)
 static struct fn_menu fn_menus[] = {
     [FN_TEMP_SEL]   = { fn_temp_sel_show,   fn_temp_sel_btn_minus,   fn_temp_sel_btn_plus,   Str_F1 },
     [FN_BODY_ALARM] = { fn_body_alarm_show, fn_body_alarm_btn_minus, fn_body_alarm_btn_plus, Str_F2 },
-    [FN_CAL_OFFSET] = { fn_cal_offset_show, fn_cal_offset_minus,     fn_cal_offset_plus,     Str_F3 },
+    [FN_BODY_CAL]   = { fn_body_cal_show,   fn_body_cal_minus,       fn_body_cal_plus,       Str_F3 },
     [FN_BEEP_ON]    = { fn_beep_show,       fn_beep_minus,           fn_beep_plus,           Str_F4 },
 };
 
