@@ -95,6 +95,13 @@ static fsm_state_t state_pwron_enter(fsm_node_t *node, fsm_event_t event)
 
     beep_once(225);
 
+    AppLedEnable(LedOrange);
+
+    AppLcdClearAll();
+    AppLcdDisplayClear();
+    AppLcdDisplayAll();
+    delay1ms(2500);
+
     return FSM_STATE_SLEEP;
 }
 
@@ -159,16 +166,12 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
 
     sys_resume();
 
-    AppLcdClearAll();
-    AppLcdDisplayClear();
-    AppLcdDisplayAll();
-    delay1ms(2000);
-
     if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
         app_save_reset(g_save);
         AppLcdBlink();
     }
 
+    AppLcdDisplayClear();
     AppLcdClearAll();
     AppLcdDisplayUpdate(0);
 }
