@@ -108,8 +108,7 @@ void app_runtime_init(app_runtime_t *rt)
         app_save_reset(&rt->save);
     }
 
-    for (int i = 0; i < NUM_SCAN_MODES; i++)
-        rt->read_idx[i] = rt->save.scan_log[i].write_idx;
+    app_runtime_readidx_rebase(rt);
 }
 
 uint8_t scan_mode_runtime_update(void)

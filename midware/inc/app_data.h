@@ -110,6 +110,12 @@ extern scan_log_t    *g_scan_log;
 extern temp_thres_t   g_temp_thres[];
 extern CalData_t     *g_cal;
 
+static __always_inline void app_runtime_readidx_rebase(app_runtime_t *rt)
+{
+    for (int i = 0; i < NUM_SCAN_MODES; i++)
+        rt->read_idx[i] = rt->save.scan_log[i].write_idx;
+}
+
 static __always_inline int16_t lcd_show_C2F(int16_t C)
 {
     return (C * 18 / 10 + 320);

@@ -168,9 +168,10 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
 
     // hold [-] and [+] to reset, clear config
     if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
+        AppLcdBlink();
         app_save_reset(g_save);
         app_save_i2c_store(g_save);
-        AppLcdBlink();
+        app_runtime_readidx_rebase(g_rt);
     }
 
     AppLcdDisplayClear();
