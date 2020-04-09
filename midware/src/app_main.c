@@ -154,16 +154,14 @@ lcd_update:
                 burst_delay -= BEEP_SCAN_DONE_MS;
             }
         }
+    }
 
-        // hold trigger to burst scan
-        if (key_pressed_query(KEY_TRIGGER)) {
-            if (burst_delay > 0)
-                delay1ms(burst_delay);
+    // hold trigger to burst scan
+    if (key_pressed_query(KEY_TRIGGER)) {
+        if (burst_delay > 0)
+            delay1ms(burst_delay);
 
-            next = FSM_STATE_SCAN;
-        }
-
-        // block btn [+] [-] after scan done
+        next = FSM_STATE_SCAN;
         goto out; // jump out
     }
 

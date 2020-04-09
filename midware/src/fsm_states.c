@@ -243,11 +243,11 @@ static fsm_node_t state_main = {
             .action = state_main_release_fn,
             .next   = __FSM_STATE_NONE,
         },
-        {
-            .event  = FSM_EVENT_PRESS_TRIGGER,
-            .action = NULL,
-            .next   = FSM_STATE_SCAN,
-        },
+        // {
+        //     .event  = FSM_EVENT_PRESS_TRIGGER,
+        //     .action = NULL,
+        //     .next   = FSM_STATE_SCAN,
+        // },
         // {
         //     .event  = FSM_EVENT_RELEASE_TRIGGER,
         //     .action = NULL,
