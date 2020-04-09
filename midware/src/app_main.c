@@ -29,7 +29,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
         g_rt->scan_burst = 1;
         g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
 
-        if (is_temp_in_range(&g_temp_thres[scan_mode], last_result)) {
+        if (is_temp_valid(&g_temp_thres[scan_mode], last_result)) {
             // last_write++ in scan_log_write()
             scan_log_write(scan_log, last_result);
             g_rt->read_idx[scan_mode] = scan_log->last_write;
@@ -97,6 +97,9 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     int16_t log_number;
     int16_t burst_delay = 100;
 
+    // reset color for all not defined patterns
+    AppLedEnable(LedGreen);
+
     AppLcdSetLock(FALSE);
     AppLcdSetBuzzer(g_cfg->beep_on);
     AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
@@ -118,51 +121,46 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     // read_idx should have synced to write_idx in enter() if scan_done
     log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
 
-    if (g_cfg->temp_unit == TUNIT_F)
-        log_number = lcd_show_C2F(log_number);
+    AppLcdSetLogTemp(C2F_by_setting(log_number), lcd_show_idx(read_idx));
 
-    AppLcdSetLogTemp(log_number, lcd_show_idx(read_idx));
+    // user is viewing log, show big number as log number
+    big_number = log_number;
 
     // if last state was SCAN and done
     if (scan_done) {
         big_number = g_rt->scan_result[scan_mode];
 
-        if (big_number < g_temp_thres[scan_mode].low) {
+        if (big_number < g_temp_thres[scan_mode].underflow) {
             AppLedEnable(LedOrange);
             AppLcdSetString(Str_LO);
-            goto lcd_update;
-        } else if (big_number > g_temp_thres[scan_mode].high) {
+            goto lcd_update; // jump out
+        } else if (big_number > g_temp_thres[scan_mode].overflow) {
             AppLedEnable(LedRed);
             AppLcdSetString(Str_HI);
-            goto lcd_update;
-        } else {
-            if(scan_mode == SCAN_BODY) {
-                if (big_number < 372) {
-                    AppLedEnable(LedGreen);
-                } else if(big_number <= 380) {
-                    AppLedEnable(LedOrange);
-                } else {
-                    AppLedEnable(LedRed);
-                }
-            } else {
-                AppLedEnable(LedGreen);
-            }
-            if (g_cfg->temp_unit == TUNIT_F)
-                big_number = lcd_show_C2F(big_number);
+            goto lcd_update; // jump out
         }
-    } else {
-        // user is viewing log, show big number as log number, too
-        big_number = log_number;
     }
 
-    AppLcdSetRawNumber(big_number, TRUE, 2);
+    //
+    // surface mode is always green, and LED is set green already
+    //
+    if (scan_mode == SCAN_BODY) {
+        // currently, body_alarm_C can be smaller than BODY_FEVER_LOW
+        if (big_number >= g_cfg->body_alarm_C) {
+            AppLedEnable(LedRed);
+        } else if (big_number >= BODY_FEVER_LOW) {
+            AppLedEnable(LedOrange);
+        }
+    }
+
+    AppLcdSetRawNumber(C2F_by_setting(big_number), TRUE, 2);
 
 lcd_update:
     AppLcdDisplayUpdate(30);
     blink_cnt++;
 
     // scan_burst will be oneshot after scan done
-    // NOTE: temp may have changed to F above
+    // NOTE: if temp unit is F, value is changed above
     burst_delay -= body_alarm_beep_once(g_rt->scan_burst && (scan_mode == SCAN_BODY),
                                         g_rt->scan_result[scan_mode]);
 

@@ -16,8 +16,8 @@ scan_log_t      *g_scan_log;
 CalData_t       *g_cal;
 
 temp_thres_t g_temp_thres[NUM_SCAN_MODES] = {
-    [SCAN_BODY]    = { BODY_TEMP_LOW_THRES,    BODY_TEMP_HI_THRES    },
-    [SCAN_SURFACE] = { SURFACE_TEMP_LOW_THRES, SURFACE_TEMP_HI_THRES },
+    [SCAN_BODY]    = { BODY_TEMP_UNDERFLOW_C,    BODY_TEMP_OVERFLOW_C    },
+    [SCAN_SURFACE] = { SURFACE_TEMP_UNDERFLOW_C, SURFACE_TEMP_OVERFLOW_C },
 };
 
 static app_cfg_t default_cfg = {

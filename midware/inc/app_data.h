@@ -6,15 +6,21 @@
 #include "app_cal.h"
 #include "utils.h"
 
-#define BODY_TEMP_LOW_THRES         (300)
-#define BODY_TEMP_HI_THRES          (440)
+#define BODY_TEMP_UNDERFLOW_C       (300)   // show LO
+#define BODY_TEMP_OVERFLOW_C        (440)   // show HI
 
-#define SURFACE_TEMP_LOW_THRES      (0)
-#define SURFACE_TEMP_HI_THRES       (1000)
+#define SURFACE_TEMP_UNDERFLOW_C    (0)
+#define SURFACE_TEMP_OVERFLOW_C     (1000)
 
-#define BODY_ALARM_THRESH_MIN       (372)
-#define BODY_ALARM_THRESH_DEF       (376)
+#define BODY_ALARM_THRESH_MIN       (371)
+#define BODY_ALARM_THRESH_DEF       (380)
 #define BODY_ALARM_THRESH_MAX       (386)
+
+#define BODY_FEVER_THRS             (371)   // =37.1 ~ =37.2
+#define BODY_FEVER_LOW              (373)   // =37.3 ~ =38.0
+#define BODY_FEVER_MID              (381)   // =38.1 ~ =39.0
+#define BODY_FEVER_HIGH             (391)   // =39.1 ~ =40.0
+#define BODY_FEVER_DEAD             (410)   // =41.0 ~
 
 // TODO: define right range
 #define CAL_OFFSET_MIN              (-32766)
@@ -57,8 +63,8 @@ enum temp_unit {
 };
 
 typedef struct temp_thres {
-    int16_t low;
-    int16_t high;
+    int16_t underflow;
+    int16_t overflow;
 } temp_thres_t;
 
 typedef struct scan_log {
@@ -110,14 +116,22 @@ static __always_inline int16_t lcd_show_C2F(int16_t C)
     return (C * 18 / 10 + 320);
 }
 
+static __always_inline int16_t C2F_by_setting(int16_t C)
+{
+    if (g_cfg->temp_unit == TUNIT_F)
+        return lcd_show_C2F(C);
+
+    return C;
+}
+
 static __always_inline int lcd_show_idx(int i)
 {
     return i + 1;
 }
 
-static __always_inline int is_temp_in_range(temp_thres_t *thrs, int16_t t)
+static __always_inline int is_temp_valid(temp_thres_t *thrs, int16_t t)
 {
-    if (t < thrs->low || t > thrs->high)
+    if (t < thrs->underflow || t > thrs->overflow)
         return 0;
 
     return 1;

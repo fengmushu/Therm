@@ -51,12 +51,7 @@ static void fn_temp_sel_btn_plus(int8_t idx)
 
 static void fn_body_alarm_show(int8_t idx)
 {
-    int16_t t = g_cfg->body_alarm_C;
-
-    if (g_cfg->temp_unit == TUNIT_F)
-        t = lcd_show_C2F(t);
-
-    AppLcdSetTemp(t);
+    AppLcdSetTemp(C2F_by_setting(g_cfg->body_alarm_C));
     AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
     AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
