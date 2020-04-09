@@ -249,22 +249,77 @@ void AppCalClean(void)
     app_i2c_write_data(I2C_CAL_ADDR, (uint8_t *)&gstFactory, sizeof(gstFactory));
 }
 
+static void SampleInsert(uint32_t *aSum, uint32_t uVal)
+{
+    aSum[++aSum[0]] = uVal;
+}
+
+static uint32_t SampleCal(uint32_t *aSum)
+{
+    uint8_t i;
+    uint32_t uVal = 0, uMin = 0xFFFFFFFF, uMax = 0;
+
+    for(i=1; i<=aSum[0]; i++) {
+        uVal += aSum[i];
+        if(uMin > aSum[i]) {
+            uMin = aSum[i];
+        }
+        if(uMax < aSum[i]) {
+            uMax = aSum[i];
+        }
+    }
+
+    uVal -= (uMax + uMin);
+
+    return uVal / (aSum[0] - 2);
+}
+
+static void SampleDump(uint32_t *aSum)
+{
+    int8_t i;
+
+    DBG_PRINT("N: %u\r\n   ", aSum[0]);
+    for(i=1; i<=aSum[0]; i++) {
+        DBG_PRINT(" %u", aSum[i]);
+    }
+    DBG_PRINT("\r\n");
+}
+
 ///< ADC 修正值获取
+#define SAMPLE_MAX (4)
 boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
-    delay1ms(100); /* 等适应了再采集数据 */
+    int iSampleCount = SAMPLE_MAX;
+    uint32_t uSumViR[SAMPLE_MAX + 1], uSumVNtcH[SAMPLE_MAX + 1], uSumVNtcL[SAMPLE_MAX + 1];
+
+    delay1ms(20); /* 等适应了再采集数据 */
+
     ///<*** ADC数据采集
-    {
-        // __disable_irq();
+    uSumViR[0] = uSumVNtcH[0] = uSumVNtcL[0] = 0;
+    while (iSampleCount --) {
+        uint32_t uAdcCode;
 
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv8);
-        AppAdcVirAvgCodeGet(uViR);    ///< 表面温度 ADC采样
-        AppAdcNtcHAvgCodeGet(uVNtcH); ///< 环境温度RH ADC采样
-        AppAdcNtcLAvgCodeGet(uVNtcL); ///< 表面温度RL ADC采样
+
+        AppAdcVirAvgCodeGet(&uAdcCode); ///< 表面温度 ADC采样
+        SampleInsert(uSumViR, uAdcCode);
+
+        AppAdcNtcHAvgCodeGet(&uAdcCode);   ///< 环境温度RH ADC采样
+        SampleInsert(uSumVNtcH, uAdcCode);
+
+        AppAdcNtcLAvgCodeGet(&uAdcCode);   ///< 表面温度RL ADC采样
+        SampleInsert(uSumVNtcL, uAdcCode);
+
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
 
-        // __enable_irq();
+        delay1ms(20);
     }
+
+    SampleDump(uSumViR);
+
+    *uViR = SampleCal(uSumViR);
+    *uVNtcH = SampleCal(uSumVNtcH);
+    *uVNtcL = SampleCal(uSumVNtcL);
 
     DBG_PRINT("\tADC- %u %u %u\r\n", *uViR, *uVNtcH, *uVNtcL);
 
