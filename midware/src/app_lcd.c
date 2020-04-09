@@ -58,7 +58,6 @@
 /* lcd symbol bit */
 #define LCD_SYM_MSK 0x08
 
-
 typedef enum enLcdSymbolType
 {
     BATTERY_SYM    = 0,     /* 电池 */
@@ -118,6 +117,7 @@ typedef struct stc_lcd_display_cfg
 /*****************************************************************************
  * Function implementation - global ('extern') and local ('static')
  *****************************************************************************/
+static stc_lcd_cfg_t LcdConfig;
 static stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
 
 /* our lcd num */
@@ -286,11 +286,21 @@ static inline void sAppLcdSetSymbol(stc_lcd_display_cfg_t *pstcLcdDisplayCfg, en
     return;
 }
 
+void AppLcdEnable(void)
+{
+    LcdConfig.LcdEn = LcdEnable;
+    Lcd_Init(&LcdConfig);
+}
+
+void AppLcdDisable(void)
+{
+    LcdConfig.LcdEn = LcdDisable;
+    Lcd_Init(&LcdConfig);
+}
 
 ///< LCD 初始化
 void AppLcdInit(void)
 {
-    stc_lcd_cfg_t LcdInitStruct;
     stc_lcd_segcom_t LcdSegCom;
 
     Sysctrl_SetPeripheralGate(SysctrlPeripheralLcd,TRUE);  //LCD外设时钟打开
@@ -305,15 +315,15 @@ void AppLcdInit(void)
     LcdSegCom.stc_seg32_51_com0_8_t.segcom_bit.Seg32_35 = 0;
     Lcd_SetSegCom(&LcdSegCom);                                      ///< LCD COMSEG端口配置
 
-    LcdInitStruct.LcdBiasSrc = LcdExtCap;                               ///< 电容分压模式，需要外部电路配合
-    LcdInitStruct.LcdDuty    = LcdDuty4;                                ///< 1/4 duty
-    LcdInitStruct.LcdBias    = LcdBias3;                                ///< 1/3 BIAS
-    LcdInitStruct.LcdCpClk   = LcdClk2k;                                ///< 电压泵时钟频率选择2kHz
-    LcdInitStruct.LcdScanClk = LcdClk128hz;                             ///< LCD扫描频率选择128Hz
-    LcdInitStruct.LcdMode    = LcdMode0;                                ///< 选择模式0
-    LcdInitStruct.LcdClkSrc  = LcdRCL;                                  ///< LCD时钟选择RCL
-    LcdInitStruct.LcdEn      = LcdEnable;                               ///< 使能LCD模块
-    Lcd_Init(&LcdInitStruct);
+    LcdConfig.LcdBiasSrc = LcdExtCap;                               ///< 电容分压模式，需要外部电路配合
+    LcdConfig.LcdDuty    = LcdDuty4;                                ///< 1/4 duty
+    LcdConfig.LcdBias    = LcdBias3;                                ///< 1/3 BIAS
+    LcdConfig.LcdCpClk   = LcdClk2k;                                ///< 电压泵时钟频率选择2kHz
+    LcdConfig.LcdScanClk = LcdClk128hz;                             ///< LCD扫描频率选择128Hz
+    LcdConfig.LcdMode    = LcdMode0;                                ///< 选择模式0
+    LcdConfig.LcdClkSrc  = LcdRCL;                                  ///< LCD时钟选择RCL
+    LcdConfig.LcdEn      = LcdEnable;                               ///< 使能LCD模块
+    Lcd_Init(&LcdConfig);
 
     AppLcdDisplayClear();
     AppLcdClearAll();

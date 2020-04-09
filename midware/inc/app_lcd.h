@@ -146,6 +146,10 @@ extern void AppLcdClearAll(void);
 
 extern void AppLcdBlink(void); 
 
+void AppLcdEnable(void);
+
+void AppLcdDisable(void);
+
 #ifdef __cplusplus
 #endif
 
