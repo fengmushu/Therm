@@ -20,6 +20,7 @@
 void sys_resume(void)
 {
     AppLcdEnable();
+
     AppLedEnable(LedGreen);
 
     Adc_Enable();
@@ -27,10 +28,14 @@ void sys_resume(void)
     Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
 
     Rtc_Cmd(TRUE);
+
+    Lvd_Enable();
 }
 
 void sys_halt(void)
 {
+    Lvd_Disable();
+
     // turn off rtc counter
     Rtc_Cmd(FALSE);
 
@@ -40,14 +45,15 @@ void sys_halt(void)
     // reset lcd
     AppLcdDisplayClear();
 
-    // turn of backlight
+    // turn off backlight
     AppLedDisable();
 
+    // turn off lcd
     AppLcdClearAll();
     AppLcdDisplayUpdate(0);
     AppLcdDisable();
 
-    // power save
+    // turn off adc
     Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
     Adc_Disable();
     Bgr_BgrDisable();
