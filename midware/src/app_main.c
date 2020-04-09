@@ -28,7 +28,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
         AppRtcFeed();
 
         g_rt->scan_show = 1; // to keep big number showing last scan result
-        g_rt->scan_burst = 1;
+        g_rt->scan_done = 1;
         g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
 
         if (is_temp_valid(&g_temp_thres[scan_mode], last_result)) {
@@ -41,7 +41,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 
     default: // display last write result
         g_rt->scan_show = 0;
-        g_rt->scan_burst = 0;
+        g_rt->scan_done = 0;
         g_rt->read_idx[scan_mode] = scan_log->last_write;
         AppLcdClearAll();
         break;
@@ -138,8 +138,8 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 lcd_update:
     AppLcdDisplayUpdate(30);
 
-    // scan_burst will be oneshot after scan done
-    if (g_rt->scan_burst) {
+    // scan_done will be oneshot after scan done
+    if (g_rt->scan_done) {
         if (g_cfg->beep_on) {
             if (scan_mode == SCAN_BODY && big_number >= g_cfg->body_alarm_C) {
                 burst_delay -= body_beep_alarm();
@@ -178,7 +178,7 @@ lcd_update:
 
 out:
     beep_off();
-    g_rt->scan_burst = 0;
+    g_rt->scan_done = 0;
     g_rt->scan_mode_last = scan_mode_runtime_update();
 
     // user switched scan mode
