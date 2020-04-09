@@ -77,9 +77,14 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     uint8_t scan_show = g_rt->scan_show;
     uint8_t scan_mode = g_rt->scan_mode_last;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
+
+    // by testing, say 5 at least to stabilize lcd
+    const int16_t lcd_budget_ms = 10;
+    const int16_t key_budget_ms = 150;
+    int16_t delay_budget = lcd_budget_ms;
+
     int16_t big_number;
     int16_t log_number;
-    int16_t burst_delay = 100;
 
     // reset color for all not defined patterns
     AppLedEnable(LedGreen);
@@ -139,46 +144,46 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     AppLcdSetRawNumber(C2F_by_setting(big_number), TRUE, 2);
 
 lcd_update:
-    AppLcdDisplayUpdate(30);
+    AppLcdDisplayUpdate(0);
 
     // scan_done will be oneshot after scan done
     if (g_rt->scan_done) {
         if (g_cfg->beep_on) {
             if (scan_mode == SCAN_BODY && big_number >= g_cfg->body_alarm_C) {
-                burst_delay -= body_beep_alarm();
+                delay_budget -= body_beep_alarm();
             } else {
                 // user may wanna release trigger after hearing beep
                 // so put a little delay here
-                beep_on();
-                delay1ms(BEEP_SCAN_DONE_MS);
-                burst_delay -= BEEP_SCAN_DONE_MS;
+                beep_once(BEEP_SCAN_DONE_MS);
+                delay_budget -= BEEP_SCAN_DONE_MS;
             }
         }
     }
 
     // hold trigger to burst scan
     if (key_pressed_query(KEY_TRIGGER)) {
-        if (burst_delay > 0)
-            delay1ms(burst_delay);
-
         next = FSM_STATE_SCAN;
         goto out; // jump out
     }
 
     if (key_pressed_query(KEY_PLUS)) {
         scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
-        delay1ms(150);
-        goto out; // jump out
+        delay_budget += key_budget_ms;
+        goto delay;
     }
 
     if (key_pressed_query(KEY_MINUS)) {
         scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
-        delay1ms(150);
-        goto out; // jump out
+        delay_budget += key_budget_ms;
+        goto delay;
     }
 
+delay:
+    // share delay for key, lcd, beep
+    if (delay_budget > 0)
+        delay1ms(delay_budget);
+
 out:
-    beep_off();
     g_rt->scan_done = 0;
     g_rt->scan_mode_last = scan_mode_runtime_update();
 
