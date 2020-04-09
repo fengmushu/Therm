@@ -4,9 +4,26 @@
 #define USE_FITTING 1
 #define VRA_INIT (0)
 
-static const float32_t VtT_Paras[3] = {-2420154, 54351.00, 495.00};
-static const float32_t VtE_Paras[3] = {1589544, -54351.00, -495.00};
+#define SENSOR_1875
+//#define SENSOR_S18_F55
+
+static float32_t VtT_Paras[3] = {0, 0, 0};
+
+#ifdef SENSOR_1875
+static const float32_t VtE2_Paras[3] = {495.00, 0, 0};
+static const float32_t VtE1_Paras[3] = {54351.00, 0, 0};
+static const float32_t VtE0_Paras[3] = {0, -54351.00, -495.00};
+
 static const float32_t RaT_Paras[3] = {19263, -4305.730, 42.1632};
+
+#elif SENSOR_S18_F55
+static const float32_t VtE2_Paras[3] = {254.60, 0, 0};
+static const float32_t VtE1_Paras[3] = {56371.71, -169.35, 0};
+static const float32_t VtE0_Paras[3] = {-89766.89, -46033.28, -308.06};
+
+static const float32_t RaT_Paras[3] = {18798.8, -4247.53, 40.9328};
+
+#endif
 
 #ifndef USE_FITTING
 static int32_t TNNA_BSearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t revert)
@@ -135,7 +152,7 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
 
 float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32VirAdc, float32_t fEpsilon)
 {
-    float32_t fVirVolt, fVoltBySearch, fVoltByFitting, fTempEnvFit;
+    float32_t fVirVolt, fVoltBySearch, fVoltByFitting;
     float32_t fAmp = pCal->fAmp;
     float32_t fTempFixup = pCal->fCalBase;
 
@@ -162,10 +179,17 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
 #else
     // (Te) -> (V-Tt曲线)
     // c(t) = -0.000495 * t * t - 0.054351 * t + C
-    fTempEnvFit = VtE_Paras[1] * fTempEnv + VtE_Paras[2] * pow(fTempEnv, 2) + fTempFixup;
+    //C(t)
+    VtT_Paras[0] = VtE0_Paras[0] + VtE0_Paras[1] * fTempEnv + VtE0_Paras[2] * pow(fTempEnv, 2) + fTempFixup;
+
+    //B(t)
+    VtT_Paras[1] = VtE1_Paras[0] + VtE1_Paras[1] * fTempEnv + VtE1_Paras[2] * pow(fTempEnv, 2);
+
+    //A(t)
+    VtT_Paras[2] = VtE2_Paras[0] + VtE2_Paras[1] * fTempEnv + VtE2_Paras[2] * pow(fTempEnv, 2);
 
     // U = 0.0004950 * x * x + 0.054351 * x + c(t)
-    return TNNA_Fitting(fTempEnvFit, VtT_Paras[1], VtT_Paras[2], fVirVolt, FALSE);
+    return TNNA_Fitting(VtT_Paras[0], VtT_Paras[1], VtT_Paras[2], fVirVolt, FALSE);
 #endif //USE_FITTING
 }
 
@@ -194,17 +218,34 @@ boolean_t NNA_Calibration(
         return TRUE;
     }
 
-    ///< U35 = k * (A*35*35 + B*35 + a*t35*t35 + b*t35 + cbase)
-    ///< U42 = k * (A*42*42 + B*42 + a*t42*t42 + b*t42 + cbase)
-    ///< m = A*35*35 + B*35 + a*t35*t35 + b*t35
-    ///< n = A*42*42 + B*42 + a*t42*t42 + b*t42
+    ///< U35 = k * (A*35*35 + B*35 + a*t35*t35 + b*t35 + cbase )
+    ///< U42 = k * (A*42*42 + B*42 + a*t42*t42 + b*t42 + cbase )
+    ///< m = A*35*35 + B*35 + a*t35*t35 + b*t35 + cbase
+    ///< n = A*42*42 + B*42 + a*t42*t42 + b*t42 + cbase
     ///< k = (U42-U35) / (n-m)
     ///< cbase = U35/k - m
     ///< 或者
     ///< cbase = U42/k - n
 
+    // U35 = K * (A(35)*35*35 + B(35)* 35 + C(35) + cbase )
+    // U42 = K * (A(42)*42*42 + B(42)* 42 + C(42) + cbase )
+    // m = A(35)*35*35 + B(35)* 35 + C(35)
+    // n = A(42)*42*42 + B(42)* 42 + C(42)
+    // k = (U42-U35) / (n-m)
+    ///< cbase = U35/k - m
+    ///< 或者
+    ///< cbase = U42/k - n
+
     ///< k: fAMP, m/n: fTx, Ux: fVirAdcH/L, cbase: fCaH/LBase
-    fTx = VtT_Paras[2] * pow(fTempTarget, 2) + VtT_Paras[1] * fTempTarget + VtE_Paras[2] * pow(fTempEnv, 2) + VtE_Paras[1] * fTempEnv;
+    VtT_Paras[0] = VtE0_Paras[0] + VtE0_Paras[1] * fTempEnv + VtE0_Paras[2] * pow(fTempEnv, 2); //C35 or C42
+
+    //B(t)
+    VtT_Paras[1] = VtE1_Paras[0] + VtE1_Paras[1] * fTempEnv + VtE1_Paras[2] * pow(fTempEnv, 2); //B35 or B42
+
+    //A(t)
+    VtT_Paras[2] = VtE2_Paras[0] + VtE2_Paras[1] * fTempEnv + VtE2_Paras[2] * pow(fTempEnv, 2); //A35 or A42
+
+    fTx = VtT_Paras[2] * pow(fTempTarget, 2) + VtT_Paras[1] * fTempTarget + VtT_Paras[0];
     ///< 返回目标温度实测值
     *fTempGet = fTx;
 
