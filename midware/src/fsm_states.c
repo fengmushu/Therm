@@ -19,6 +19,7 @@
 
 void sys_resume(void)
 {
+    AppLcdEnable();
     AppLedEnable(LedGreen);
 
     Adc_Enable();
@@ -44,6 +45,7 @@ void sys_halt(void)
 
     AppLcdClearAll();
     AppLcdDisplayUpdate(0);
+    AppLcdDisable();
 
     // power save
     Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
