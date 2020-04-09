@@ -537,9 +537,9 @@ void cal_debug()
     Cal.fCalBase = 0.2;
     Cal.fTH = 0.3;
     Cal.fTL = 0.4;
-    Cal.uVAdcH = 0x12;
-    Cal.uVAdcL = 0x34;
-    Cal.u8HumanFix = 0x29;
+    Cal.uVAdcH = 12;
+    Cal.uVAdcL = 34;
+    Cal.u8HumanFix = 29;
     AppCalUpdateAndSaveFactory(&Cal);
 
     if (!CalLoad(&Fact))
