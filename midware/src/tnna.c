@@ -6,8 +6,8 @@
 #define USE_FITTING 1
 #define VRA_INIT (0)
 
-#define SENSOR_1875
-//#define SENSOR_S18_F55
+// #define SENSOR_1875
+#define SENSOR_S18_F55
 
 static float32_t VtT_Paras[3] = {0, 0, 0};
 
@@ -18,13 +18,13 @@ static const float32_t VtE0_Paras[3] = {0, -54351.00, -495.00};
 
 static const float32_t RaT_Paras[3] = {19263, -4305.730, 42.1632};
 
-#elif SENSOR_S18_F55
+#elif defined(SENSOR_S18_F55)
+
 static const float32_t VtE2_Paras[3] = {254.60, 0, 0};
 static const float32_t VtE1_Paras[3] = {56371.71, -169.35, 0};
 static const float32_t VtE0_Paras[3] = {-89766.89, -46033.28, -308.06};
 
 static const float32_t RaT_Paras[3] = {18798.8, -4247.53, 40.9328};
-
 #endif
 
 #ifndef USE_FITTING
