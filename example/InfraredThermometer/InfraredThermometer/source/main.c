@@ -71,6 +71,7 @@
 #include "app_data.h"
 #include "app_timer.h"
 #include "app_rtc.h"
+#include "app_factory.h"
 #include "fsm.h"
 
 // 串口发送重定向
@@ -121,6 +122,8 @@ int main(void)
     sys_init();
 
     app_i2c_init();
+
+    factory_test();
 
     /* load cal data */
     AppCalInit();
