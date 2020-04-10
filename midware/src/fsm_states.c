@@ -14,6 +14,7 @@
 #include "app_main.h"
 #include "app_cal.h"
 #include "app_rtc.h"
+#include "app_factory.h"
 
 #include "fsm.h"
 
@@ -318,18 +319,25 @@ int16_t markov_chain_trick(int16_t previous, int16_t current, uint16_t delta)
 static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
 {
     uint32_t result[NUM_SCAN_MODES];
+    uint32_t uv;
 
     // prevent sleep
     AppRtcFeed();
 
     // AppTempCalculate() return least 2 digit as float points
-    AppTempCalculate(g_cal, NULL, &result[SCAN_SURFACE], &result[SCAN_BODY], NULL);
+    AppTempCalculate(g_cal, NULL, &result[SCAN_SURFACE], &result[SCAN_BODY], &uv);
 
     for (uint8_t i = 0; i < NUM_SCAN_MODES; i++) {
         int16_t last_written = scan_log_last_written(&g_scan_log[i]);
         g_rt->scan_result[i] = markov_chain_trick(last_written, result[i], 5);
         g_rt->scan_result[i] /= 10; // display goes with one float digit
     }
+
+#ifdef FACTORY_MODE_UV_DEBUG
+    if (factory_mode) {
+        last_uv = uv;
+    }
+#endif
 
     state_proc_event_set(out, FSM_EVENT_SCAN_DONE);
 

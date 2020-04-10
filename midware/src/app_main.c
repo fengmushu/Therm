@@ -10,6 +10,7 @@
 #include "app_timer.h"
 #include "app_main.h"
 #include "app_rtc.h"
+#include "app_factory.h"
 
 #define BLINK_PERIOD_CNT                (1 << 1)
 
@@ -32,9 +33,13 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
         g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
 
         if (is_temp_valid(&g_temp_thres[scan_mode], last_result)) {
-            // last_write++ in scan_log_write()
-            scan_log_write(scan_log, last_result);
+            // last_write++ in scan_log_write_safe()
+            scan_log_write_safe(scan_log, last_result);
             g_rt->read_idx[scan_mode] = scan_log->last_write;
+
+#ifdef FACTORY_MODE_UV_DEBUG
+            scan_log_write_idx(&log_uv[scan_mode], scan_log->last_write, last_uv);
+#endif
         }
 
         break;
@@ -114,6 +119,14 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 
     // user is viewing log, show big number as log number
     big_number = log_number;
+
+#ifdef FACTORY_MODE_UV_DEBUG
+    if (log_show_uv) {
+        log_number = scan_log_read(&log_uv[scan_mode], read_idx);
+        AppLcdSetLogRawNumber(log_number, FALSE, 4);
+        AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
+    }
+#endif
 
     if (scan_show) {
         big_number = g_rt->scan_result[scan_mode];

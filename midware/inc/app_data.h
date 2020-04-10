@@ -168,6 +168,7 @@ int app_save_i2c_verify_with(app_save_t *save);
 
 uint8_t scan_mode_runtime_update(void);
 int16_t scan_log_read(scan_log_t *log, uint8_t idx);
-void scan_log_write(scan_log_t *log, int16_t data);
+void scan_log_write_safe(scan_log_t *log, int16_t data);
+void scan_log_write_idx(scan_log_t *log, uint8_t idx, int16_t data);
 
 #endif /* __APP_DATA_H__ */

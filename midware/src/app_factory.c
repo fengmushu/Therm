@@ -1,7 +1,18 @@
+#include <stdint.h>
+
 #include "app.h"
 #include "app_key.h"
 #include "app_lcd.h"
+#include "app_data.h"
 #include "app_factory.h"
+
+uint8_t    factory_mode;
+
+#ifdef FACTORY_MODE_UV_DEBUG
+uint8_t    log_show_uv;
+uint32_t   last_uv;
+scan_log_t log_uv[NUM_SCAN_MODES];
+#endif
 
 static int is_factory_test(void)
 {
@@ -10,6 +21,16 @@ static int is_factory_test(void)
 
         return 0;
 }
+
+#ifdef FACTORY_MODE_UV_DEBUG
+static int is_factory_debug(void)
+{
+        if (key_pressed_query(KEY_PLUS))
+                return 1;
+
+        return 0;
+}
+#endif
 
 static void factory_test_init(void)
 {
@@ -85,7 +106,18 @@ void factory_test(void)
         if (!is_factory_test())
                 return;
 
+        factory_mode = 1;
+
         factory_test_init();
         factory_lcd_test();
+
+#ifdef FACTORY_MODE_UV_DEBUG
+        if (is_factory_debug()) {
+                log_show_uv = 1;
+                beep_once(200);
+                return;
+        }
+#endif
+
         factory_key_test();
 }

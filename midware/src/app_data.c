@@ -6,6 +6,7 @@
 #include "app_i2c.h"
 #include "app_key.h"
 #include "app_lcd.h"
+#include "app_factory.h"
 
 app_runtime_t    g_runtime;
 app_runtime_t   *g_rt;
@@ -57,6 +58,9 @@ int app_save_verify(app_save_t *save)
 
 int app_save_i2c_load(app_save_t *save)
 {
+    if (factory_mode)
+        return 0;
+
     if (app_i2c_read_data(I2C_DATA_ADDR, (void *)save, sizeof(*save)) == FALSE)
         return 1;
 
@@ -65,6 +69,9 @@ int app_save_i2c_load(app_save_t *save)
 
 int app_save_i2c_store(app_save_t *save)
 {
+    if (factory_mode)
+        return 0;
+
     if (app_i2c_write_data(I2C_DATA_ADDR, (void *)save, sizeof(*save)) == FALSE)
         return 1;
 
@@ -129,10 +136,16 @@ int16_t scan_log_read(scan_log_t *log, uint8_t idx)
     return log->data[idx];
 }
 
-void scan_log_write(scan_log_t *log, int16_t data)
+void scan_log_write_safe(scan_log_t *log, int16_t data)
 {
     log->last_write = log->write_idx;
     log->data[log->write_idx] = data;
 
     scan_log_idx_increase(&log->write_idx);
+}
+
+void scan_log_write_idx(scan_log_t *log, uint8_t idx, int16_t data)
+{
+    log->last_write = idx;
+    log->data[idx]  = data;
 }
