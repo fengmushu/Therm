@@ -46,4 +46,19 @@ static __always_inline int is_any_key_pressed(void)
     return bm_key_pressed & ~BIT(KEY_SWITCH);
 }
 
+//
+// TODO: wait for multiple keys... in wrapper...
+//
+static __always_inline void key_wait_for_press(gpio_key_t key)
+{
+    while (key_released_query(key))
+        ;
+}
+
+static __always_inline void key_wait_for_release(gpio_key_t key)
+{
+    while (key_pressed_query(key))
+        ;
+}
+
 #endif /* __APP_KEY_H__ */
