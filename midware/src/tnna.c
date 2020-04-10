@@ -7,7 +7,8 @@
 #define VRA_INIT (0)
 
 // #define SENSOR_1875
-#define SENSOR_S18_F55
+//#define SENSOR_S18_F55
+#define SENSOR_MTS01
 
 static float32_t VtT_Paras[3] = {0, 0, 0};
 
@@ -16,6 +17,8 @@ static const float32_t VtE2_Paras[3] = {495.00, 0, 0};
 static const float32_t VtE1_Paras[3] = {54351.00, 0, 0};
 static const float32_t VtE0_Paras[3] = {0, -54351.00, -495.00};
 
+static const float32_t RaT_Paras_P = 2;
+static const float32_t RaT_Paras_F = 1;
 static const float32_t RaT_Paras[3] = {19263, -4305.730, 42.1632};
 
 #elif defined(SENSOR_S18_F55)
@@ -24,7 +27,26 @@ static const float32_t VtE2_Paras[3] = {254.60, 0, 0};
 static const float32_t VtE1_Paras[3] = {56371.71, -169.35, 0};
 static const float32_t VtE0_Paras[3] = {-89766.89, -46033.28, -308.06};
 
+static const float32_t RaT_Paras_P = 2;
+static const float32_t RaT_Paras_F = 1;
 static const float32_t RaT_Paras[3] = {18798.8, -4247.53, 40.9328};
+
+#elif defined(SENSOR_MTS01)
+/*
+ratio[2]: out: [-1.5108202639546542e-11 6.947081957327107e-10 0.0003196085828439457]
+ratio[1]: out: [1.2666720655955813e-09 -5.6446347379227274e-08 0.03765973789243611]
+ratio[0]: out: [-0.00027140315161585846 -0.040557053723065284 0.027624488690561964]
+
+*/
+static const float32_t VtE2_Paras[3] = {319.61, 0, 0};
+static const float32_t VtE1_Paras[3] = {37659.74, 0, 0};
+static const float32_t VtE0_Paras[3] = {27624.49, -40557.05, -271.40};
+
+//0 = 0.1479x2 - 11.97x + 305.12 - R
+static const float32_t RaT_Paras_P = 0;
+static const float32_t RaT_Paras_F = -1;
+static const float32_t RaT_Paras[3] = {305.12, -11.97, 0.1479};
+
 #endif
 
 #ifndef USE_FITTING
@@ -148,7 +170,8 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
     return TNNA_TempNtcFind(uRa);
 #else
     // 拟合R-Te曲线
-    return TNNA_Fitting(RaT_Paras[0], RaT_Paras[1], RaT_Paras[2] + ((float32_t)uRa / 1000), 0, FALSE);
+    RaT_Paras[RaT_Paras_P] = RaT_Paras[RaT_Paras_P] + RaT_Paras_F * ((float32_t)uRa / 1000);
+    return TNNA_Fitting(RaT_Paras[0], RaT_Paras[1], RaT_Paras[2], 0, FALSE);
 #endif //USE_FITTING
 }
 
@@ -290,9 +313,12 @@ float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fS
 {
     float32_t cal_tweak;
 
-    if (!g_cfg) {
+    if (!g_cfg)
+    {
         cal_tweak = 0.0f;
-    } else {
+    }
+    else
+    {
         cal_tweak = (float32_t)(g_cfg->body_cal_tweak) / 10;
     }
 
