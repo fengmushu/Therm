@@ -184,6 +184,15 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
         app_runtime_readidx_rebase(g_rt);
     }
 
+    //
+    // NOTE: when system wakes up from deep sleep
+    //       adc/bgr needs a little delay to settle down
+    //       otherwise the first sampling may be werid
+    //
+    AppLcdDisplayClear();
+    AppLcdDisplayAll();
+    delay1ms(1000);
+
     AppLcdDisplayClear();
     AppLcdClearAll();
     AppLcdDisplayUpdate(0);
