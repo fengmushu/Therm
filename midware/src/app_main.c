@@ -55,10 +55,10 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 
 static inline int16_t body_beep_alarm(void)
 {
-    static const int16_t a_delay = 150;
+    static const int16_t a_delay = 100;
     int16_t ret = 0;
 
-    for (uint8_t i = 0; i < 4; i++) {
+    for (uint8_t i = 0; i < 5; i++) {
         beep_on();
         delay1ms(a_delay);
         ret += a_delay;
