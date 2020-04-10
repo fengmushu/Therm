@@ -475,6 +475,17 @@ void AppLcdClearLogTemp(void)
     return;
 }
 
+void AppLcdSetLogIndex(uint8_t icon, uint16_t index)
+{
+    stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
+
+    pstcLcdDisplayCfg->u16LogIndex = index;
+
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, icon);
+
+    pstcLcdDisplayCfg->bLogChanged = TRUE;
+}
+
 void AppLcdSetLogRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
@@ -488,8 +499,6 @@ void AppLcdSetLogRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits)
     pstcLcdDisplayCfg->bLogChanged = TRUE;
     return;
 }
-
-
 
 void AppLcdSetString(enStrType_t StrType)
 {
@@ -567,10 +576,9 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
     {
         /* log index display */
         sAppLcdNoDisplayLog(pstcLcdDisplayCfg);
+        sAppLcdDisplayLogIndex(pstcLcdDisplayCfg);
         if (pstcLcdDisplayCfg->bLogTempDis)
         {
-            sAppLcdDisplayLogIndex(pstcLcdDisplayCfg);
-            
             /* log temp display */        
             sAppLcdDisplayLogTemp(pstcLcdDisplayCfg);
         }
