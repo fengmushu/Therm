@@ -8,7 +8,8 @@
 
 // #define SENSOR_1875
 //#define SENSOR_S18_F55
-#define SENSOR_MTS01
+//#define SENSOR_MTS01
+#define SENSOR_B7
 
 static float32_t VtT_Paras[3] = {0, 0, 0};
 
@@ -47,6 +48,19 @@ static const int32_t RaT_Paras_P = 0;
 static const float32_t RaT_Paras_F = -1;
 static const float32_t RaT_Paras[3] = {305.12, -11.97, 0.1479};
 
+#elif defined(SENSOR_B7)
+//ratio[2]: out: [-4.636960479355422e-22 8.74291051218579e-20 0.0007499999999999996]
+//ratio[1]: out: [-1.3544680456619795e-19 9.613314125972764e-18 0.08234999999999969]
+//ratio[0]: out: [-0.0007499999999999827 -0.08235000000000198 4.816948442669092e-14]
+static const float32_t VtE2_Paras[3] = {750, 0, 0};
+static const float32_t VtE1_Paras[3] = {82350, 0, 0};
+static const float32_t VtE0_Paras[3] = {0, -82350, -750};
+
+//0 = 0.144x2 - 11.784x + 303.19 -R
+
+static const int32_t RaT_Paras_P = 0;
+static const float32_t RaT_Paras_F = -1;
+static const float32_t RaT_Paras[3] = {303.19, -11.784, 0.144};
 #endif
 
 #ifndef USE_FITTING
