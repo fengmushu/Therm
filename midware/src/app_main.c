@@ -84,7 +84,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     uint8_t read_idx = g_rt->read_idx[scan_mode];
 
     // by testing, say 5 at least to stabilize lcd
-    const int16_t lcd_budget_ms = 10;
+    const int16_t lcd_budget_ms = 20;
     const int16_t key_budget_ms = 150;
     int16_t delay_budget = lcd_budget_ms;
 
