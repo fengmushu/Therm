@@ -113,10 +113,30 @@ static void fn_beep_plus(int8_t idx)
 }
 
 static struct fn_menu fn_menus[] = {
-    [FN_TEMP_SEL]   = { fn_temp_sel_show,   fn_temp_sel_btn_minus,   fn_temp_sel_btn_plus,   Str_F1 },
-    [FN_BODY_ALARM] = { fn_body_alarm_show, fn_body_alarm_btn_minus, fn_body_alarm_btn_plus, Str_F2 },
-    [FN_BODY_CAL]   = { fn_body_cal_show,   fn_body_cal_minus,       fn_body_cal_plus,       Str_F3 },
-    [FN_BEEP_ON]    = { fn_beep_show,       fn_beep_minus,           fn_beep_plus,           Str_F4 },
+    [FN_TEMP_SEL]   = {
+        .lcd_show   = fn_temp_sel_show,
+        .btn_minus  = fn_temp_sel_btn_minus,
+        .btn_plus   = fn_temp_sel_btn_plus,
+        .lcd_str    = Str_F1
+    },
+    [FN_BODY_ALARM] = {
+        .lcd_show   = fn_body_alarm_show,
+        .btn_minus  = fn_body_alarm_btn_minus,
+        .btn_plus   = fn_body_alarm_btn_plus,
+        .lcd_str    = Str_F2
+    },
+    [FN_BODY_CAL]   = {
+        .lcd_show   = fn_body_cal_show,
+        .btn_minus  = fn_body_cal_minus,
+        .btn_plus   = fn_body_cal_plus,
+        .lcd_str    = Str_F3
+    },
+    [FN_BEEP_ON]    = {
+        .lcd_show   = fn_beep_show,
+        .btn_minus  = fn_beep_minus,
+        .btn_plus   = fn_beep_plus,
+        .lcd_str    = Str_F4
+    },
 };
 
 static void app_sub_fn_enter(int8_t idx)
