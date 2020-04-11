@@ -293,7 +293,7 @@ static void SampleDump(uint32_t *aSum)
         DBG_PRINT(" %u", aSum[i]);
 #ifdef FACTORY_MODE_UV_DEBUG
         if(factory_mode) {
-            AppLcdSetTemp(aSum[i]);
+            AppLcdSetRawNumber(aSum[i], FALSE, 4);
             AppLcdDisplayUpdate(500);
         }
 #endif
@@ -354,7 +354,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 {
     static int i = 0;
     uint32_t u32SampIndex;         ///< 采样次数
-    uint32_t uViR, uVNtcH, uVNtcL; ///< ADC 采样值
+    uint32_t uViR, uRa, uVNtcH, uVNtcL; ///< ADC 采样值
     float32_t fNtcTemp, fSurfaceTemp, fSkinTemp, fHumanTemp;
 
     ASSERT(pCal);
@@ -370,7 +370,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     }
 
     ///< 环境温度获取
-    fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL); ///< NTC 环境温度值获取
+    fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL, &uRa); ///< NTC 环境温度值获取
     if (uTNtc)
         *uTNtc = (uint32_t)(fNtcTemp * 100);
 
@@ -413,7 +413,8 @@ void AppCalibration(void)
     AppLcdClearAll();
     // AppLcdSetRawNumber(8888, FALSE, 4);
     AppLcdBlink();
-    AppLcdDisplayUpdate(100);
+    AppLcdDisplayAll();
+    AppLcdDisplayUpdate(10);
 
     NNA_CalInit(&Cal);
 
@@ -437,11 +438,12 @@ void AppCalibration(void)
         ///< 设置当前传感器选择
         NNA_SensorSet(Cal.u8SensorType);
         AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
-        AppLcdDisplayUpdate(100);
+        AppLcdDisplayUpdate(150);
     } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
 
     while (1)
     {
+        uint32_t uRa = 0;
 
         while (!key_pressed_query(KEY_TRIGGER))
             ; //等按键触发
@@ -458,17 +460,21 @@ void AppCalibration(void)
         // it looks like this embedded processor
         // cannot be intterrupted in float processing
         __disable_irq();
-        fNtc = NNA_NtcTempGet(uNtcH, uNtcL);
+        fNtc = NNA_NtcTempGet(uNtcH, uNtcL, &uRa);
 
         if (u8CaType == 0)
         {
+            ///< 打出环境温度
+            AppLcdSetTemp((uint32_t)(fNtc * 10));
+            AppLcdDisplayUpdate(500);
             if (NNA_Calibration(&Cal, fNtc, 37, &fTemp, uViR))
             {
                 u8CaType++;
                 __enable_irq();
-                AppLcdSetTemp(37 * 10);
-                /* log set uViR */
-                AppLcdSetLogRawNumber(uViR, FALSE, 1);
+                /* log set Ra, uViR */
+                AppLcdSetRawNumber(uViR, FALSE, 4);
+                AppLcdSetLogIndex(TRUE, 37);
+                AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock / 1000));
                 while (key_pressed_query(KEY_TRIGGER))
@@ -487,9 +493,10 @@ void AppCalibration(void)
             if (NNA_Calibration(&Cal, fNtc, 42, &fTemp, uViR))
             {
                 __enable_irq();
-                AppLcdSetTemp(42 * 10);
-                /* log set uViR */
-                AppLcdSetLogRawNumber(uViR, FALSE, 1);
+                /* log set Ra, uViR */
+                AppLcdSetRawNumber(uViR, FALSE, 4);
+                AppLcdSetLogIndex(TRUE, 42);
+                AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock / 1000));
                 while (key_pressed_query(KEY_TRIGGER))

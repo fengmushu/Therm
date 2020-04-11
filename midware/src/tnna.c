@@ -48,7 +48,7 @@ static const sensor_t Sensors[en_sensor_max] = {
         //0 = 0.1479x2 - 11.97x + 305.12 - R
         .RaT_Paras_P = 0,
         .RaT_Paras_F = -1,
-        .RaT_Paras = {305.12, -11.97, 0.1479},
+        .RaT_Paras = {295.51, -10.8, 0.1184},
     },
     {
         .uSensorType = 7, //B7
@@ -147,6 +147,9 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         X2 = (-a1 + N) / a2 / 2;
 
         DBG_PRINT("\t- %f %f\r\n", X1, X2);
+        // AppLcdSetTemp((uint32_t)(X1 * 10));
+        // AppLcdSetLogTemp((uint32_t)(X2 * 10), 0);
+        // AppLcdDisplayUpdate(1000);
         if (revert)
         {
             return X1;
@@ -171,9 +174,8 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
+float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint32_t* uRa)
 {
-    uint32_t uRa;
     uint32_t fNtcRL = 51000;
     float32_t RaT_params[3];
 
@@ -181,15 +183,15 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
 
     // Ra-T = Vra / VnL * RL
     //< (3090 - 960) / 960 * 51000 = 119k
-    uRa = (float32_t)(u32AdcNtcHCode - u32AdcNtcLCode) / u32AdcNtcLCode * fNtcRL;
+    *uRa = (float32_t)(u32AdcNtcHCode - u32AdcNtcLCode) / u32AdcNtcLCode * fNtcRL;
 
 #ifndef USE_FITTING
     // 查表R-Te
-    return TNNA_TempNtcFind(uRa);
+    return TNNA_TempNtcFind(*uRa);
 #else
     // 拟合R-Te曲线
-    RaT_params[gSensor->RaT_Paras_P] = RaT_params[gSensor->RaT_Paras_P] + gSensor->RaT_Paras_F * ((float32_t)uRa / 1000);
-    return TNNA_Fitting(RaT_params[0], RaT_params[1], RaT_params[2], 0, FALSE);
+    RaT_params[gSensor->RaT_Paras_P] = RaT_params[gSensor->RaT_Paras_P] + gSensor->RaT_Paras_F * ((float32_t)(*uRa) / 1000);
+    return TNNA_Fitting(RaT_params[0], RaT_params[1], RaT_params[2], 0, (gSensor->RaT_Paras_P == 0));
 #endif //USE_FITTING
 }
 

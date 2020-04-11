@@ -80,7 +80,7 @@ extern "C"
       en_sensor_max,
    } en_sensor_t;
 
-   #define DEFAULTL_SENSOR en_sensor_f55
+   #define DEFAULTL_SENSOR en_sensor_1875
 
     typedef struct
     {
@@ -123,7 +123,7 @@ extern "C"
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-    extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode);
+    extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint32_t *uRa);
 
     /**
  *******************************************************************************
