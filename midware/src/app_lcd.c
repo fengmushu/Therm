@@ -107,7 +107,7 @@ typedef struct stc_lcd_display_cfg
     uint8_t   bRaw_digits_num;  /* 数字个数 */
     uint8_t   bLogRaw_digits_num;  /* 数字个数 */
     
-    uint16_t  u16LogIndex;   /* log index */
+    int16_t   LogIndex;   /* log index */
     int16_t   u16Temp;       /* *10去掉小数点后的十进制温度值" */
     int16_t   u16LogTemp;    /* log index对应的温度，*10去掉小数点后的值 */
     
@@ -254,7 +254,7 @@ static inline void sAppLcdDisplayLogIndex(stc_lcd_display_cfg_t *pstcLcdDisplayC
     volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
 
     /* display number */
-    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16LogIndex, pu16LcdRam, 4, 99, 2);
+    sAppLcdDisplayNumber(pstcLcdDisplayCfg->LogIndex, pu16LcdRam, 4, 99, 2);
 }
 
 /* log temp display: digit[7-10] ->pu16LcdRam[3-0] */
@@ -451,11 +451,11 @@ void AppLcdClearTemp(void)
     return;
 }
 
-void AppLcdSetLogTemp(uint16_t Temp, uint16_t Index)
+void AppLcdSetLogTemp(uint16_t Temp, int16_t Index)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
     pstcLcdDisplayCfg->u16LogTemp = (uint16_t)Temp;
-    pstcLcdDisplayCfg->u16LogIndex = Index;
+    pstcLcdDisplayCfg->LogIndex = Index;
     pstcLcdDisplayCfg->bLogTempDis = TRUE;
     pstcLcdDisplayCfg->bLogRawNum = FALSE;
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, TRUE);
@@ -467,6 +467,7 @@ void AppLcdSetLogTemp(uint16_t Temp, uint16_t Index)
 void AppLcdClearLogTemp(void)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
+    pstcLcdDisplayCfg->LogIndex = -1;
     pstcLcdDisplayCfg->bLogTempDis = FALSE;
     pstcLcdDisplayCfg->bLogRawNum = FALSE;
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, FALSE);
@@ -475,11 +476,11 @@ void AppLcdClearLogTemp(void)
     return;
 }
 
-void AppLcdSetLogIndex(uint8_t icon, uint16_t index)
+void AppLcdSetLogIndex(uint8_t icon, int16_t index)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
 
-    pstcLcdDisplayCfg->u16LogIndex = index;
+    pstcLcdDisplayCfg->LogIndex = index;
 
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, icon);
 
@@ -576,7 +577,9 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
     {
         /* log index display */
         sAppLcdNoDisplayLog(pstcLcdDisplayCfg);
-        sAppLcdDisplayLogIndex(pstcLcdDisplayCfg);
+        if (pstcLcdDisplayCfg->LogIndex > 0)
+            sAppLcdDisplayLogIndex(pstcLcdDisplayCfg);
+
         if (pstcLcdDisplayCfg->bLogTempDis)
         {
             /* log temp display */        
