@@ -7,9 +7,9 @@
 #define VRA_INIT (0)
 
 // #define SENSOR_1875
-//#define SENSOR_S18_F55
+#define SENSOR_S18_F55
 //#define SENSOR_MTS01
-#define SENSOR_B7
+// #define SENSOR_B7
 
 static float32_t VtT_Paras[3] = {0, 0, 0};
 
@@ -307,13 +307,16 @@ boolean_t NNA_Calibration(
     {
         // 线性区间放大
         fAmp = (uVAdcH - uVAdcL) / (fTH - fTL);
-        if (fAmp >= 300 && fAmp <= 900)
+        if (TRUE || (fAmp >= 300 && fAmp <= 900))
         {
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
 
             pCal->fAmp = fAmp;
             pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
+
+            AppLcdSetTemp((uint32_t)(fAmp * 10));
+            AppLcdDisplayUpdate(2000);
 
             DBG_PRINT("\tAMP: %2.2f L: %2.2f H: %2.2f %2.2f %2.2f\r\n", fAmp, fTL, fTH, fCaLBase, fCaHBase);
         }

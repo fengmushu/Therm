@@ -319,13 +319,13 @@ int16_t markov_chain_trick(int16_t previous, int16_t current, uint16_t delta)
 static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
 {
     uint32_t result[NUM_SCAN_MODES];
-    uint32_t uv;
+    uint32_t uv, ntc;
 
     // prevent sleep
     AppRtcFeed();
 
     // AppTempCalculate() return least 2 digit as float points
-    AppTempCalculate(g_cal, NULL, &result[SCAN_SURFACE], &result[SCAN_BODY], &uv);
+    AppTempCalculate(g_cal, &ntc, &result[SCAN_SURFACE], &result[SCAN_BODY], &uv);
 
     for (uint8_t i = 0; i < NUM_SCAN_MODES; i++) {
         int16_t last_written = scan_log_last_written(&g_scan_log[i]);
@@ -336,6 +336,7 @@ static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
 #ifdef FACTORY_MODE_UV_DEBUG
     if (factory_mode) {
         last_uv = uv;
+        last_ntc = ntc / 100;
     }
 #endif
 

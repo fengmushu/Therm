@@ -7,6 +7,7 @@
 #include "app.h"
 #include "app_i2c.h"
 #include "app_cal.h"
+#include "app_factory.h"
 #include "app_key.h"
 #include "app_data.h"
 
@@ -285,6 +286,12 @@ static void SampleDump(uint32_t *aSum)
     for (i = 1; i <= aSum[0]; i++)
     {
         DBG_PRINT(" %u", aSum[i]);
+#ifdef FACTORY_MODE_UV_DEBUG
+        if(factory_mode) {
+            AppLcdSetTemp(aSum[i]);
+            AppLcdDisplayUpdate(500);
+        }
+#endif
     }
     DBG_PRINT("\r\n");
 }
@@ -296,7 +303,7 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
     int iSampleCount = SAMPLE_MAX;
     uint32_t uSumViR[SAMPLE_MAX + 1], uSumVNtcH[SAMPLE_MAX + 1], uSumVNtcL[SAMPLE_MAX + 1];
 
-    delay1ms(20); /* 等适应了再采集数据 */
+    delay1ms(100); /* 等适应了再采集数据 */
 
     ///<*** ADC数据采集
     uSumViR[0] = uSumVNtcH[0] = uSumVNtcL[0] = 0;
@@ -399,7 +406,8 @@ void AppCalibration(void)
 
     AppLedEnable(LedOrange);
     AppLcdClearAll();
-    AppLcdSetRawNumber(8888, FALSE, 4);
+    // AppLcdSetRawNumber(8888, FALSE, 4);
+    AppLcdBlink();
     AppLcdDisplayUpdate(100);
 
     NNA_CalInit(&Cal);

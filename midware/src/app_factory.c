@@ -10,8 +10,9 @@ uint8_t    factory_mode;
 
 #ifdef FACTORY_MODE_UV_DEBUG
 uint8_t    log_show_uv;
-uint32_t   last_uv;
+uint32_t   last_uv, last_ntc;
 scan_log_t log_uv[NUM_SCAN_MODES];
+scan_log_t log_ntc[NUM_SCAN_MODES];
 #endif
 
 static int is_factory_test(void)

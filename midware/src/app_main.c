@@ -39,6 +39,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 
 #ifdef FACTORY_MODE_UV_DEBUG
             scan_log_write_idx(&log_uv[scan_mode], scan_log->last_write, last_uv);
+            scan_log_write_idx(&log_ntc[scan_mode], scan_log->last_write, last_ntc);
 #endif
         }
 
@@ -122,9 +123,11 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 
 #ifdef FACTORY_MODE_UV_DEBUG
     if (log_show_uv) {
+        uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
         log_number = scan_log_read(&log_uv[scan_mode], read_idx);
         AppLcdSetLogRawNumber(log_number, FALSE, 4);
-        AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
+        AppLcdSetLogIndex(FALSE, ntc_number);
+        // AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
     }
 #endif
 
