@@ -56,6 +56,7 @@ static void factory_key_test(void)
 
         while (1) {
                 AppLcdDisplayAll();
+                delay1ms(30);
 
                 if (key_pressed_query(KEY_SWITCH)) {
                         AppLedEnable(LedGreen);
