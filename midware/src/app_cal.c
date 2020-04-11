@@ -225,6 +225,11 @@ CalData_t *AppCalLoad(void)
         AppCalStore(pFactory);
     }
 
+    ///< init Setup sensor type
+    if(!NNA_SensorSet(pFactory->CalData.u8SensorType)) {
+        return NULL;
+    }
+
     return &pFactory->CalData;
 }
 
@@ -404,7 +409,7 @@ void AppCalibration(void)
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
 
-    AppLedEnable(LedOrange);
+    AppLedEnable(LedRed);
     AppLcdClearAll();
     // AppLcdSetRawNumber(8888, FALSE, 4);
     AppLcdBlink();
@@ -412,12 +417,28 @@ void AppCalibration(void)
 
     NNA_CalInit(&Cal);
 
-    while (!key_pressed_query(KEY_TRIGGER))
-        ; //等按键触发
-    AppLcdSetRawNumber(0, FALSE, 4);
-    AppLcdDisplayUpdate(0);
-    while (key_pressed_query(KEY_TRIGGER))
-        ; //等按键释放
+    while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
+
+    ///< 选择传感器
+    Cal.u8SensorType = DEFAULTL_SENSOR;
+    do {
+        if(key_pressed_query(KEY_MINUS)) {
+            Cal.u8SensorType ++;
+            if(Cal.u8SensorType >= en_sensor_max) {
+                Cal.u8SensorType = 0;
+            }
+            if(Cal.u8SensorType % 2) {
+                AppLedEnable(LedOrange);
+            } else {
+                AppLedEnable(LedGreen);
+            }
+        }
+
+        ///< 设置当前传感器选择
+        NNA_SensorSet(Cal.u8SensorType);
+        AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
+        AppLcdDisplayUpdate(100);
+    } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
 
     while (1)
     {

@@ -72,6 +72,15 @@ extern "C"
     /******************************************************************************
  * Global type definitions
  ******************************************************************************/
+   typedef enum {
+      en_sensor_1875 = 0,
+      en_sensor_f55,
+      en_sensor_mts01,
+      en_sensor_b7,
+      en_sensor_max,
+   } en_sensor_t;
+
+   #define DEFAULTL_SENSOR en_sensor_f55
 
     typedef struct
     {
@@ -84,6 +93,10 @@ extern "C"
         uint32_t uVAdcH, uVAdcL;
         ///< 人体温度修正偏移: 29
         uint8_t u8HumanFix;
+        ///< 传感器识别类型
+        uint8_t u8SensorType;
+        ///< 预留字段, 供后续使用
+        uint8_t u8Res[8];
     } CalData_t;
 
     /******************************************************************************
@@ -98,6 +111,8 @@ extern "C"
  * Global function prototypes (definition in C source)                        
  ******************************************************************************/
 
+    extern boolean_t NNA_SensorSet(en_sensor_t uSensorType);
+    extern uint16_t NNA_SensorGet(void);
     extern void NNA_CalInit(CalData_t *pCal);
 
     /**

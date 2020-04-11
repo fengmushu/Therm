@@ -6,62 +6,63 @@
 #define USE_FITTING 1
 #define VRA_INIT (0)
 
-// #define SENSOR_1875
-#define SENSOR_S18_F55
-//#define SENSOR_MTS01
-// #define SENSOR_B7
+#define USE_AUTO_SENSOR
 
 static float32_t VtT_Paras[3] = {0, 0, 0};
+typedef struct {
+    uint16_t uSensorType;
 
-#ifdef SENSOR_1875
-static const float32_t VtE2_Paras[3] = {495.00, 0, 0};
-static const float32_t VtE1_Paras[3] = {54351.00, 0, 0};
-static const float32_t VtE0_Paras[3] = {0, -54351.00, -495.00};
+    float32_t   VtE0_Paras[3];
+    float32_t   VtE1_Paras[3];
+    float32_t   VtE2_Paras[3];
 
-static const int32_t RaT_Paras_P = 2;
-static const float32_t RaT_Paras_F = 1;
-static const float32_t RaT_Paras[3] = {19263, -4305.730, 42.1632};
+    int32_t     RaT_Paras_P;
+    float32_t   RaT_Paras_F;
+    float32_t   RaT_Paras[3];
+} sensor_t;
 
-#elif defined(SENSOR_S18_F55)
+static const sensor_t Sensors[en_sensor_max] = {
+    {
+        .uSensorType = 1875, //1875
+        .VtE2_Paras = {495.00, 0, 0},
+        .VtE1_Paras = {54351.00, 0, 0},
+        .VtE0_Paras = {0, -54351.00, -495.00},
+        .RaT_Paras_P = 2,
+        .RaT_Paras_F = 1,
+        .RaT_Paras = {19263, -4305.730, 42.1632},
+    },
+    {
+        .uSensorType = 55, //F55
+        .VtE2_Paras = {254.60, 0, 0},
+        .VtE1_Paras = {56371.71, -169.35, 0},
+        .VtE0_Paras = {-89766.89, -46033.28, -308.06},
+        .RaT_Paras_P = 2,
+        .RaT_Paras_F = 1,
+        .RaT_Paras = {18798.8, -4247.53, 40.9328},
+    },
+    {
+        .uSensorType = 01, //MTS01
+        .VtE2_Paras = {319.61, 0, 0},
+        .VtE1_Paras = {37659.74, 0, 0},
+        .VtE0_Paras = {27624.49, -40557.05, -271.40},
+        //0 = 0.1479x2 - 11.97x + 305.12 - R
+        .RaT_Paras_P = 0,
+        .RaT_Paras_F = -1,
+        .RaT_Paras = {305.12, -11.97, 0.1479},
+    },
+    {
+        .uSensorType = 7, //B7
+        .VtE2_Paras = {750, 0, 0},
+        .VtE1_Paras = {82350, 0, 0},
+        .VtE0_Paras = {0, -82350, -750},
+        //0 = 0.144x2 - 11.784x + 303.19 -R
+        .RaT_Paras_P = 0,
+        .RaT_Paras_F = -1,
+        .RaT_Paras = {303.19, -11.784, 0.144},
+    },
+};
 
-static const float32_t VtE2_Paras[3] = {254.60, 0, 0};
-static const float32_t VtE1_Paras[3] = {56371.71, -169.35, 0};
-static const float32_t VtE0_Paras[3] = {-89766.89, -46033.28, -308.06};
-
-static const int32_t RaT_Paras_P = 2;
-static const float32_t RaT_Paras_F = 1;
-static const float32_t RaT_Paras[3] = {18798.8, -4247.53, 40.9328};
-
-#elif defined(SENSOR_MTS01)
-/*
-ratio[2]: out: [-1.5108202639546542e-11 6.947081957327107e-10 0.0003196085828439457]
-ratio[1]: out: [1.2666720655955813e-09 -5.6446347379227274e-08 0.03765973789243611]
-ratio[0]: out: [-0.00027140315161585846 -0.040557053723065284 0.027624488690561964]
-
-*/
-static const float32_t VtE2_Paras[3] = {319.61, 0, 0};
-static const float32_t VtE1_Paras[3] = {37659.74, 0, 0};
-static const float32_t VtE0_Paras[3] = {27624.49, -40557.05, -271.40};
-
-//0 = 0.1479x2 - 11.97x + 305.12 - R
-static const int32_t RaT_Paras_P = 0;
-static const float32_t RaT_Paras_F = -1;
-static const float32_t RaT_Paras[3] = {305.12, -11.97, 0.1479};
-
-#elif defined(SENSOR_B7)
-//ratio[2]: out: [-4.636960479355422e-22 8.74291051218579e-20 0.0007499999999999996]
-//ratio[1]: out: [-1.3544680456619795e-19 9.613314125972764e-18 0.08234999999999969]
-//ratio[0]: out: [-0.0007499999999999827 -0.08235000000000198 4.816948442669092e-14]
-static const float32_t VtE2_Paras[3] = {750, 0, 0};
-static const float32_t VtE1_Paras[3] = {82350, 0, 0};
-static const float32_t VtE0_Paras[3] = {0, -82350, -750};
-
-//0 = 0.144x2 - 11.784x + 303.19 -R
-
-static const int32_t RaT_Paras_P = 0;
-static const float32_t RaT_Paras_F = -1;
-static const float32_t RaT_Paras[3] = {303.19, -11.784, 0.144};
-#endif
+static const sensor_t *gSensor = &Sensors[DEFAULTL_SENSOR];
 
 #ifndef USE_FITTING
 static int32_t TNNA_BSearch(const int32_t *uA, uint32_t uLen, int32_t uTarget, boolean_t revert)
@@ -176,7 +177,7 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
     uint32_t fNtcRL = 51000;
     float32_t RaT_params[3];
 
-    memcpy(RaT_params, RaT_Paras, sizeof(RaT_Paras));
+    memcpy(RaT_params, gSensor->RaT_Paras, sizeof(gSensor->RaT_Paras));
 
     // Ra-T = Vra / VnL * RL
     //< (3090 - 960) / 960 * 51000 = 119k
@@ -187,7 +188,7 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode)
     return TNNA_TempNtcFind(uRa);
 #else
     // 拟合R-Te曲线
-    RaT_params[RaT_Paras_P] = RaT_params[RaT_Paras_P] + RaT_Paras_F * ((float32_t)uRa / 1000);
+    RaT_params[gSensor->RaT_Paras_P] = RaT_params[gSensor->RaT_Paras_P] + gSensor->RaT_Paras_F * ((float32_t)uRa / 1000);
     return TNNA_Fitting(RaT_params[0], RaT_params[1], RaT_params[2], 0, FALSE);
 #endif //USE_FITTING
 }
@@ -222,17 +223,32 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
     // (Te) -> (V-Tt曲线)
     // c(t) = -0.000495 * t * t - 0.054351 * t + C
     //C(t)
-    VtT_Paras[0] = VtE0_Paras[0] + VtE0_Paras[1] * fTempEnv + VtE0_Paras[2] * pow(fTempEnv, 2) + fTempFixup;
+    VtT_Paras[0] = gSensor->VtE0_Paras[0] + gSensor->VtE0_Paras[1] * fTempEnv + gSensor->VtE0_Paras[2] * pow(fTempEnv, 2) + fTempFixup;
 
     //B(t)
-    VtT_Paras[1] = VtE1_Paras[0] + VtE1_Paras[1] * fTempEnv + VtE1_Paras[2] * pow(fTempEnv, 2);
+    VtT_Paras[1] = gSensor->VtE1_Paras[0] + gSensor->VtE1_Paras[1] * fTempEnv + gSensor->VtE1_Paras[2] * pow(fTempEnv, 2);
 
     //A(t)
-    VtT_Paras[2] = VtE2_Paras[0] + VtE2_Paras[1] * fTempEnv + VtE2_Paras[2] * pow(fTempEnv, 2);
+    VtT_Paras[2] = gSensor->VtE2_Paras[0] + gSensor->VtE2_Paras[1] * fTempEnv + gSensor->VtE2_Paras[2] * pow(fTempEnv, 2);
 
     // U = 0.0004950 * x * x + 0.054351 * x + c(t)
     return TNNA_Fitting(VtT_Paras[0], VtT_Paras[1], VtT_Paras[2], fVirVolt, FALSE);
 #endif //USE_FITTING
+}
+
+uint16_t NNA_SensorGet(void)
+{
+    return gSensor->uSensorType;
+}
+
+boolean_t NNA_SensorSet(en_sensor_t uSensorType)
+{
+    if(uSensorType >= en_sensor_max) {
+        return FALSE;
+    }
+
+    gSensor = &Sensors[uSensorType];
+    return TRUE;
 }
 
 void NNA_CalInit(CalData_t *pCal)
@@ -279,13 +295,13 @@ boolean_t NNA_Calibration(
     ///< cbase = U42/k - n
 
     ///< k: fAMP, m/n: fTx, Ux: fVirAdcH/L, cbase: fCaH/LBase
-    VtT_Paras[0] = VtE0_Paras[0] + VtE0_Paras[1] * fTempEnv + VtE0_Paras[2] * pow(fTempEnv, 2); //C35 or C42
+    VtT_Paras[0] = gSensor->VtE0_Paras[0] + gSensor->VtE0_Paras[1] * fTempEnv + gSensor->VtE0_Paras[2] * pow(fTempEnv, 2); //C35 or C42
 
     //B(t)
-    VtT_Paras[1] = VtE1_Paras[0] + VtE1_Paras[1] * fTempEnv + VtE1_Paras[2] * pow(fTempEnv, 2); //B35 or B42
+    VtT_Paras[1] = gSensor->VtE1_Paras[0] + gSensor->VtE1_Paras[1] * fTempEnv + gSensor->VtE1_Paras[2] * pow(fTempEnv, 2); //B35 or B42
 
     //A(t)
-    VtT_Paras[2] = VtE2_Paras[0] + VtE2_Paras[1] * fTempEnv + VtE2_Paras[2] * pow(fTempEnv, 2); //A35 or A42
+    VtT_Paras[2] = gSensor->VtE2_Paras[0] + gSensor->VtE2_Paras[1] * fTempEnv + gSensor->VtE2_Paras[2] * pow(fTempEnv, 2); //A35 or A42
 
     fTx = VtT_Paras[2] * pow(fTempTarget, 2) + VtT_Paras[1] * fTempTarget + VtT_Paras[0];
     ///< 返回目标温度实测值
