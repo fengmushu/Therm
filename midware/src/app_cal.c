@@ -409,7 +409,7 @@ void AppCalibration(void)
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
 
-    AppLedEnable(LedRed);
+    AppLedEnable(LedOrange);
     AppLcdClearAll();
     // AppLcdSetRawNumber(8888, FALSE, 4);
     AppLcdBlink();
@@ -421,7 +421,7 @@ void AppCalibration(void)
     while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
 
     ///< 选择传感器
-    Cal.u8SensorType = DEFAULTL_SENSOR;
+    Cal.u8SensorType = NNA_SensorGetIndex();
     do {
         if(key_pressed_query(KEY_MINUS)) {
             Cal.u8SensorType ++;
@@ -549,6 +549,7 @@ void AppCalInit()
     // hold [FN] on PWRON to force calibration mode
     if (key_pressed_query(KEY_FN))
     {
+        AppCalLoad(); // 可能会用到上一次校准的传感器类型
         AppCalibration();
     }
     else

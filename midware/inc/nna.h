@@ -80,7 +80,7 @@ extern "C"
       en_sensor_max,
    } en_sensor_t;
 
-   #define DEFAULTL_SENSOR en_sensor_1875
+   #define DEFAULTL_SENSOR en_sensor_mts01
 
     typedef struct
     {
@@ -112,6 +112,7 @@ extern "C"
  ******************************************************************************/
 
     extern boolean_t NNA_SensorSet(en_sensor_t uSensorType);
+    extern en_sensor_t NNA_SensorGetIndex(void);
     extern uint16_t NNA_SensorGet(void);
     extern void NNA_CalInit(CalData_t *pCal);
 

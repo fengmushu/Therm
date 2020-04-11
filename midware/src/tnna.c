@@ -243,6 +243,11 @@ uint16_t NNA_SensorGet(void)
     return gSensor->uSensorType;
 }
 
+en_sensor_t NNA_SensorGetIndex(void)
+{
+    return (en_sensor_t)(gSensor - &Sensors[0]);
+}
+
 boolean_t NNA_SensorSet(en_sensor_t uSensorType)
 {
     if(uSensorType >= en_sensor_max) {
@@ -325,7 +330,7 @@ boolean_t NNA_Calibration(
     {
         // 线性区间放大
         fAmp = (uVAdcH - uVAdcL) / (fTH - fTL);
-        if (TRUE || (fAmp >= 300 && fAmp <= 900))
+        if (fAmp >= 100 && fAmp <= 1800)
         {
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
@@ -334,12 +339,15 @@ boolean_t NNA_Calibration(
             pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
 
             AppLcdSetTemp((uint32_t)(fAmp * 10));
-            AppLcdDisplayUpdate(2000);
+            AppLcdDisplayUpdate(400);
 
             DBG_PRINT("\tAMP: %2.2f L: %2.2f H: %2.2f %2.2f %2.2f\r\n", fAmp, fTL, fTH, fCaLBase, fCaHBase);
         }
         else
         {
+            AppLcdSetTemp((uint32_t)(fAmp * 10));
+            AppLcdDisplayUpdate(3000);
+
             DBG_PRINT("\tAMP-OF: %2.2f, %2.2f\r\n", fAmp, fTx);
             return FALSE;
         }
