@@ -9,16 +9,17 @@
 #define USE_AUTO_SENSOR
 
 static float32_t VtT_Paras[3] = {0, 0, 0};
-typedef struct {
+typedef struct
+{
     uint16_t uSensorType;
 
-    float32_t   VtE0_Paras[3];
-    float32_t   VtE1_Paras[3];
-    float32_t   VtE2_Paras[3];
+    float32_t VtE0_Paras[3];
+    float32_t VtE1_Paras[3];
+    float32_t VtE2_Paras[3];
 
-    int32_t     RaT_Paras_P;
-    float32_t   RaT_Paras_F;
-    float32_t   RaT_Paras[3];
+    int32_t RaT_Paras_P;
+    float32_t RaT_Paras_F;
+    float32_t RaT_Paras[3];
 } sensor_t;
 
 static const sensor_t Sensors[en_sensor_max] = {
@@ -60,7 +61,20 @@ static const sensor_t Sensors[en_sensor_max] = {
         .RaT_Paras_F = -1,
         .RaT_Paras = {303.19, -11.784, 0.144},
     },
-};
+    {
+        //ratio[2]: out: [2.9424606190505456e-10 -1.2098577044334428e-08 4.101750012635941e-05]
+        //ratio[1]: out: [-6.72651615412054e-08 3.114835555900775e-06 0.06044547560017023]
+        //ratio[0]: out: [-0.00014442334393383112 -0.05504562283626053 -0.025327928769245583]
+
+        .uSensorType = 8, //fatri_sgxv02
+        .VtE2_Paras = {41.017500, 0, 0},
+        .VtE1_Paras = {60445.47, 0, 0},
+        .VtE0_Paras = {-25327.93, -55045.62, -144.42},
+        //y = 0.1409x2 - 11.814x + 304.23        
+        .RaT_Paras_P = 0,
+        .RaT_Paras_F = -1,
+        .RaT_Paras = {304.23, -11.814, 0.1409},
+    }};
 
 static const sensor_t *gSensor = &Sensors[DEFAULTL_SENSOR];
 
@@ -174,7 +188,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
 
  ** \retval      Ok         黑体温度
  ******************************************************************************/
-float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint32_t* uRa)
+float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint32_t *uRa)
 {
     uint32_t fNtcRL = 51000;
     float32_t RaT_params[3];
@@ -250,7 +264,8 @@ en_sensor_t NNA_SensorGetIndex(void)
 
 boolean_t NNA_SensorSet(en_sensor_t uSensorType)
 {
-    if(uSensorType >= en_sensor_max) {
+    if (uSensorType >= en_sensor_max)
+    {
         return FALSE;
     }
 

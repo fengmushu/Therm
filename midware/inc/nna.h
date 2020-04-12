@@ -72,15 +72,17 @@ extern "C"
     /******************************************************************************
  * Global type definitions
  ******************************************************************************/
-   typedef enum {
-      en_sensor_1875 = 0,
-      en_sensor_f55,
-      en_sensor_mts01,
-      en_sensor_b7,
-      en_sensor_max,
-   } en_sensor_t;
+    typedef enum
+    {
+        en_sensor_1875 = 0,
+        en_sensor_f55,
+        en_sensor_mts01,
+        en_sensor_b7,
+        en_sensor_fatri_sgxv02,
+        en_sensor_max,
+    } en_sensor_t;
 
-   #define DEFAULTL_SENSOR en_sensor_mts01
+#define DEFAULTL_SENSOR en_sensor_fatri_sgxv02
 
     typedef struct
     {
