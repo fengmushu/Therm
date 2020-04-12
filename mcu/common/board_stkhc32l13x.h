@@ -90,6 +90,9 @@
 // V-Bias-ON/OFF
 #define M_ADC_VBIRS_PORT  GpioPortA
 #define M_ADC_VBIRS_PIN   GpioPin15
+// USE PB07 as ADC_VOUT_CTRL_PIN
+#define M_ADC_VBIRS_EN_PORT     GpioPortB
+#define M_ADC_VBIRS_EN_PIN      GpioPin7
 
 ///< M LCD SEG/COM
 #define M_LCD_COM0_PORT   GpioPortA

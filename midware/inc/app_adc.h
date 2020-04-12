@@ -92,6 +92,8 @@ extern "C"
  ******************************************************************************/
  
 extern void AppMAdcInit(void);
+extern void AppMAdcPowerOff(void);
+extern void AppMAdcPowerOn(void);
 
 ///< 环境温度采样值获取(采样16次取平均)
 extern void AppAdcNtcLAvgCodeGet(uint32_t *pu32AdcRestultAcc);

@@ -213,13 +213,17 @@ void _AppAdcPortInit(void)
     stcGpioCfg.enCtrlMode = GpioAHB;
     stcGpioCfg.enDir      = GpioDirOut;
     stcGpioCfg.enDrv      = GpioDrvH;
-    stcGpioCfg.enOD       = GpioOdDisable;
-    stcGpioCfg.enPd       = GpioPdEnable;
+    stcGpioCfg.enOD       = GpioOdEnable;
+    stcGpioCfg.enPd       = GpioPdDisable;
     stcGpioCfg.enPu       = GpioPuDisable; //默認開啓
 
     // ADC-VCC
     Gpio_Init(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN, &stcGpioCfg);      //PA15 ON/OFF
-    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+
+    stcGpioCfg.enOD       = GpioOdDisable;
+    Gpio_Init(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN, &stcGpioCfg);      //PA15 ON/OFF
+
+    AppMAdcPowerOff();
 }
 
 ///< LCD 端口初始化

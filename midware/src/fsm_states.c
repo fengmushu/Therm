@@ -13,6 +13,7 @@
 #include "app_fn.h"
 #include "app_main.h"
 #include "app_cal.h"
+#include "app_adc.h"
 #include "app_rtc.h"
 #include "app_factory.h"
 
@@ -24,9 +25,9 @@ void sys_resume(void)
 
     AppLedEnable(LedGreen);
 
+    AppMAdcPowerOn();
     Adc_Enable();
     Bgr_BgrEnable();
-    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
 
     Rtc_Cmd(TRUE);
 
@@ -55,7 +56,7 @@ void sys_halt(void)
     AppLcdDisable();
 
     // turn off adc
-    Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+    AppMAdcPowerOff();
     Adc_Disable();
     Bgr_BgrDisable();
 

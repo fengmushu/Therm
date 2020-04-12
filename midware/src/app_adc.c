@@ -84,6 +84,18 @@
 /*****************************************************************************
  * Function implementation - global ('extern') and local ('static')
  *****************************************************************************/
+void AppMAdcPowerOn(void)
+{
+    // Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); 
+    Gpio_SetIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
+}
+
+void AppMAdcPowerOff(void)
+{
+    // Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+    Gpio_ClrIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
+}
+
 ///< ADC 顺序扫描(多次采样) 功能配置
 void _AppAdcSQRCfg(en_adc_samp_ch_sel_t enAdcSampCh)
 {
@@ -134,13 +146,11 @@ void AppMAdcInit(void)
     stcAdcCfg.enAdcMode         = AdcScanMode;                  ///<采样模式-扫描
     stcAdcCfg.enAdcClkDiv       = AdcMskClkDiv8;                ///<采样分频-1
     stcAdcCfg.enAdcSampCycleSel = AdcMskSampCycle12Clk;         ///<采样周期数-8
-    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelAVDD;          ///<参考电压选择-AVDD
+    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelInBgr1p5;      ///<参考电压选择-AVDD
     stcAdcCfg.enAdcOpBuf        = AdcMskBufDisable;             ///<OP BUF配置-关
-    stcAdcCfg.enInRef           = AdcMskInRefDisable;           ///<内部参考电压使能-关
+    stcAdcCfg.enInRef           = AdcMskInRefEnable;            ///<内部参考电压使能-关
     stcAdcCfg.enAdcAlign        = AdcAlignRight;                ///<转换结果对齐方式-右
     Adc_Init(&stcAdcCfg);
-    
-    Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); 
 }
 
 ///< ADC通道数据读取
@@ -183,7 +193,7 @@ void AppAdcVirAvgCodeGet(uint32_t *pu32AdcRestultAcc)
 ///< VBias采样值获取(采样16次取平均)
 // void AppAdcVBiasAvgCodeGet(uint32_t *pu32AdcRestultAcc)
 // {    
-//     AppAdcChAvgCodeGet(AdcExInputCH3, pu32AdcRestultAcc);
+//         AppAdcChAvgCodeGet(AdcExInputCH11, pu32AdcRestultAcc);
 // }
 
 //@} // AdcGroup
