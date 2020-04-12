@@ -74,7 +74,22 @@ static const sensor_t Sensors[en_sensor_max] = {
         .RaT_Paras_P = 0,
         .RaT_Paras_F = -1,
         .RaT_Paras = {304.23, -11.814, 0.1409},
-    }};
+    },
+    {
+        //ratio[2]: out: [4.093161029499387e-22 -2.523797389249901e-07 0.0002357456197685742]
+        //ratio[1]: out: [-2.3707244900306793e-19 -0.00010320063381750057 0.09639877386134527]
+        //ratio[0]: out: [-0.0002517269163330585 -0.06248713574698172 -0.8060653134739139]
+        
+        .uSensorType = 9, //b7f55
+        .VtE2_Paras = {235.75, 0, 0},
+        .VtE1_Paras = {96398.77, 0, 0},
+        .VtE0_Paras = {-806065.31, -62487.14, -251.73},
+        //y = 0.1412x2 - 12.066x + 310.91       
+        .RaT_Paras_P = 0,
+        .RaT_Paras_F = -1,
+        .RaT_Paras = {310.91, -12.066, 0.1412},
+    }
+    };
 
 static const sensor_t *gSensor = &Sensors[DEFAULTL_SENSOR];
 
