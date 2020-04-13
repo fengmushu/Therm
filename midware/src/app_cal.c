@@ -414,10 +414,9 @@ void AppCalibration(void)
 
     AppLedEnable(LedOrange);
     AppLcdClearAll();
-    // AppLcdSetRawNumber(8888, FALSE, 4);
     AppLcdBlink();
-    AppLcdDisplayAll();
-    AppLcdDisplayUpdate(10);
+    AppLcdSetRawNumber(SYS_SW_VERSION, TRUE, 4);
+    AppLcdDisplayUpdate(1000);
 
     NNA_CalInit(&Cal);
 
