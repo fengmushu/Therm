@@ -14,6 +14,9 @@
 #define CAL_MAGIC_NUM 0x41415ABB
 #define CAL_DATA_ADDR 0xFE00 /* last sector, for cal */
 
+#define CAL_TEMP_LOW    37
+#define CAL_TEMP_HIGH   42
+
 /* flash sector size */
 #define FLASE_SECTOR_SIZE 512
 
@@ -467,13 +470,13 @@ void AppCalibration(void)
             ///< 打出环境温度
             AppLcdSetTemp((uint32_t)(fNtc * 10));
             AppLcdDisplayUpdate(500);
-            if (NNA_Calibration(&Cal, fNtc, 37, &fTemp, uViR))
+            if (NNA_Calibration(&Cal, fNtc, CAL_TEMP_LOW, &fTemp, uViR))
             {
                 u8CaType++;
                 __enable_irq();
                 /* log set Ra, uViR */
                 AppLcdSetRawNumber(uViR, FALSE, 4);
-                AppLcdSetLogIndex(TRUE, 37);
+                AppLcdSetLogIndex(TRUE, CAL_TEMP_LOW);
                 AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock / 1000));
@@ -490,12 +493,12 @@ void AppCalibration(void)
         }
         else
         {
-            if (NNA_Calibration(&Cal, fNtc, 42, &fTemp, uViR))
+            if (NNA_Calibration(&Cal, fNtc, CAL_TEMP_HIGH, &fTemp, uViR))
             {
                 __enable_irq();
                 /* log set Ra, uViR */
                 AppLcdSetRawNumber(uViR, FALSE, 4);
-                AppLcdSetLogIndex(TRUE, 42);
+                AppLcdSetLogIndex(TRUE, CAL_TEMP_HIGH);
                 AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock / 1000));

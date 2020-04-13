@@ -221,9 +221,9 @@ void _AppAdcPortInit(void)
     Gpio_Init(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN, &stcGpioCfg);      //PA15 ON/OFF
 
     stcGpioCfg.enOD       = GpioOdDisable;
-    Gpio_Init(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN, &stcGpioCfg);      //PA15 ON/OFF
+    Gpio_Init(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN, &stcGpioCfg);      //PB07 ON/OFF
 
-    AppMAdcPowerOff();
+    AppMAdcPowerOn();
 }
 
 ///< LCD 端口初始化

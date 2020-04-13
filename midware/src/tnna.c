@@ -329,7 +329,7 @@ boolean_t NNA_Calibration(
     ///< 返回目标温度实测值
     *fTempGet = fTx;
 
-    if (fTempTarget < 40)
+    if (pCal->fTL == VRA_INIT)
     {
         pCal->fTL = fTL = fTx;
         pCal->uVAdcL = uVAdcL = u32VirAdc * 1000000;

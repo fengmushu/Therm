@@ -146,7 +146,7 @@ void AppMAdcInit(void)
     stcAdcCfg.enAdcMode         = AdcScanMode;                  ///<采样模式-扫描
     stcAdcCfg.enAdcClkDiv       = AdcMskClkDiv8;                ///<采样分频-1
     stcAdcCfg.enAdcSampCycleSel = AdcMskSampCycle12Clk;         ///<采样周期数-8
-    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelInBgr1p5;      ///<参考电压选择-AVDD
+    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelInBgr2p5;      ///<参考电压选择-AVDD
     stcAdcCfg.enAdcOpBuf        = AdcMskBufDisable;             ///<OP BUF配置-关
     stcAdcCfg.enInRef           = AdcMskInRefEnable;            ///<内部参考电压使能-关
     stcAdcCfg.enAdcAlign        = AdcAlignRight;                ///<转换结果对齐方式-右
