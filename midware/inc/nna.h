@@ -75,9 +75,7 @@ extern "C"
     typedef enum
     {
         en_sensor_1875 = 0,
-        en_sensor_f55,
         en_sensor_mts01,
-        en_sensor_b7,
         en_sensor_fatri_sgxv02,
         en_sensor_b7f55,
         en_sensor_max,

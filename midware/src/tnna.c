@@ -33,15 +33,6 @@ static const sensor_t Sensors[en_sensor_max] = {
         .RaT_Paras = {19263, -4305.730, 42.1632},
     },
     {
-        .uSensorType = 55, //F55
-        .VtE2_Paras = {254.60, 0, 0},
-        .VtE1_Paras = {56371.71, -169.35, 0},
-        .VtE0_Paras = {-89766.89, -46033.28, -308.06},
-        .RaT_Paras_P = 2,
-        .RaT_Paras_F = 1,
-        .RaT_Paras = {18798.8, -4247.53, 40.9328},
-    },
-    {
         .uSensorType = 01, //MTS01
         .VtE2_Paras = {319.61, 0, 0},
         .VtE1_Paras = {37659.74, 0, 0},
@@ -52,21 +43,11 @@ static const sensor_t Sensors[en_sensor_max] = {
         .RaT_Paras = {295.51, -10.8, 0.1184},
     },
     {
-        .uSensorType = 7, //B7
-        .VtE2_Paras = {750, 0, 0},
-        .VtE1_Paras = {82350, 0, 0},
-        .VtE0_Paras = {0, -82350, -750},
-        //0 = 0.144x2 - 11.784x + 303.19 -R
-        .RaT_Paras_P = 0,
-        .RaT_Paras_F = -1,
-        .RaT_Paras = {303.19, -11.784, 0.144},
-    },
-    {
         //ratio[2]: out: [2.9424606190505456e-10 -1.2098577044334428e-08 4.101750012635941e-05]
         //ratio[1]: out: [-6.72651615412054e-08 3.114835555900775e-06 0.06044547560017023]
         //ratio[0]: out: [-0.00014442334393383112 -0.05504562283626053 -0.025327928769245583]
 
-        .uSensorType = 8, //fatri_sgxv02
+        .uSensorType = 502, //fatri_sgxv02
         .VtE2_Paras = {41.017500, 0, 0},
         .VtE1_Paras = {60445.47, 0, 0},
         .VtE0_Paras = {-25327.93, -55045.62, -144.42},
@@ -80,7 +61,7 @@ static const sensor_t Sensors[en_sensor_max] = {
         //ratio[1]: out: [-2.3707244900306793e-19 -0.00010320063381750057 0.09639877386134527]
         //ratio[0]: out: [-0.0002517269163330585 -0.06248713574698172 -0.8060653134739139]
         
-        .uSensorType = 9, //b7f55
+        .uSensorType = 8755, //b7f55
         .VtE2_Paras = {235.75, 0, 0},
         .VtE1_Paras = {96398.77, 0, 0},
         .VtE0_Paras = {-806065.31, -62487.14, -251.73},
