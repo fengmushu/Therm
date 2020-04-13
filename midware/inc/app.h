@@ -78,8 +78,6 @@
 #define DBG_PRINT(x, ...) do{} while(0)
 #endif
 
-#define time_after(a,b) ((long)(b)-(long)(a)<0)
-
 #define SYS_SW_VERSION      13 //VERSION 1.3
 
 /* C binding of definitions if building with C++ compiler */
