@@ -412,18 +412,22 @@ void AppCalibration(void)
     uint8_t u8CaType = 0;
     uint32_t uNtcH, uNtcL, uViR;
 
+    NNA_CalInit(&Cal);
+
     AppLedEnable(LedOrange);
     AppLcdClearAll();
     AppLcdBlink();
-    AppLcdSetRawNumber(SYS_SW_VERSION, TRUE, 4);
-    AppLcdDisplayUpdate(1000);
 
-    NNA_CalInit(&Cal);
+    ///< 当前软件版本
+    AppLcdSetRawNumber(SYS_SW_VERSION, TRUE, 4);
+    ///< 选择传感器
+    Cal.u8SensorType = NNA_SensorGetIndex();
+    NNA_SensorSet(Cal.u8SensorType);
+    AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
+    AppLcdDisplayUpdate(0);
 
     while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
 
-    ///< 选择传感器
-    Cal.u8SensorType = NNA_SensorGetIndex();
     do {
         if(key_pressed_query(KEY_MINUS)) {
             Cal.u8SensorType ++;
@@ -440,8 +444,12 @@ void AppCalibration(void)
         ///< 设置当前传感器选择
         NNA_SensorSet(Cal.u8SensorType);
         AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
+        AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
         AppLcdDisplayUpdate(150);
     } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
+
+    AppLcdSetRawNumber(CAL_TEMP_LOW, FALSE, 2);
+    AppLcdDisplayUpdate(0);
 
     while (1)
     {
@@ -468,7 +476,7 @@ void AppCalibration(void)
         {
             ///< 打出环境温度
             AppLcdSetTemp((uint32_t)(fNtc * 10));
-            AppLcdDisplayUpdate(500);
+            AppLcdDisplayUpdate(300);
             if (NNA_Calibration(&Cal, fNtc, CAL_TEMP_LOW, &fTemp, uViR))
             {
                 u8CaType++;

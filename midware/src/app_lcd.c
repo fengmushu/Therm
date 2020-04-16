@@ -627,7 +627,7 @@ void AppLcdBlink(void)
         {
             AppLcdDisplayClear();
         }
-        delay1ms(400);
+        delay1ms(200);
     }
 }
 
