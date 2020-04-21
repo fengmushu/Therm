@@ -105,12 +105,12 @@ static fsm_state_t state_pwron_enter(fsm_node_t *node, fsm_event_t event)
 
     beep_once(225);
 
-    AppLedEnable(LedOrange);
+    // AppLedEnable(LedOrange);
 
-    AppLcdClearAll();
-    AppLcdDisplayClear();
-    AppLcdDisplayAll();
-    delay1ms(2500);
+    // AppLcdClearAll();
+    // AppLcdDisplayClear();
+    // AppLcdDisplayAll();
+    // delay1ms(2500);
 
     return FSM_STATE_SLEEP;
 }
