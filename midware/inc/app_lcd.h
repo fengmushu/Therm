@@ -137,7 +137,7 @@ extern void AppLcdSetSymbol(enLcdSymbolType_t type, boolean_t display);
 
 extern void AppLcdSetBuzzer(boolean_t display);
 
-extern void AppLcdSetBattery(boolean_t display, uint8_t left_v);
+extern void AppLcdSetBattery(boolean_t display, uint8_t level);
 
 extern void AppLcdSetCheckMode(enCheckMode_t CheckMode, boolean_t display);
 

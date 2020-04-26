@@ -62,6 +62,14 @@ enum temp_unit {
     NUM_TEMP_UNITS,
 };
 
+enum bat_lvl {
+    BAT_LVL_CRIT = 0,
+    BAT_LVL_LOW,
+    BAT_LVL_NRM,
+    BAT_LVL_HI,
+    NUM_BAT_LVLS,
+};
+
 typedef struct temp_thres {
     int16_t underflow;
     int16_t overflow;

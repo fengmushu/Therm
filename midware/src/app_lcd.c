@@ -52,6 +52,7 @@
  * Include files
  ******************************************************************************/
 #include "app_lcd.h"
+#include "app_data.h"
 #include "lcd.h"
 #include "app.h"
 
@@ -436,7 +437,7 @@ void AppLcdSetBuzzer(boolean_t display)
 }
 
 /* left_v 剩余电量(0格，1格，2格，3格) */
-void AppLcdSetBattery(boolean_t display, uint8_t left_v)
+void AppLcdSetBattery(boolean_t display, uint8_t level)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
     sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT1_SYM, FALSE);
@@ -444,9 +445,16 @@ void AppLcdSetBattery(boolean_t display, uint8_t left_v)
     sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT3_SYM, FALSE);
 
     sAppLcdSetSymbol(pstcLcdDisplayCfg, BATTERY_SYM, display);
-    if (left_v > 0) sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT3_SYM, display);
-    if (left_v > 1) sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT2_SYM, display);
-    if (left_v > 2) sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT1_SYM, display);
+
+    if (level >= BAT_LVL_LOW)
+        sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT3_SYM, display);
+
+    if (level >= BAT_LVL_NRM)
+        sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT2_SYM, display);
+
+    if (level >= BAT_LVL_HI)
+        sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT1_SYM, display);
+
     return;
 }
 
