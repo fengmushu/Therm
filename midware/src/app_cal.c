@@ -423,7 +423,7 @@ void AppCalibration(void)
     ///< 选择传感器
     Cal.u8SensorType = NNA_SensorGetIndex();
     NNA_SensorSet(Cal.u8SensorType);
-    AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
+    //AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
     AppLcdDisplayUpdate(0);
 
     while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
@@ -444,7 +444,7 @@ void AppCalibration(void)
         ///< 设置当前传感器选择
         NNA_SensorSet(Cal.u8SensorType);
         AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
-        AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
+        //AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
         AppLcdDisplayUpdate(150);
     } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
 
@@ -484,7 +484,7 @@ void AppCalibration(void)
                 /* log set Ra, uViR */
                 AppLcdSetRawNumber(uViR, FALSE, 4);
                 AppLcdSetLogIndex(TRUE, CAL_TEMP_LOW);
-                AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
+                //AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock / 1000));
                 while (key_pressed_query(KEY_TRIGGER))
@@ -506,7 +506,7 @@ void AppCalibration(void)
                 /* log set Ra, uViR */
                 AppLcdSetRawNumber(uViR, FALSE, 4);
                 AppLcdSetLogIndex(TRUE, CAL_TEMP_HIGH);
-                AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
+                //AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
                 AppLcdDisplayUpdate(10);
                 AppBeepBlink((SystemCoreClock / 1000));
                 while (key_pressed_query(KEY_TRIGGER))
@@ -535,7 +535,7 @@ void AppCalibration(void)
             AppTempCalculate(&Cal, &uNtc, &uSurf, &uHuman, &uViR);
             AppLcdSetTemp(uSurf / 10);
             /* log set uViR */
-            AppLcdSetLogRawNumber(uViR, FALSE, 1);
+            //AppLcdSetLogRawNumber(uViR, FALSE, 1);
             AppLcdDisplayUpdate(0);
         }
 
