@@ -71,6 +71,7 @@
 #include "app_data.h"
 #include "app_timer.h"
 #include "app_rtc.h"
+#include "app_lvd.h"
 #include "app_factory.h"
 #include "fsm.h"
 
@@ -140,11 +141,4 @@ int main(void)
     fsm_process(&g_fsm);
 
     fsm_shutdown(&g_fsm, FSM_STATE_FATAL);
-}
-
-void Lvd_IRQHandler(void)
-{
-    Lvd_ClearIrq();
-
-    g_rt->battery_low = 1;
 }

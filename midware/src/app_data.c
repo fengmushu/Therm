@@ -112,6 +112,8 @@ void app_runtime_init(app_runtime_t *rt)
 
     g_cal      = AppCalGet();
 
+    rt->battery_lvl = BAT_LVL_HI;
+
     if (app_save_i2c_load(&rt->save) || app_save_verify(&rt->save)) {
         app_save_reset(&rt->save);
     }

@@ -209,32 +209,6 @@ void AppLedDisable(void)
     }
 }
 
-///< VCC 电量监测模块初始化
-void AppVolMonitorInit(void)
-{
-    stc_lvd_cfg_t stcLvdCfg;
-
-    DDL_ZERO_STRUCT(stcLvdCfg);     //变量清0
-
-    Sysctrl_SetPeripheralGate(SysctrlPeripheralVcLvd, TRUE);    //开LVD时钟
-
-    stcLvdCfg.enAct        = LvdActMskInt;              ///< 配置触发产生中断
-    stcLvdCfg.enInputSrc   = LvdInputSrcMskVCC;         ///< 配置LVD输入源
-    stcLvdCfg.enThreshold  = LvdMskTH2_5V;              ///< 配置LVD基准电压
-    stcLvdCfg.enFilter     = LvdFilterMskEnable;        ///< 滤波使能
-    stcLvdCfg.enFilterTime = LvdFilterMsk28_8ms;        ///< 滤波时间设置
-    stcLvdCfg.enIrqType    = LvdIrqMskHigh;             ///< 中断触发类型
-    Lvd_Init(&stcLvdCfg);
-    
-    ///< 中断开启
-    Lvd_EnableIrq();
-    Lvd_ClearIrq();
-    EnableNvic(LVD_IRQn, IrqLevel3, TRUE);              ///< NVIC 中断使能
-    
-    ///< LVD 模块使能
-    Lvd_Enable();
-}
-
 #ifdef DEBUG
 ///< 串口模块配置
 void AppUartInit(void)

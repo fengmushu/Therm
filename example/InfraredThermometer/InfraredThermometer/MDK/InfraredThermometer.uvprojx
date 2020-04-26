@@ -582,6 +582,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\midware\src\app_factory.c</FilePath>
             </File>
+            <File>
+              <FileName>app_lvd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_lvd.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

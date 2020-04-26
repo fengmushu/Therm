@@ -98,7 +98,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     AppLcdSetSymbol(SMILE_SYM, FALSE);
 
     // blinking
-    if (g_rt->battery_lvl == 0) {
+    if (g_rt->battery_lvl == BAT_LVL_CRIT) {
         if (blink_is_on_duty(BLINK_DUTY_50, 4))
             AppLcdSetBattery(FALSE, g_rt->battery_lvl);
     }
