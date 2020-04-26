@@ -371,30 +371,6 @@ static void state_config_exit(fsm_node_t *node, fsm_event_t event)
     app_fn_exit();
 }
 
-// static fsm_state_t state_config_release_fn(fsm_node_t *node,
-//                                            fsm_event_t event,
-//                                            void *data)
-// {
-//     app_fn_next();
-//     return node->state;
-// }
-
-// static fsm_state_t state_config_release_minus(fsm_node_t *node,
-//                                               fsm_event_t event,
-//                                               void *data)
-// {
-//     app_fn_btn_minus();
-//     return node->state;
-// }
-
-// static fsm_state_t state_config_release_plus(fsm_node_t *node,
-//                                               fsm_event_t event,
-//                                               void *data)
-// {
-//     app_fn_btn_plus();
-//     return node->state;
-// }
-
 static fsm_node_t state_config = {
     .state   = FSM_STATE_CONFIG,
     .type    = FSM_NODE_NORMAL,
