@@ -12,11 +12,7 @@
 #include "app_rtc.h"
 #include "app_factory.h"
 
-#define BLINK_PERIOD_CNT                (1 << 1)
-
 #define BEEP_SCAN_DONE_MS               (100)
-
-static uint8_t blink_cnt;
 
 fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 {
@@ -30,7 +26,6 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 
         g_rt->scan_show = 1; // to keep big number showing last scan result
         g_rt->scan_done = 1;
-        g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
 
         if (is_temp_valid(&g_temp_thres[scan_mode], last_result)) {
             // last_write++ in scan_log_write_safe()
@@ -48,7 +43,6 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
     default: // display last write result
         g_rt->scan_show = 0;
         g_rt->scan_done = 0;
-        g_rt->scan_mode_last = scan_mode;
         g_rt->read_idx[scan_mode] = scan_log->last_write;
 
         AppLcdClearAll();
@@ -81,7 +75,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 {
     fsm_state_t next = node->state;
     uint8_t scan_show = g_rt->scan_show;
-    uint8_t scan_mode = g_rt->scan_mode_last;
+    uint8_t scan_mode = g_rt->scan_mode;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
 
     // by testing, say 5 at least to stabilize lcd
@@ -95,40 +89,34 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     // reset color for all not defined patterns
     AppLedEnable(LedGreen);
 
-    AppLcdSetLock(FALSE);
     AppLcdSetBuzzer(g_cfg->beep_on);
     AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
     AppLcdSetCheckMode(g_rt->scan_mode, TRUE);
+    AppLcdSetBattery(TRUE, g_rt->battery_lvl);
 
     // blinking
-    if (g_rt->battery_low) {
-        uint8_t duty;
-
-        duty = blink_cnt & GENMASK(5, 4);
-        duty >>= 4;
-
-        AppLcdSetBattery(FALSE);
-
-        if (duty == 0x00 || duty == 0x01) // duty 50%
-            AppLcdSetBattery(TRUE);
+    if (g_rt->battery_lvl == 0) {
+        if (blink_is_on_duty(BLINK_DUTY_50, 4))
+            AppLcdSetBattery(FALSE, g_rt->battery_lvl);
     }
 
     // read_idx should have synced to write_idx in enter() if comes from scan
     log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
 
-    AppLcdSetLogTemp(C2F_by_setting(log_number), lcd_show_idx(read_idx));
+    AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
 
     // user is viewing log, show big number as log number
     big_number = log_number;
 
 #ifdef FACTORY_MODE_UV_DEBUG
-    if (log_show_uv) {
-        uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
-        log_number = scan_log_read(&log_uv[scan_mode], read_idx);
-        AppLcdSetLogRawNumber(log_number, FALSE, 4);
-        AppLcdSetLogIndex(FALSE, ntc_number);
-        // AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
-    }
+    // FIXME:
+    // if (log_show_uv) {
+    //     uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
+    //     log_number = scan_log_read(&log_uv[scan_mode], read_idx);
+    //     AppLcdSetLogRawNumber(log_number, FALSE, 4);
+    //     AppLcdSetLogIndex(FALSE, ntc_number);
+    //     AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
+    // }
 #endif
 
     if (scan_show) {
@@ -149,11 +137,20 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     // surface mode is always green, and LED is set green already
     //
     if (scan_mode == SCAN_BODY) {
+        AppLcdSetSymbol(SMILE_SYM, TRUE);
+        AppLcdSetSymbol(SAD_SYM, FALSE);
+
+        if (big_number >= BODY_FEVER_LOW) {
+            AppLedEnable(LedOrange);
+            AppLcdSetSymbol(SMILE_SYM, FALSE);
+            AppLcdSetSymbol(SAD_SYM, TRUE);
+        }
+
         // currently, body_alarm_C can be smaller than BODY_FEVER_LOW
         if (big_number >= g_cfg->body_alarm_C) {
             AppLedEnable(LedRed);
-        } else if (big_number >= BODY_FEVER_LOW) {
-            AppLedEnable(LedOrange);
+            AppLcdSetSymbol(SMILE_SYM, FALSE);
+            AppLcdSetSymbol(SAD_SYM, TRUE);
         }
     }
 
@@ -183,8 +180,11 @@ lcd_update:
     }
 
     if (key_pressed_query(KEY_LOG)) {
-        scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
+        // FIXME: we need to check whether log is once full
+        scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
         delay_budget += key_budget_ms;
+        g_rt->scan_show = 0;
+
         goto delay;
     }
 
@@ -195,68 +195,13 @@ delay:
 
 out:
     g_rt->scan_done = 0;
-    g_rt->scan_mode_last = scan_mode_runtime_update();
-
-    // user switched scan mode
-    if (g_rt->scan_mode_last != scan_mode) {
-        g_rt->scan_show = 0;
-        scan_mode = g_rt->scan_mode_last;
-        g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
-    }
-
-    blink_cnt++;
+    blink_inc();
 
     return next;
 }
 
 void state_main_exit(fsm_node_t *node, fsm_event_t event)
 {
-    timer3_stop();
-}
-
-fsm_state_t state_main_release_minus(fsm_node_t *node, fsm_event_t event, void *data)
-{
-    scan_log_idx_decrease(&g_rt->read_idx[g_rt->scan_mode]);
-    return node->state;
-}
-
-fsm_state_t state_main_release_plus(fsm_node_t *node, fsm_event_t event, void *data)
-{
-    scan_log_idx_increase(&g_rt->read_idx[g_rt->scan_mode]);
-    return node->state;
-}
-
-fsm_state_t state_main_scan_mode_switch(fsm_node_t *node, fsm_event_t event, void *data)
-{
-    // to display history
-    uint8_t scan_mode = scan_mode_runtime_update();
-
-    g_rt->scan_show = 0;
-    g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
-
-    return node->state;
-}
-
-static void fn_hold_timer(void *data)
-{
-    // double check
-    if (key_released_query(KEY_FN))
-        return;
-
-    fsm_event_post(&g_fsm, FSM_EVENT_RING_PRIO_HI, FSM_EVENT_IRQ_TIMER3);
-}
-
-fsm_state_t state_main_press_fn(fsm_node_t *node, fsm_event_t event, void *data)
-{
-    timer3_set(TIM3_PCLK_4M256D_2SEC, 1, fn_hold_timer, NULL);
-    timer3_start();
-
-    return node->state;
-}
-
-fsm_state_t state_main_release_fn(fsm_node_t *node, fsm_event_t event, void *data)
-{
-    timer3_stop();
-
-    return node->state;
+    UNUSED_PARAM(node);
+    UNUSED_PARAM(event);
 }

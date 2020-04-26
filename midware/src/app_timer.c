@@ -10,6 +10,8 @@
 
 #define TIMER3_PCLK_DIV         (256)
 
+uint8_t blink_cnt;
+
 static stc_tim3_mode0_cfg_t timer3_reg_cfg;
 
 static uint8_t              timer3_oneshot = 0;

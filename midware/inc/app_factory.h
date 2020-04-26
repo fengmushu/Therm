@@ -5,7 +5,7 @@
 
 #include "app_data.h"
 
-#define FACTORY_MODE_UV_DEBUG
+// #define FACTORY_MODE_UV_DEBUG
 
 extern uint8_t factory_mode;
 

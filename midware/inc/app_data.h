@@ -46,6 +46,7 @@
 enum beep_mode {
     BEEP_OFF = 0,
     BEEP_ON,
+    NUM_BEEP_MODES,
 };
 
 // WARN: keep this in sync with app_lcd.h
@@ -91,13 +92,12 @@ typedef struct app_save {
 // variables that required for runtime
 //
 typedef struct app_runtime {
+    uint8_t    battery_lvl;
     uint8_t    scan_mode;
-    uint8_t    scan_mode_last;
     uint8_t    scan_show;
     uint8_t    scan_done;
     int16_t    scan_result[NUM_SCAN_MODES];
     uint8_t    read_idx[NUM_SCAN_MODES];
-    uint8_t    battery_low;
 
     app_save_t save;
 } app_runtime_t;

@@ -1,6 +1,8 @@
 #ifndef __APP_FN_H__
 #define __APP_FN_H__
 
+#include "fsm.h"
+
 enum {
 	APP_FN_OK = 0,
 	APP_FN_ERR,
@@ -16,5 +18,9 @@ void app_fn_enter(void);
 
 void app_fn_btn_plus(void);
 void app_fn_btn_minus(void);
+
+fsm_state_t fsm_state_beep_cycle(fsm_node_t *node,
+                                 fsm_event_t event,
+                                 void *data);
 
 #endif /* __APP_FN_H__ */

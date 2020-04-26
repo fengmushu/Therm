@@ -234,51 +234,21 @@ static fsm_node_t state_main = {
     .exit    = state_main_exit,
     .events  = 0,
     .actions = {
-        // {
-        //     .event  = FSM_EVENT_RELEASE_MINUS,
-        //     .action = state_main_release_minus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_PLUS,
-        //     .action = state_main_release_plus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
         {
-            .event  = FSM_EVENT_PRESS_FN,
-            .action = state_main_press_fn,
+            .event  = FSM_EVENT_RELEASE_BEEP,
+            .action = fsm_state_beep_cycle,
             .next   = __FSM_STATE_NONE,
         },
         {
             .event  = FSM_EVENT_RELEASE_FN,
-            .action = state_main_release_fn,
-            .next   = __FSM_STATE_NONE,
-        },
-        // {
-        //     .event  = FSM_EVENT_PRESS_TRIGGER,
-        //     .action = NULL,
-        //     .next   = FSM_STATE_SCAN,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_TRIGGER,
-        //     .action = NULL,
-        //     .next   = FSM_STATE_SCAN,
-        // },
-        // {
-        //     .event  = FSM_EVENT_SWITCH_BODY,
-        //     .action = state_main_scan_mode_switch,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_SWITCH_SURFACE,
-        //     .action = state_main_scan_mode_switch,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        {
-            .event  = FSM_EVENT_IRQ_TIMER3,
             .action = NULL,
             .next   = FSM_STATE_CONFIG,
         },
+        // {
+        //     .event  = FSM_EVENT_IRQ_TIMER3,
+        //     .action = NULL,
+        //     .next   = FSM_STATE_CONFIG,
+        // },
         {
             .event  = FSM_EVENT_SYS_HALT,
             .action = NULL,
@@ -298,8 +268,7 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
 
     UNUSED_PARAM(event);
 
-    // waited in main->enter()
-    AppLcdSetLock(TRUE);
+    AppLcdSetString(Str_LINE);
     AppLcdDisplayUpdate(0);
 
     return next;
@@ -350,10 +319,6 @@ void state_scan_exit(fsm_node_t *node, fsm_event_t event)
 {
     UNUSED_PARAM(node);
     UNUSED_PARAM(event);
-
-    // cleared in main->enter()
-    // AppLcdSetLock(FALSE);
-    // AppLcdDisplayUpdate(0);
 }
 
 static fsm_node_t state_scan = {
@@ -437,18 +402,8 @@ static fsm_node_t state_config = {
     .events  = 0,
     .actions = {
         // {
-        //     .event  = FSM_EVENT_RELEASE_MINUS,
-        //     .action = state_config_release_minus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_PLUS,
-        //     .action = state_config_release_plus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_FN,
-        //     .action = state_config_release_fn,
+        //     .event  = FSM_EVENT_RELEASE_BEEP,
+        //     .action = fsm_state_beep_cycle,
         //     .next   = __FSM_STATE_NONE,
         // },
         {
