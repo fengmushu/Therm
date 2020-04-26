@@ -120,7 +120,7 @@ void app_runtime_init(app_runtime_t *rt)
 
 uint8_t scan_mode_runtime_update(void)
 {
-    return g_rt->scan_mode;
+    return g_cfg->scan_mode;
 }
 
 int16_t scan_log_read(scan_log_t *log, uint8_t idx)

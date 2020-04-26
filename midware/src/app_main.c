@@ -75,7 +75,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 {
     fsm_state_t next = node->state;
     uint8_t scan_show = g_rt->scan_show;
-    uint8_t scan_mode = g_rt->scan_mode;
+    uint8_t scan_mode = g_cfg->scan_mode;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
 
     // by testing, say 5 at least to stabilize lcd
@@ -91,7 +91,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 
     AppLcdSetBuzzer(g_cfg->beep_on);
     AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdSetCheckMode(g_rt->scan_mode, TRUE);
+    AppLcdSetCheckMode(g_cfg->scan_mode, TRUE);
     AppLcdSetBattery(TRUE, g_rt->battery_lvl);
 
     AppLcdSetSymbol(SAD_SYM, FALSE);

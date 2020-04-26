@@ -52,16 +52,16 @@ static void fn_scmode_sel_show(int8_t idx)
 {
     AppLcdSetString(fn_menus[idx].lcd_str);
 
-    AppLcdSetCheckMode(g_rt->scan_mode, TRUE);
+    AppLcdSetCheckMode(g_cfg->scan_mode, TRUE);
     if (blink_is_on_duty(BLINK_DUTY_50, 4))
-        AppLcdSetCheckMode(g_rt->scan_mode, FALSE);
+        AppLcdSetCheckMode(g_cfg->scan_mode, FALSE);
 
     AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_scmode_opt_next(int8_t idx)
 {
-    g_rt->scan_mode = opt_cycle_inc(g_rt->scan_mode, NUM_SCAN_MODES);
+    g_cfg->scan_mode = opt_cycle_inc(g_cfg->scan_mode, NUM_SCAN_MODES);
 }
 
 static void fn_tunit_sel_show(int8_t idx)

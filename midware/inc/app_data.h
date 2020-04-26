@@ -78,7 +78,7 @@ typedef struct app_cfg {
     int16_t body_alarm_C;
     uint8_t temp_unit;
     uint8_t beep_on;
-
+    uint8_t scan_mode;
     uint8_t sleep_jiffies;
 } app_cfg_t;
 
@@ -92,12 +92,11 @@ typedef struct app_save {
 // variables that required for runtime
 //
 typedef struct app_runtime {
-    uint8_t    battery_lvl;
-    uint8_t    scan_mode;
-    uint8_t    scan_show;
-    uint8_t    scan_done;
     int16_t    scan_result[NUM_SCAN_MODES];
     uint8_t    read_idx[NUM_SCAN_MODES];
+    uint8_t    scan_show;
+    uint8_t    scan_done;
+    uint8_t    battery_lvl;
 
     app_save_t save;
 } app_runtime_t;
