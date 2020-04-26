@@ -410,7 +410,7 @@ void AppCalibration(void)
     CalData_t Cal;
     float32_t fNtc, fTemp;
     uint8_t u8CaType = 0;
-    uint32_t uNtcH, uNtcL, uViR;
+    uint32_t uNtcH, uNtcL, uViR, uSurf;
 
     NNA_CalInit(&Cal);
 
@@ -525,9 +525,10 @@ void AppCalibration(void)
 
     while (1)
     {
-        uint32_t uNtc, uSurf, uHuman;
+        uint32_t uNtc, uHuman;
+        static uint16_t s_times = 0;
         ///< 用校准后的参数验证测试 & 按键确认
-        while (!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_FN))
+        while (!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_FN) && !key_pressed_query(KEY_LOG))
             ; //等按键触发
 
         if (key_pressed_query(KEY_TRIGGER))
@@ -537,6 +538,21 @@ void AppCalibration(void)
             /* log set uViR */
             //AppLcdSetLogRawNumber(uViR, FALSE, 1);
             AppLcdDisplayUpdate(0);
+            s_times = 0;
+        }
+
+        if (key_pressed_query(KEY_LOG)) //下翻按键切换显示内容
+        {
+            if (s_times % 2 == 0) // uViR
+            {
+                AppLcdSetRawNumber(uViR, FALSE, 4);
+            }
+            else //temp
+            {
+                AppLcdSetTemp(uSurf / 10);
+            }
+            AppLcdDisplayUpdate(0);
+            s_times++;
         }
 
         if (key_pressed_query(KEY_FN))
