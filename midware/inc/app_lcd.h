@@ -97,10 +97,29 @@ typedef enum enStrType
     Str_OFF     = 5,            /* oFF */
     Str_LO      = 6,            /* Lo */
     Str_HI      = 7,            /* HI */
-    Str_NONE    = 8,            /* 不显示 */
+    Str_LINE    = 8,            /* ---- */
+    Str_NONE    = 9,            /* 不显示 */
     Str_MAX
 }enStrType_t;
 
+typedef enum enLcdSymbolType
+{
+    BATTERY_SYM    = 0,     /* 电池 */
+    BAT1_SYM       = 1,     /* 电池余量1 */
+    BAT2_SYM       = 2,     /* 电池余量2 */
+    BAT3_SYM       = 3,     /* 电池余量3 */
+    FAH_SYM        = 4,     /* 华氏度 */
+    CELS_SYM       = 5,     /* 摄氏度 */
+    LOG_SYM        = 6,     /* log标记 */
+    BUZZER_SYM     = 7,     /* 蜂鸣器 */
+    TEMP_DOT_SYM   = 8,     /* 当前温度的点号 */
+    BODY_SYM       = 9,     /* 人体测温标记 */
+    SURFACE_SYM    = 10,    /* 物体测温标记 */
+    SAD_SYM        = 11,    /* 难过表情 */
+    SMILE_SYM      = 12,    /* 微笑表情 */
+    BLUE_SYM       = 13,    /* 蓝牙 */
+    MAX_SYM
+}enLcdSymbolType_t;
 
 
 /*******************************************************************************
@@ -114,11 +133,11 @@ extern void AppLcdDisplayClear(void);
 
 extern void AppLcdDisplayAll(void);
 
-extern void AppLcdSetLock(boolean_t display);
+extern void AppLcdSetSymbol(enLcdSymbolType_t type, boolean_t display);
 
 extern void AppLcdSetBuzzer(boolean_t display);
 
-extern void AppLcdSetBattery(boolean_t display);
+extern void AppLcdSetBattery(boolean_t display, uint8_t left_v);
 
 extern void AppLcdSetCheckMode(enCheckMode_t CheckMode, boolean_t display);
 
@@ -128,14 +147,7 @@ extern void AppLcdSetTemp(uint16_t Temp);
 
 extern void AppLcdClearTemp(void);
 
-extern void AppLcdSetLogTemp(uint16_t Temp, int16_t Index);
-
-extern void AppLcdClearLogTemp(void);
-
 extern void AppLcdSetLogIndex(uint8_t icon, int16_t index);
-
-extern void AppLcdSetLogRawNumber(int16_t Temp, 
-    boolean_t dis_dot, uint8_t min_digits);
 
 extern void AppLcdSetString(enStrType_t StrType);
 
@@ -148,9 +160,9 @@ extern void AppLcdClearAll(void);
 
 extern void AppLcdBlink(void); 
 
-void AppLcdEnable(void);
+extern void AppLcdEnable(void);
 
-void AppLcdDisable(void);
+extern void AppLcdDisable(void);
 
 #ifdef __cplusplus
 #endif

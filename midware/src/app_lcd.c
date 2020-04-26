@@ -58,21 +58,6 @@
 /* lcd symbol bit */
 #define LCD_SYM_MSK 0x08
 
-typedef enum enLcdSymbolType
-{
-    BATTERY_SYM    = 0,     /* 电池 */
-    LOG_T_DT_SYM   = 1,     /* 记录温度的点号 */
-    FAH_SYM        = 2,     /* 华氏度 */
-    CELS_SYM       = 3,     /* 摄氏度 */
-    LOCK_SYM       = 4,     /* 锁标记 */
-    LOG_SYM        = 5,     /* log标记 */
-    BUZZER_SYM     = 6,     /* 蜂鸣器 */
-    TEMP_DOT_SYM   = 7,     /* 当前温度的点号 */
-    BODY_SYM       = 8,     /* 人体测温标记 */
-    SURFACE_SYM    = 9,     /* 物体测温标记 */
-    MAX_SYM
-}enLcdSymbolType_t;
-
 #if 0 /* if no memory, */
 typedef enum enLcdChar
 {
@@ -120,72 +105,125 @@ typedef struct stc_lcd_display_cfg
 static stc_lcd_cfg_t LcdConfig;
 static stc_lcd_display_cfg_t gstcLcdDisplayCfg = {0};
 
-/* our lcd num */
-static const uint16_t s_LcdNumCode[11] = {
-    0x0f05, //0
-    0x0005, //1
-    0x0D03, //2
-    0x0907, //3
-    0x0207, //4
-    0x0b06, //5
-    0x0f06, //6
-    0x0105, //7
-    0x0f07, //8
-    0x0b07, //9
-    0x0002, //-
+static const uint8_t s_NumPos[4] = {
+    2,   //2-1seg
+    4, 	 //4-3seg
+    10,  //10-9seg
+    12,  //12-11seg
 };
 
-/* 0x0702 F 0x0e00 L 0x0c06 o 0x0705 N 0x0607 H*/
+static const uint8_t s_LogNumPos[2] = {
+    6, //8-7seg
+    8, //6-5seg
+};
+
+static const uint8_t s_SymbolPos[14] = {
+    13,     /* 电池 */
+    9,      /* 电池余量1 */
+    0,      /* 电池余量2 */
+    0,      /* 电池余量3 */
+    13,     /* 华氏度 */
+    13,     /* 摄氏度 */
+    7,      /* log标记 */
+    13,     /* 蜂鸣器 */
+    11,     /* 当前温度的点号 */
+    0,      /* 人体测温标记 */
+    5,      /* 物体测温标记 */
+    3,      /* 难过表情 */
+    1,      /* 微笑表情 */
+    0,      /* 蓝牙 */
+};
+
+static const uint8_t s_SymbolCode[14] = {
+    0x1,     /* 电池 */
+    0x1,     /* 电池余量1 */
+    0x4,    /* 电池余量2 */
+    0x8,    /* 电池余量3 */
+    0x4,     /* 华氏度 */
+    0x8,     /* 摄氏度 */
+    0x1,     /* log标记 */
+    0x2,     /* 蜂鸣器 */
+    0x1,     /* 当前温度的点号 */
+    0x2,    /* 人体测温标记 */
+    0x1,     /* 物体测温标记 */
+    0x1,    /* 难过表情 */
+    0x1,    /* 微笑表情 */
+    0x1,    /* 蓝牙 */
+};
+
+
+/* our lcd num , hight 4bits low 4bits */
+static const uint8_t s_LcdNumCode[12][2] = {
+    {0xf, 0xa}, //0
+    {0x6, 0x0}, //1
+    {0xd, 0x6}, //2
+    {0xf, 0x4}, //3
+    {0x6, 0xc}, //4
+    {0xb, 0xc}, //5
+    {0xb, 0xe}, //6
+    {0xe, 0x0}, //7
+    {0xf, 0xe}, //8
+    {0xf, 0xc}, //9
+    {0x0, 0x4}, //-
+    {0x3, 0x6}, //'o'
+};
+
+
 /* lcd string code */
-static const uint16_t s_LcdStrCode[Str_MAX -1][2] = 
+static const uint8_t s_LcdStrCode[Str_MAX -1][4] = 
 {
-    {0x0702, 0x0005},            /* F1 */
-    {0x0702, 0x0D03},            /* F2 */
-    {0x0702, 0x0907},            /* F3 */
-    {0x0702, 0x0207},            /* F4 */
-    {0x0c06, 0x0705},            /* oN */
-    {0x0c06, 0x0702},            /* oFF */
-    {0x0e00, 0x0c06},            /* Lo */
-    {0x0607, 0x0005},            /* HI */
+    {0x8, 0xe, 0x6, 0x0},            /* F1 */
+    {0x8, 0xe, 0xd, 0x6},            /* F2 */
+    {0x8, 0xe, 0xf, 0x4},            /* F3 */
+    {0x8, 0xe, 0x6, 0xc},            /* F4 */
+    {0x3, 0x6, 0xe, 0xa},            /* oN */
+    {0x8, 0xe, 0x8, 0xe},            /* oFF */
+    {0x1, 0xa, 0x3, 0x6},            /* Lo */
+    {0x6, 0xe, 0x6, 0x0},            /* HI */
+    {0x0, 0x4, 0x0, 0x4}             /* -- */
 };
     
 
-static inline void sAppLcdDisplaySymbol(volatile uint16_t* LcdRam, enLcdSymbolType_t Type, boolean_t display)
+static inline void sAppLcdDisplaySymbol(volatile uint8_t* LcdRam, enLcdSymbolType_t Type, boolean_t display)
 {
-    /* 现在的设计ram index刚好对应type值 */
     if (display)
     {
-        LcdRam[Type] |= LCD_SYM_MSK;
+        LcdRam[s_SymbolPos[Type]] |= s_SymbolCode[Type];
     }
     else
     {
-        LcdRam[Type] &= ~LCD_SYM_MSK;
+        LcdRam[s_SymbolPos[Type]] &= ~s_SymbolCode[Type];
     }
 }
 
 
-static inline void sAppLcdDisplayNumber(uint16_t Display, volatile uint16_t* LcdRam, uint16_t RamIndex, 
+static inline void sAppLcdDisplayNumber(uint16_t Display, volatile uint8_t* LcdRam, 
         uint16_t Max_number, int8_t MinDigit)
 {
+    int8_t i = 3; 
     if (Display > Max_number)
     {
         Display = Max_number;
     }
     
-    while (Display > 0 || MinDigit > 0)
+    while (i >= 0 && (Display > 0 || MinDigit > 0))
     {
-        LcdRam[RamIndex++] = s_LcdNumCode[Display%10];
+        LcdRam[s_NumPos[i]] = s_LcdNumCode[Display%10][0];
+        LcdRam[s_NumPos[i] - 1] = s_LcdNumCode[Display%10][1];
         Display /= 10;
         MinDigit--;
+        i--;
     }
     
     return;
 }
 
-static inline void sAppLcdDisplayRawNumber(int16_t Display, volatile uint16_t* LcdRam, uint16_t RamIndex, 
+static inline void sAppLcdDisplayRawNumber(int16_t Display, volatile uint8_t* LcdRam, 
         int8_t MinDigit)
 {
     boolean_t is_negative = Display < 0 ? TRUE : FALSE;
+    int8_t i = 3;
+    
     if ( Display < -999 || Display > 9999)
     {
         DBG_PRINT("%s: error display=%d\r\n", __func__, Display);
@@ -193,28 +231,34 @@ static inline void sAppLcdDisplayRawNumber(int16_t Display, volatile uint16_t* L
     }
     
     if (is_negative)Display = - Display;
-
-    while (Display != 0 || MinDigit > 0)
+   
+    while (i >= 0 && (Display > 0 || MinDigit > 0))
     {
-        LcdRam[RamIndex++] = s_LcdNumCode[Display%10];
+        LcdRam[s_NumPos[i]] = s_LcdNumCode[Display%10][0];
+        LcdRam[s_NumPos[i] - 1] = s_LcdNumCode[Display%10][1];
         Display /= 10;
         MinDigit--;
+        i--;
     }
     
     if (is_negative)
     {
-        LcdRam[RamIndex] = s_LcdNumCode[10];
+        if (i < 0) i = 0;
+        LcdRam[s_NumPos[i]] = s_LcdNumCode[10][0];
+        LcdRam[s_NumPos[i] - 1] = s_LcdNumCode[10][1];
     }
     
     return;
 }
 
-static inline void sAppLcdNoDisplayNumber(volatile uint16_t* LcdRam, uint16_t RamIndex, uint8_t digit_num)
+static inline void sAppLcdNoDisplayNumber(volatile uint8_t* LcdRam, uint8_t digit_num)
 {  
-    while (digit_num > 0)
+    int8_t i = digit_num - 1;
+    while (i >= 0)
     {
-        LcdRam[RamIndex++] = 0;
-        digit_num--;
+        LcdRam[s_NumPos[i]] = 0;
+        LcdRam[s_NumPos[i] - 1] = 0;
+        i--;
     }
     
     return;
@@ -223,27 +267,41 @@ static inline void sAppLcdNoDisplayNumber(volatile uint16_t* LcdRam, uint16_t Ra
 /* temp display: digit[1-4] ->pu16LcdRam[9-6] */
 static inline void sAppLcdDisplayTemp(stc_lcd_display_cfg_t *pstcLcdDisplayCfg)
 {
-    volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
+    volatile uint8_t* LcdRam = (volatile uint8_t *)(&M0P_LCD->RAM0);
 
     /* display number */
-    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16Temp, pu16LcdRam, 6, 9999, 2);
-    sAppLcdDisplaySymbol(pu16LcdRam, TEMP_DOT_SYM, TRUE);
+    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16Temp, LcdRam, 9999, 2);
+    sAppLcdDisplaySymbol(LcdRam, TEMP_DOT_SYM, TRUE);
 }
 
 /* String disply: digit[2-4] -> pu16LcdRam[8-6] */
 static inline void sAppLcdDisplayStr(stc_lcd_display_cfg_t *pstcLcdDisplayCfg)
 {
-    volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
-    uint16_t RamIndex = 8;
-    uint8_t i;
+    volatile uint8_t *LcdRam = (volatile uint8_t *)(&M0P_LCD->RAM0);
+    int8_t i = 2, j = 0;
 
-    pu16LcdRam[RamIndex--] = s_LcdStrCode[pstcLcdDisplayCfg->enStrType][0];
-    pu16LcdRam[RamIndex--] = s_LcdStrCode[pstcLcdDisplayCfg->enStrType][1];
-    
+    while (i < 4)
+    {
+        LcdRam[s_NumPos[i]] = s_LcdStrCode[pstcLcdDisplayCfg->enStrType][j++];
+        LcdRam[s_NumPos[i]-1] = s_LcdStrCode[pstcLcdDisplayCfg->enStrType][j++];
+        i++;
+    }
+     
     /* for Str_OFF, has 3 chars */
     if (pstcLcdDisplayCfg->enStrType == Str_OFF)
     {
-        pu16LcdRam[RamIndex] = s_LcdStrCode[pstcLcdDisplayCfg->enStrType][1];
+        LcdRam[s_NumPos[1]]   = s_LcdNumCode[11][0];
+        LcdRam[s_NumPos[1]-1] = s_LcdNumCode[11][1];
+    }
+    else if (pstcLcdDisplayCfg->enStrType == Str_LINE) /* Str_LINE has 4 chars */
+    {
+        i = 0;
+        while (i < 2)
+        {
+            LcdRam[s_NumPos[i]]   = s_LcdNumCode[10][0];
+            LcdRam[s_NumPos[i]-1] = s_LcdNumCode[10][1];
+            i++;
+        }
     }
     return;
 }
@@ -251,32 +309,45 @@ static inline void sAppLcdDisplayStr(stc_lcd_display_cfg_t *pstcLcdDisplayCfg)
 /* log temp index display: digit[5-6] ->pu16LcdRam[5-4]*/
 static inline void sAppLcdDisplayLogIndex(stc_lcd_display_cfg_t *pstcLcdDisplayCfg)
 {
-    volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
+    volatile uint8_t *LcdRam = (volatile uint8_t *)(&M0P_LCD->RAM0);
+    uint16_t Display = pstcLcdDisplayCfg->LogIndex;
+    int8_t MinDigit = 2;
 
-    /* display number */
-    sAppLcdDisplayNumber(pstcLcdDisplayCfg->LogIndex, pu16LcdRam, 4, 99, 2);
-}
-
-/* log temp display: digit[7-10] ->pu16LcdRam[3-0] */
-static inline void sAppLcdDisplayLogTemp(stc_lcd_display_cfg_t *pstcLcdDisplayCfg)
-{
-    volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
-
-    /* display number */
-    sAppLcdDisplayNumber(pstcLcdDisplayCfg->u16LogTemp, pu16LcdRam, 0, 9999, 2);
-    sAppLcdDisplaySymbol(pu16LcdRam, LOG_T_DT_SYM, TRUE);
+    int8_t i = 1; 
+    if (Display > 99)
+    {
+        Display = 99;
+    }
+    
+    while (i >= 0 && (Display > 0 || MinDigit > 0))
+    {
+        LcdRam[s_LogNumPos[i]] = s_LcdNumCode[Display%10][0];
+        LcdRam[s_LogNumPos[i] - 1] = s_LcdNumCode[Display%10][1];
+        Display /= 10;
+        MinDigit--;
+        i--;
+    }
+    
+    return;
 }
 
 /* log temp index display: digit[5-6] ->pu16LcdRam[5-4]*/
 static inline void sAppLcdNoDisplayLog(stc_lcd_display_cfg_t *pstcLcdDisplayCfg)
 {
-    volatile uint16_t *pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
+    volatile uint8_t *LcdRam = (volatile uint8_t *)(&M0P_LCD->RAM0);
 
-    /* no display number */
-    sAppLcdNoDisplayNumber(pu16LcdRam, 4, 2);
-    sAppLcdNoDisplayNumber(pu16LcdRam, 0, 4);
-    sAppLcdDisplaySymbol(pu16LcdRam, LOG_T_DT_SYM, FALSE);
-    sAppLcdDisplaySymbol(pu16LcdRam, LOG_SYM, FALSE);
+    int8_t i = 1;
+    while (i >= 0)
+    {
+        LcdRam[s_LogNumPos[i]] = 0;
+        LcdRam[s_LogNumPos[i] - 1] = 0;
+        i--;
+    }
+    
+    return;
+    
+    /* no display log */
+    sAppLcdDisplaySymbol(LcdRam, LOG_SYM, FALSE);
 }
 
 
@@ -350,12 +421,12 @@ void AppLcdDisplayAll(void)
     return;
 }
 
-void AppLcdSetLock(boolean_t display)
+void AppLcdSetSymbol(enLcdSymbolType_t type, boolean_t display)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOCK_SYM, display);
-    return;
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, type, display);
 }
+
 
 void AppLcdSetBuzzer(boolean_t display)
 {
@@ -364,10 +435,18 @@ void AppLcdSetBuzzer(boolean_t display)
     return;
 }
 
-void AppLcdSetBattery(boolean_t display)
+/* left_v 剩余电量(0格，1格，2格，3格) */
+void AppLcdSetBattery(boolean_t display, uint8_t left_v)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT1_SYM, FALSE);
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT2_SYM, FALSE);
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT3_SYM, FALSE);
+
     sAppLcdSetSymbol(pstcLcdDisplayCfg, BATTERY_SYM, display);
+    if (left_v > 0) sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT3_SYM, display);
+    if (left_v > 1) sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT2_SYM, display);
+    if (left_v > 2) sAppLcdSetSymbol(pstcLcdDisplayCfg, BAT1_SYM, display);
     return;
 }
 
@@ -425,7 +504,6 @@ void AppLcdSetTempMode(enTempMode_t TempMode, boolean_t display)
     return;
 }
 
-
 void AppLcdSetTemp(uint16_t Temp)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
@@ -451,55 +529,28 @@ void AppLcdClearTemp(void)
     return;
 }
 
-void AppLcdSetLogTemp(uint16_t Temp, int16_t Index)
+void AppLcdSetLogIndex(uint8_t icon, int16_t index)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
-    pstcLcdDisplayCfg->u16LogTemp = (uint16_t)Temp;
-    pstcLcdDisplayCfg->LogIndex = Index;
+
     pstcLcdDisplayCfg->bLogTempDis = TRUE;
-    pstcLcdDisplayCfg->bLogRawNum = FALSE;
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, TRUE);
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_T_DT_SYM, TRUE);
+    pstcLcdDisplayCfg->LogIndex = index;
+    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, icon);
+
     pstcLcdDisplayCfg->bLogChanged = TRUE;
-    return;
 }
 
-void AppLcdClearLogTemp(void)
+void AppLcdClearLogIndex(void)
 {
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
     pstcLcdDisplayCfg->LogIndex = -1;
     pstcLcdDisplayCfg->bLogTempDis = FALSE;
     pstcLcdDisplayCfg->bLogRawNum = FALSE;
     sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, FALSE);
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_T_DT_SYM, FALSE);
     pstcLcdDisplayCfg->bLogChanged = TRUE;
     return;
 }
 
-void AppLcdSetLogIndex(uint8_t icon, int16_t index)
-{
-    stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
-
-    pstcLcdDisplayCfg->LogIndex = index;
-
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, icon);
-
-    pstcLcdDisplayCfg->bLogChanged = TRUE;
-}
-
-void AppLcdSetLogRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits)
-{
-    stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
-    pstcLcdDisplayCfg->u16LogTemp = Temp;
-    pstcLcdDisplayCfg->bLogRawNum = TRUE;
-    pstcLcdDisplayCfg->bLogTempDis = FALSE;
-    pstcLcdDisplayCfg->bLogRaw_digits_num = min_digits > 4 ? 4 : min_digits;
-
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_T_DT_SYM, dis_dot);
-    sAppLcdSetSymbol(pstcLcdDisplayCfg, LOG_SYM, FALSE);
-    pstcLcdDisplayCfg->bLogChanged = TRUE;
-    return;
-}
 
 void AppLcdSetString(enStrType_t StrType)
 {
@@ -546,17 +597,17 @@ void AppLcdSetRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits)
  ******************************************************************************/
 void AppLcdDisplayUpdate(uint32_t delay_ms)
 {
-    volatile uint16_t *pu16LcdRam;
+    volatile uint8_t *pu8LcdRam;
     uint8_t i = 0;
     stc_lcd_display_cfg_t *pstcLcdDisplayCfg = &gstcLcdDisplayCfg;
 
     //AppLcdDisplayClear();
-    pu16LcdRam = (volatile uint16_t *)(&M0P_LCD->RAM0);
+    pu8LcdRam = (volatile uint8_t *)(&M0P_LCD->RAM0);
        
     /* temp display */
     if (pstcLcdDisplayCfg->bTempChanged)
     {
-        sAppLcdNoDisplayNumber(pu16LcdRam, 6, 4);
+        sAppLcdNoDisplayNumber(pu8LcdRam, 4);
         if (pstcLcdDisplayCfg->bTempDis)
         {
             sAppLcdDisplayTemp(pstcLcdDisplayCfg);
@@ -568,7 +619,7 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
         else if (pstcLcdDisplayCfg->bRawNum)
         {
             sAppLcdDisplayRawNumber(pstcLcdDisplayCfg->u16Temp, 
-                pu16LcdRam, 6, pstcLcdDisplayCfg->bRaw_digits_num);
+                pu8LcdRam, pstcLcdDisplayCfg->bRaw_digits_num);
         }
         pstcLcdDisplayCfg->bTempChanged = FALSE;
     }
@@ -577,26 +628,16 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
     {
         /* log index display */
         sAppLcdNoDisplayLog(pstcLcdDisplayCfg);
-        if (pstcLcdDisplayCfg->LogIndex > 0)
+        if (pstcLcdDisplayCfg->LogIndex >= 0)
             sAppLcdDisplayLogIndex(pstcLcdDisplayCfg);
-
-        if (pstcLcdDisplayCfg->bLogTempDis)
-        {
-            /* log temp display */        
-            sAppLcdDisplayLogTemp(pstcLcdDisplayCfg);
-        }
-        else if(pstcLcdDisplayCfg->bLogRawNum)
-        {
-            sAppLcdDisplayRawNumber(pstcLcdDisplayCfg->u16LogTemp, 
-                pu16LcdRam, 0, pstcLcdDisplayCfg->bLogRaw_digits_num);
-        }
+ 
         pstcLcdDisplayCfg->bLogChanged = FALSE;
     }
 
     /* symbols display */
     for (i = 0; i < MAX_SYM; ++i)
     {
-        sAppLcdDisplaySymbol(pu16LcdRam, i, pstcLcdDisplayCfg->Sym_display[i]);
+        sAppLcdDisplaySymbol(pu8LcdRam, i, pstcLcdDisplayCfg->Sym_display[i]);
     }
 
     if (delay_ms)
@@ -609,7 +650,7 @@ void AppLcdClearAll(void)
 {
     memset(&gstcLcdDisplayCfg, 0, sizeof(gstcLcdDisplayCfg));
     AppLcdClearTemp();
-    AppLcdClearLogTemp();
+    AppLcdClearLogIndex();
     return;
 }
 
@@ -631,7 +672,7 @@ void AppLcdBlink(void)
     }
 }
 
-#define LCD_DEBUG 1
+#define LCD_DEBUG 0
 #if LCD_DEBUG
 void AppLcdDebug(void)
 {
@@ -640,6 +681,7 @@ void AppLcdDebug(void)
     {
         uint16_t i = 0;  
         uint16_t tmp = 0;
+        
         AppLcdBlink();          ///< 初次上电开机LCD全屏显示闪烁两次
         AppLcdDisplayClear();    ///< LCD 初始状态显示
 
@@ -658,7 +700,7 @@ void AppLcdDebug(void)
         AppLcdSetRawNumber(-100, TRUE, 4);
         AppLcdDisplayUpdate(500);
 
-        AppLcdSetBattery(TRUE);
+        AppLcdSetBattery(TRUE, 0);
         AppLcdDisplayUpdate(500);
 
         AppLcdSetBuzzer(TRUE);
@@ -668,16 +710,23 @@ void AppLcdDebug(void)
         AppLcdDisplayUpdate(500);
 
         AppLcdSetCheckMode(Body, TRUE);
-        AppLcdDisplayUpdate(500);
-
-        AppLcdSetLock(TRUE);
-        AppLcdDisplayUpdate(500);
+        AppLcdDisplayUpdate(500);  
 
         AppLcdSetTempMode(Celsius, TRUE);
         AppLcdDisplayUpdate(500);
 
         AppLcdSetTempMode(Fahrenheit, TRUE);
         AppLcdDisplayUpdate(500);
+
+        AppLcdClearAll();
+        AppLcdDisplayUpdate(500);
+        
+        for (i = 0; i < MAX_SYM; ++i)
+        {
+            AppLcdSetSymbol(i, TRUE);
+            AppLcdDisplayUpdate(500);
+            AppLcdSetSymbol(i, FALSE);
+        }
                
         for (i = 0; i < Str_MAX; ++i)
         {
@@ -697,12 +746,12 @@ void AppLcdDebug(void)
             tmp += (i < 10) ? i:0;
 
             AppLcdSetTemp(tmp);
-            AppLcdSetLogTemp(tmp, tmp > 100 ? tmp/100 : tmp);
+            AppLcdSetLogIndex(1, tmp > 100 ? tmp/100 : tmp);
 
             AppLcdSetTempMode(Celsius, i%2);
 
 					
-            AppLcdSetBattery(i%2);
+            AppLcdSetBattery(1, i % 4);
 
             AppLcdDisplayUpdate(500);
         }
