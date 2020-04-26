@@ -88,6 +88,8 @@
 
 static UID_t           gstUID;
 
+static const boolean_t s_led_active_low = FALSE;
+
 // App 系统时钟/总线初始化
 void AppSysClkInit(void)
 {
@@ -163,27 +165,48 @@ void AppPmuInit(void)
     Lpm_Config(&stcConfig);
 }
 
+static void sAppLedEnable(en_led_colour_t led_c, en_led_colour_t uColor, en_gpio_port_t enPort, en_gpio_pin_t enPin)
+{
+    if(led_c & uColor)
+    {   
+        if (s_led_active_low)
+        {
+            Gpio_ClrIO(enPort, enPin);
+        }
+        else
+        {
+            Gpio_SetIO(enPort, enPin);
+        }
+    } else {
+        if (s_led_active_low)
+        {
+            Gpio_SetIO(enPort, enPin);
+        }
+        else
+        {
+            Gpio_ClrIO(enPort, enPin);
+        }   
+    }
+}
+
 void AppLedEnable(en_led_colour_t uColor)
 {
-    if(LedRed & uColor)
-    {
-        Gpio_ClrIO(M_LED_RED_PORT, M_LED_RED_PIN);
-    } else {
-        Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
-    }
-
-    if(LedGreen & uColor)
-    {
-        Gpio_ClrIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
-    } else {
-        Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
-    }
+    sAppLedEnable(LedRed, uColor, M_LED_RED_PORT, M_LED_RED_PIN);
+    sAppLedEnable(LedGreen, uColor, M_LED_GREEN_PORT, M_LED_GREEN_PIN);
 }
 
 void AppLedDisable(void)
 {
-    Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
-    Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
+    if (s_led_active_low)
+    {
+        Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
+        Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
+    }
+    else
+    {
+        Gpio_ClrIO(M_LED_RED_PORT, M_LED_RED_PIN);
+        Gpio_ClrIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
+    }
 }
 
 ///< VCC 电量监测模块初始化
