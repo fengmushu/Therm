@@ -268,8 +268,10 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
 
     UNUSED_PARAM(event);
 
-    AppLcdSetString(Str_LINE);
-    AppLcdDisplayUpdate(0);
+    // display [----] will override last result
+    // which will break burst scan mode
+    // AppLcdSetString(Str_LINE);
+    // AppLcdDisplayUpdate(0);
 
     return next;
 }
