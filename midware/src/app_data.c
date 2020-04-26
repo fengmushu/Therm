@@ -26,6 +26,7 @@ static app_cfg_t default_cfg = {
     .body_alarm_C   = BODY_ALARM_THRESH_DEF,
     .temp_unit      = TUNIT_C,
     .beep_on        = BEEP_ON,
+    .scan_mode      = SCAN_BODY,
     .sleep_jiffies  = AUTO_SLEEP_TIMEOUT,
 };
 
