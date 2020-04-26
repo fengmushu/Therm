@@ -7,11 +7,10 @@
 
 // NOTE: do not change the order
 typedef enum gpio_key {
-    KEY_MINUS = 0,
-    KEY_PLUS,
+    KEY_BEEP = 0,
+    KEY_LOG,
     KEY_FN,
     KEY_TRIGGER,
-    KEY_SWITCH,
     NUM_GPIO_KEYS,
 } gpio_key_t;
 
@@ -43,7 +42,7 @@ static __always_inline int is_key_released(gpio_key_t key)
 
 static __always_inline int is_any_key_pressed(void)
 {
-    return bm_key_pressed & ~BIT(KEY_SWITCH);
+    return bm_key_pressed;
 }
 
 //

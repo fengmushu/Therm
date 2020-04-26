@@ -24,11 +24,10 @@ typedef struct key_map {
 } key_map_t;
 
 static key_map_t keys_map[] = {
-    [KEY_MINUS]   = { M_KEY_LEFT_PORT,   M_KEY_LEFT_PIN,   FSM_EVENT_PRESS_MINUS,   FSM_EVENT_RELEASE_MINUS   },
-    [KEY_PLUS]    = { M_KEY_MID_PORT,    M_KEY_MID_PIN,    FSM_EVENT_PRESS_PLUS,    FSM_EVENT_RELEASE_PLUS    },
-    [KEY_FN]      = { M_KEY_RIGHT_PORT,  M_KEY_RIGHT_PIN,  FSM_EVENT_PRESS_FN,      FSM_EVENT_RELEASE_FN      },
-    [KEY_TRIGGER] = { M_KEY_TRIG_PORT,   M_KEY_TRIG_PIN,   FSM_EVENT_PRESS_TRIGGER, FSM_EVENT_RELEASE_TRIGGER },
-    [KEY_SWITCH]  = { M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, FSM_EVENT_SWITCH_BODY,   FSM_EVENT_SWITCH_SURFACE  },
+    [KEY_BEEP]    = { M_KEY_LEFT_PORT,  M_KEY_LEFT_PIN,  FSM_EVENT_PRESS_BEEP,    FSM_EVENT_RELEASE_BEEP    },
+    [KEY_LOG]     = { M_KEY_MID_PORT,   M_KEY_MID_PIN,   FSM_EVENT_PRESS_LOG,     FSM_EVENT_RELEASE_LOG     },
+    [KEY_FN]      = { M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, FSM_EVENT_PRESS_FN,      FSM_EVENT_RELEASE_FN      },
+    [KEY_TRIGGER] = { M_KEY_TRIG_PORT,  M_KEY_TRIG_PIN,  FSM_EVENT_PRESS_TRIGGER, FSM_EVENT_RELEASE_TRIGGER },
 };
 
 static uint8_t fsm_state_key_pressed[] = {
@@ -109,8 +108,10 @@ void PortC_IRQHandler(void)
 {
     AppRtcFeed();
 
-    for (int i = KEY_MINUS; i <= KEY_FN; i++)
+    for (int i = KEY_BEEP; i <= KEY_FN; i++)
         key_gpio_irq_handle(i);
+
+    // FIXME: what if we need to clear other undefined irqs?
 
     DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }
@@ -119,8 +120,7 @@ void PortD_IRQHandler(void)
 {
     AppRtcFeed();
 
-    for (int i = KEY_TRIGGER; i <= KEY_SWITCH; i++)
-        key_gpio_irq_handle(i);
+    key_gpio_irq_handle(KEY_TRIGGER);
 
     DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }

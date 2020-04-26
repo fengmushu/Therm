@@ -182,14 +182,8 @@ lcd_update:
         goto out; // jump out
     }
 
-    if (key_pressed_query(KEY_PLUS)) {
+    if (key_pressed_query(KEY_LOG)) {
         scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
-        delay_budget += key_budget_ms;
-        goto delay;
-    }
-
-    if (key_pressed_query(KEY_MINUS)) {
-        scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
         delay_budget += key_budget_ms;
         goto delay;
     }

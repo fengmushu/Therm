@@ -208,13 +208,13 @@ int app_fn_proc(void)
         goto out;
     }
 
-    if (key_pressed_query(KEY_PLUS)) {
+    if (key_pressed_query(KEY_LOG)) {
         app_fn_btn_plus();
         delay1ms(250);
         goto out;
     }
 
-    if (key_pressed_query(KEY_MINUS)) {
+    if (key_pressed_query(KEY_BEEP)) {
         app_fn_btn_minus();
         delay1ms(250);
         goto out;

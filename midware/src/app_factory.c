@@ -17,7 +17,7 @@ scan_log_t log_ntc[NUM_SCAN_MODES];
 
 static int is_factory_test(void)
 {
-        if (key_pressed_query(KEY_MINUS))
+        if (key_pressed_query(KEY_BEEP))
                 return 1;
 
         return 0;
@@ -26,7 +26,7 @@ static int is_factory_test(void)
 #ifdef FACTORY_MODE_UV_DEBUG
 static int is_factory_debug(void)
 {
-        if (key_pressed_query(KEY_PLUS))
+        if (key_pressed_query(KEY_LOG))
                 return 1;
 
         return 0;
@@ -59,26 +59,20 @@ static void factory_key_test(void)
                 AppLcdDisplayAll();
                 delay1ms(30);
 
-                if (key_pressed_query(KEY_SWITCH)) {
-                        AppLedEnable(LedGreen);
-                } else {
-                        AppLedEnable(LedRed);
-                }
-
-                if (key_pressed_query(KEY_MINUS)) {
+                if (key_pressed_query(KEY_BEEP)) {
                         AppLedEnable(LedOrange);
                         beep_on();
                         AppLcdDisplayClear();
-                        key_wait_for_release(KEY_MINUS);
+                        key_wait_for_release(KEY_BEEP);
                         beep_off();
                         continue;
                 }
 
-                if (key_pressed_query(KEY_PLUS)) {
+                if (key_pressed_query(KEY_LOG)) {
                         AppLedEnable(LedOrange);
                         beep_on();
                         AppLcdDisplayClear();
-                        key_wait_for_release(KEY_PLUS);
+                        key_wait_for_release(KEY_LOG);
                         beep_off();
                         continue;
                 }

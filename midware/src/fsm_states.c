@@ -179,7 +179,7 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
     sys_resume();
 
     // hold [-] and [+] to reset, clear config
-    if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
+    if (key_pressed_query(KEY_BEEP) && key_pressed_query(KEY_LOG)) {
         AppLcdBlink();
         app_save_reset(g_save);
         app_save_i2c_store(g_save);

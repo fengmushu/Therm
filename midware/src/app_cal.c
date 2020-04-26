@@ -429,7 +429,7 @@ void AppCalibration(void)
     while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
 
     do {
-        if(key_pressed_query(KEY_MINUS)) {
+        if(key_pressed_query(KEY_BEEP)) {
             Cal.u8SensorType ++;
             if(Cal.u8SensorType >= en_sensor_max) {
                 Cal.u8SensorType = 0;
