@@ -94,6 +94,9 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     AppLcdSetCheckMode(g_rt->scan_mode, TRUE);
     AppLcdSetBattery(TRUE, g_rt->battery_lvl);
 
+    AppLcdSetSymbol(SAD_SYM, FALSE);
+    AppLcdSetSymbol(SMILE_SYM, FALSE);
+
     // blinking
     if (g_rt->battery_lvl == 0) {
         if (blink_is_on_duty(BLINK_DUTY_50, 4))
@@ -137,8 +140,10 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     // surface mode is always green, and LED is set green already
     //
     if (scan_mode == SCAN_BODY) {
-        AppLcdSetSymbol(SMILE_SYM, TRUE);
-        AppLcdSetSymbol(SAD_SYM, FALSE);
+        if (big_number > BODY_TEMP_UNDERFLOW_C) {
+            AppLcdSetSymbol(SMILE_SYM, TRUE);
+            AppLcdSetSymbol(SAD_SYM, FALSE);
+        }
 
         if (big_number >= BODY_FEVER_LOW) {
             AppLedEnable(LedOrange);
