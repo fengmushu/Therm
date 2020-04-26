@@ -553,6 +553,7 @@ void AppCalibration(void)
             }
             AppLcdDisplayUpdate(0);
             s_times++;
+            while(key_pressed_query(KEY_LOG)); //等按键释放
         }
 
         if (key_pressed_query(KEY_FN))
