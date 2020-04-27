@@ -99,6 +99,9 @@ void app_save_reset(app_save_t *save)
     save->magic = SAVE_MAGIC;
 
     memcpy(&save->cfg, &default_cfg, sizeof(save->cfg));
+
+    if (factory_mode)
+        save->cfg.sacn_mode = SCAN_SURFACE;
 }
 
 void app_runtime_init(app_runtime_t *rt)

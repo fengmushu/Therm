@@ -414,6 +414,8 @@ void AppCalibration(void)
 
     NNA_CalInit(&Cal);
 
+    factory_mode = 1;
+
     AppLedEnable(LedOrange);
     AppLcdClearAll();
     AppLcdBlink();
