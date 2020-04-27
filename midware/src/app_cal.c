@@ -283,7 +283,7 @@ static uint32_t SampleCal(uint32_t *aSum)
 
     uVal -= (uMax + uMin);
 
-    return uVal / (aSum[0] - 2);
+    return (uVal / (aSum[0] - 2)) * 2500 / 4096;
 }
 
 static void SampleDump(uint32_t *aSum)
@@ -341,7 +341,7 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
     *uVNtcH = SampleCal(uSumVNtcH);
     *uVNtcL = SampleCal(uSumVNtcL);
 
-    DBG_PRINT("\tADC- %u %u %u\r\n", *uViR, *uVNtcH, *uVNtcL);
+    DBG_PRINT("\tADC: %u H-L: %u %u\r\n", *uViR, *uVNtcH, *uVNtcL);
 
     return TRUE;
 }
