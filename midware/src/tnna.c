@@ -156,7 +156,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         X1 = (-a1 - N) / a2 / 2;
         X2 = (-a1 + N) / a2 / 2;
 
-        DBG_PRINT("\t- %f %f\r\n", X1, X2);
+        DBG_PRINT("\t* %f %f\r\n", X1, X2);
         // AppLcdSetTemp((uint32_t)(X1 * 10));
         // AppLcdSetLogTemp((uint32_t)(X2 * 10), 0);
         // AppLcdDisplayUpdate(1000);
@@ -187,13 +187,18 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
 float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint32_t *uRa)
 {
     uint32_t fNtcRL = 51000;
-    float32_t RaT_params[3];
+    float32_t RaT_params[3], fRa;
 
     memcpy(RaT_params, gSensor->RaT_Paras, sizeof(gSensor->RaT_Paras));
 
     // Ra-T = Vra / VnL * RL
     //< (3090 - 960) / 960 * 51000 = 119k
-    *uRa = (float32_t)(u32AdcNtcHCode - u32AdcNtcLCode) / u32AdcNtcLCode * fNtcRL;
+    // *uRa = (float32_t)(u32AdcNtcHCode - u32AdcNtcLCode) / u32AdcNtcLCode * fNtcRL;
+
+    //< Rx = Vx * 100K /  (2.5 - 2 * Vx)
+    *uRa = (float32_t) (u32AdcNtcHCode) * 100000 / (2500 - 2 * (float32_t) (u32AdcNtcHCode));
+
+    DBG_PRINT("\t^ uRa: %u\r\n", *uRa);
 
 #ifndef USE_FITTING
     // 查表R-Te
@@ -211,7 +216,7 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
     float32_t fAmp = pCal->fAmp;
     float32_t fTempFixup = pCal->fCalBase;
 
-    DBG_PRINT("# %2.2f uV\r\n", (float32_t)u32VirAdc * 1000000);
+    DBG_PRINT("\t# %2.2f mV\r\n", (float32_t)u32VirAdc * 1000);
 
     if (0 == fAmp)
     {
@@ -226,7 +231,7 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
     // Vi = (Vo - Vbias) * Ri / (Ri:2K + Rr:680K) --- uV
     fVirVolt = ((u32VirAdc)*1000000) / fAmp / fEpsilon;
 
-    DBG_PRINT("\t$ %2.2f uV\r\n", fVirVolt);
+    DBG_PRINT("\t$ %2.2f mV\r\n", fVirVolt / 1000);
 
 #ifndef USE_FITTING
     // 查表V-Tt
