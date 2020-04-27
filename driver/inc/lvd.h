@@ -140,10 +140,10 @@ typedef enum en_lvd_filter_time
  ******************************************************************************/
 typedef enum en_lvd_irq_type
 {
-    LvdIrqMskRiseFall = 3u<<12,                 ///< 上升/下降沿触发
-    LvdIrqMskHigh     = 1u<<14,                 ///< 高电平触发
-    LvdIrqMskRise     = 1u<<13,                 ///< 上升沿触发
-    LvdIrqMskFall     = 1u<<12,                 ///< 下降沿触发
+    LvdIrqMskRiseFall = 3u<<12,   ///< 上升/下降沿触发
+    LvdIrqMskHigh     = 1u<<14,   ///< 被监测电压低于阈值电压
+    LvdIrqMskRise     = 1u<<13,   ///< 被监测电压从高于阈值电压变为低于阈值电压
+    LvdIrqMskFall     = 1u<<12,   ///< 被监测电压从低于阈值电压变为高于阈值电压
 }en_lvd_irq_type_t;
 
 /**

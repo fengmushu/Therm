@@ -104,7 +104,7 @@ typedef struct app_runtime {
     uint8_t    read_idx[NUM_SCAN_MODES];
     uint8_t    scan_show;
     uint8_t    scan_done;
-    uint8_t    battery_lvl;
+    int8_t     battery_lvl;
 
     app_save_t save;
 } app_runtime_t;
