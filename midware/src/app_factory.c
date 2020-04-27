@@ -59,6 +59,7 @@ static void factory_key_test(void)
 
         while (1) {
                 AppLcdDisplayAll();
+                AppLedEnable(LedGreen);
                 delay1ms(30);
 
                 if (key_pressed_query(KEY_BEEP)) {
@@ -91,7 +92,7 @@ static void factory_key_test(void)
                 if (key_pressed_query(KEY_TRIGGER)) {
                         last_jiffy = g_jiffies;
 
-                        AppLedEnable(LedOrange);
+                        AppLedEnable(LedRed);
                         beep_on();
                         AppLcdDisplayClear();
                         key_wait_for_release(KEY_TRIGGER);
