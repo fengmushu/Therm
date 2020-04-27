@@ -3,6 +3,7 @@
 #include "app.h"
 #include "app_key.h"
 #include "app_lcd.h"
+#include "app_rtc.h"
 #include "app_data.h"
 #include "app_factory.h"
 
@@ -54,6 +55,7 @@ static void factory_lcd_test(void)
 static void factory_key_test(void)
 {
         uint8_t led_color = 1;
+        uint32_t last_jiffy;
 
         while (1) {
                 AppLcdDisplayAll();
@@ -87,11 +89,17 @@ static void factory_key_test(void)
                 }
 
                 if (key_pressed_query(KEY_TRIGGER)) {
+                        last_jiffy = g_jiffies;
+
                         AppLedEnable(LedOrange);
                         beep_on();
                         AppLcdDisplayClear();
                         key_wait_for_release(KEY_TRIGGER);
                         beep_off();
+
+                        if (time_after(g_jiffies, last_jiffy + 2))
+                                break;
+
                         continue;
                 }
         }

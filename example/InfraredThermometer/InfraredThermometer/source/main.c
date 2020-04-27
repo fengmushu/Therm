@@ -104,15 +104,14 @@ void sys_init(void)
 
     ///< 参数调整区初始化0
     AppParaAreaInit();
+
+    AppRtcInit();
 }
 
 void sys_late_init(void)
 {
     // battery low irq
     AppVolMonitorInit();
-
-    // deep sleep enter
-    AppRtcInit();
 
     // deep sleep wake up
     AppPmuInit();
