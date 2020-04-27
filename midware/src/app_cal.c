@@ -415,6 +415,9 @@ void AppCalibration(void)
     NNA_CalInit(&Cal);
 
     factory_mode = 1;
+#ifdef FACTORY_MODE_UV_DEBUG
+    dbg_show_uv = 1;
+#endif
 
     AppLedEnable(LedOrange);
     AppLcdClearAll();

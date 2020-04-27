@@ -10,7 +10,7 @@
 uint8_t    factory_mode;
 
 #ifdef FACTORY_MODE_UV_DEBUG
-uint8_t    log_show_uv;
+uint8_t    dbg_show_uv;
 uint32_t   last_uv, last_ntc;
 scan_log_t log_uv[NUM_SCAN_MODES];
 scan_log_t log_ntc[NUM_SCAN_MODES];
@@ -98,7 +98,7 @@ static void factory_key_test(void)
                         key_wait_for_release(KEY_TRIGGER);
                         beep_off();
 
-                        if (time_after(g_jiffies, last_jiffy + 2))
+                        if (time_after(g_jiffies, last_jiffy + 1))
                                 break;
 
                         continue;
@@ -112,17 +112,11 @@ void factory_test(void)
                 return;
 
         factory_mode = 1;
+#ifdef FACTORY_MODE_UV_DEBUG
+        dbg_show_uv = 1;
+#endif
 
         factory_test_init();
         factory_lcd_test();
-
-#ifdef FACTORY_MODE_UV_DEBUG
-        if (is_factory_debug()) {
-                log_show_uv = 1;
-                beep_once(200);
-                return;
-        }
-#endif
-
         factory_key_test();
 }

@@ -111,17 +111,6 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     // user is viewing log, show big number as log number
     big_number = log_number;
 
-#ifdef FACTORY_MODE_UV_DEBUG
-    // FIXME:
-    // if (log_show_uv) {
-    //     uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
-    //     log_number = scan_log_read(&log_uv[scan_mode], read_idx);
-    //     AppLcdSetLogRawNumber(log_number, FALSE, 4);
-    //     AppLcdSetLogIndex(FALSE, ntc_number);
-    //     AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
-    // }
-#endif
-
     if (scan_show) {
         big_number = g_rt->scan_result[scan_mode];
 
@@ -135,6 +124,20 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
             goto lcd_update; // jump out
         }
     }
+
+#ifdef FACTORY_MODE_UV_DEBUG
+    if (dbg_show_uv) {
+        uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
+        log_number = scan_log_read(&log_uv[scan_mode], read_idx);
+
+        AppLcdSetLogIndex(FALSE, ntc_number);
+
+        if (blink_is_on_duty(BLINK_DUTY_50, 4)) {
+            AppLcdSetRawNumber(log_number, FALSE, 4);
+            goto lcd_update;
+        }
+    }
+#endif
 
     //
     // surface mode is always green, and LED is set green already
