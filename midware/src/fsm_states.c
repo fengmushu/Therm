@@ -385,6 +385,11 @@ static fsm_node_t state_config = {
         //     .next   = __FSM_STATE_NONE,
         // },
         {
+            .event  = FSM_EVENT_RELEASE_TRIGGER,
+            .action = NULL,
+            .next   = FSM_STATE_MAIN,
+        },
+        {
             .event  = FSM_EVENT_SYS_HALT,
             .action = NULL,
             .next   = FSM_STATE_PWROFF,
