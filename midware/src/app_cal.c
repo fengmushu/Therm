@@ -450,7 +450,7 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
     boolean_t bSuCali;
     float32_t fNtc, fTemp;
     uint32_t uNtcH = 0, uNtcL = 0, uViR = 0, uRa = 0;
-    uint32_t aSampleViR[SAMPLE_BUFF_SIZE] = {0,}, uMaxTry = 30, uAcc;
+    uint32_t aSampleViR[SAMPLE_BUFF_SIZE] = {0,}, uReTry = 0, uAcc;
 
     do {
         ///< 读取ADC
@@ -460,11 +460,12 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
             AppLcdDisplayUpdate(200);
             continue;
         }
+        SampleInsert(aSampleViR, uViR);
+
         AppLcdSetLock(FALSE);
         AppLcdSetRawNumber(uViR, FALSE, 4);
         AppLcdSetLogIndex(FALSE, uTargetTemp);
         AppLcdDisplayUpdate(0);
-        SampleInsert(aSampleViR, uViR);
 
         ///< 环境温度
         // it looks like this embedded processor
@@ -477,7 +478,8 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
                                     uViR);
         __enable_irq();
 
-        if(!bSuCali) {
+        if(!bSuCali) 
+        {
             AppLcdSetLock(TRUE);
             AppLcdDisplayUpdate(200);
             return FALSE;
@@ -488,13 +490,15 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
         AppLcdDisplayUpdate(0);
 
         uAcc = SampleVariance(aSampleViR);
-        if(uAcc == 0) {
+        if(uAcc == 0 && uReTry > 2)
+        {
             return TRUE;
-        } else {
+        }
+        else
+        {
             DBG_PRINT("\t aVariance: %u\r\n", uAcc);
         }
-
-    } while (uMaxTry--);
+    } while (uReTry++ < 10);
 
     return FALSE;
 }
