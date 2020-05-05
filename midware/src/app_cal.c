@@ -558,7 +558,7 @@ void AppCalibration(void)
                 uCaliTarget = CAL_TEMP_HIGH;
             }
         } else {
-            beep_once(500);
+            beep_once(800);
         }
 
         while (key_pressed_query(KEY_TRIGGER)); //等按键释放

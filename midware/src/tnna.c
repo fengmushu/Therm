@@ -295,6 +295,11 @@ boolean_t NNA_Calibration(
         return TRUE;
     }
 
+    if(fTempEnv < 10)
+    {
+        return FALSE;
+    }
+
     ///< U35 = k * (A*35*35 + B*35 + a*t35*t35 + b*t35 + cbase )
     ///< U42 = k * (A*42*42 + B*42 + a*t42*t42 + b*t42 + cbase )
     ///< m = A*35*35 + B*35 + a*t35*t35 + b*t35 + cbase
