@@ -284,8 +284,9 @@ boolean_t NNA_Calibration(
     float32_t *fTempGet,
     uint32_t u32VirAdc)
 {
-    float32_t fTx, fCaLBase, fCaHBase;
+    static float32_t fLower = 0.0f;
 
+    float32_t fTx, fCaLBase, fCaHBase;
     float32_t fAmp = pCal->fAmp, fTH = pCal->fTH, fTL = pCal->fTL;
     float32_t uVAdcH = pCal->uVAdcH, uVAdcL = pCal->uVAdcL;
 
@@ -325,8 +326,9 @@ boolean_t NNA_Calibration(
     ///< 返回目标温度实测值
     *fTempGet = fTx;
 
-    if (pCal->fTL == VRA_INIT)
+    if ((fLower == 0.0f) || (fLower == fTempTarget))
     {
+        fLower = fTempTarget;
         pCal->fTL = fTL = fTx;
         pCal->uVAdcL = uVAdcL = u32VirAdc * 1000000;
     }
@@ -350,14 +352,14 @@ boolean_t NNA_Calibration(
             pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
 
             AppLcdSetTemp((uint32_t)(fAmp * 10));
-            AppLcdDisplayUpdate(400);
+            AppLcdDisplayUpdate(300);
 
             DBG_PRINT("\tAMP: %2.2f L: %2.2f H: %2.2f %2.2f %2.2f\r\n", fAmp, fTL, fTH, fCaLBase, fCaHBase);
         }
         else
         {
             AppLcdSetTemp((uint32_t)(fAmp * 10));
-            AppLcdDisplayUpdate(3000);
+            AppLcdDisplayUpdate(500);
 
             DBG_PRINT("\tAMP-OF: %2.2f, %2.2f\r\n", fAmp, fTx);
             return FALSE;
