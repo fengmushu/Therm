@@ -447,11 +447,14 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
 static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
 {
+    #define MAX_ACC_COUNT 10
     boolean_t bSuCali;
     float32_t fNtc, fTemp;
     uint32_t uNtcH = 0, uNtcL = 0, uViR = 0, uRa = 0;
-    uint32_t aSampleViR[SAMPLE_BUFF_SIZE] = {0,}, uReTry = 0, uAcc;
+    uint32_t aSampleViR[SAMPLE_BUFF_SIZE] = {0,}, uReTry = 0;
 
+    AppLcdSetLock(FALSE);
+    AppLcdSetLogIndex(FALSE, uTargetTemp);
     do {
         ///< 读取ADC
         if (!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL))
@@ -462,45 +465,48 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
         }
         SampleInsert(aSampleViR, uViR);
 
-        AppLcdSetLock(FALSE);
         AppLcdSetRawNumber(uViR, FALSE, 4);
-        AppLcdSetLogIndex(FALSE, uTargetTemp);
-        AppLcdDisplayUpdate(0);
+        AppLcdDisplayUpdate(50);
 
-        ///< 环境温度
-        // it looks like this embedded processor
-        // cannot be intterrupted in float processing
-        __disable_irq();
-        bSuCali = NNA_Calibration(pCal, 
-                                    NNA_NtcTempGet(uNtcH, uNtcL, &uRa),
-                                    uTargetTemp,
-                                    &fTemp,
-                                    uViR);
-        __enable_irq();
-
-        if(!bSuCali) 
+        if(uReTry > 3)
         {
-            AppLcdSetLock(TRUE);
-            AppLcdDisplayUpdate(200);
-            return FALSE;
+            uint32_t uAcc = SampleVariance(aSampleViR);
+            if(uAcc == 0) 
+                break;
+            else
+                DBG_PRINT("\t aVariance: %u\r\n", uAcc);
         }
+    } while (uReTry++ < MAX_ACC_COUNT);
+    if(uReTry == MAX_ACC_COUNT)
+    {
+        return FALSE;
+    }
 
-        /* log set Ra, uViR */
-        AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
-        AppLcdDisplayUpdate(0);
+    uViR = SampleMeans(aSampleViR);
 
-        uAcc = SampleVariance(aSampleViR);
-        if(uAcc == 0 && uReTry > 2)
-        {
-            return TRUE;
-        }
-        else
-        {
-            DBG_PRINT("\t aVariance: %u\r\n", uAcc);
-        }
-    } while (uReTry++ < 10);
+    ///< 环境温度
+    // it looks like this embedded processor
+    // cannot be intterrupted in float processing
+    __disable_irq();
+    bSuCali = NNA_Calibration(pCal, 
+                                NNA_NtcTempGet(uNtcH, uNtcL, &uRa),
+                                uTargetTemp,
+                                &fTemp,
+                                uViR);
+    __enable_irq();
+    if(!bSuCali) 
+    {
+        AppLcdSetLock(TRUE);
+        AppLcdDisplayUpdate(200);
+        return FALSE;
+    }
 
-    return FALSE;
+    /* log set Ra, uViR */
+    AppLcdSetRawNumber(uViR, FALSE, 4);
+    AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
+    AppLcdDisplayUpdate(100);
+
+    return TRUE;
 }
 
 ///< 校准(标定)模式API
