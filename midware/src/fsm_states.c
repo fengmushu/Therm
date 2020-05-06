@@ -123,10 +123,6 @@ static fsm_node_t state_pwron = {
 
 static fsm_state_t state_pwroff_enter(fsm_node_t *node, fsm_event_t event)
 {
-
-    if (app_save_i2c_store(g_save))
-        DBG_PRINT("failed to save data to i2c\r\n");
-
     return FSM_STATE_SLEEP;
 }
 
@@ -161,13 +157,6 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
     UNUSED_PARAM(event);
 
     sys_resume();
-
-    // hold [-] and [+] to reset, clear config
-    if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
-        app_save_reset(g_save);
-        app_save_i2c_store(g_save);
-        app_runtime_readidx_rebase(g_rt);
-    }
 }
 
 static fsm_state_t state_sleep_proc(fsm_node_t *node, fsm_event_t *out)
@@ -260,15 +249,6 @@ static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
 
     // prevent sleep
     AppRtcFeed();
-
-    // AppTempCalculate() return least 2 digit as float points
-    AppTempCalculate(g_cal, &ntc, &result[SCAN_SURFACE], &result[SCAN_BODY], &uv);
-
-    for (uint8_t i = 0; i < NUM_SCAN_MODES; i++) {
-        int16_t last_written = scan_log_last_written(&g_scan_log[i]);
-        g_rt->scan_result[i] = markov_chain_trick(last_written, result[i], 5);
-        g_rt->scan_result[i] /= 10; // display goes with one float digit
-    }
 
     state_proc_event_set(out, FSM_EVENT_SCAN_DONE);
 

@@ -22,30 +22,13 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
 {
     uint8_t scan_mode = scan_mode_runtime_update();
     int16_t last_result = g_rt->scan_result[scan_mode];
-    scan_log_t *scan_log = &g_scan_log[scan_mode];
 
     switch (event) {
     case FSM_EVENT_SCAN_DONE:
         AppRtcFeed();
-
-        g_rt->scan_show = 1; // to keep big number showing last scan result
-        g_rt->scan_done = 1;
-        g_rt->scan_mode_last = scan_mode; // make sure next lcd display is matched to log
-
-        if (is_temp_valid(&g_temp_thres[scan_mode], last_result)) {
-            // last_write++ in scan_log_write_safe()
-            scan_log_write_safe(scan_log, last_result);
-            g_rt->read_idx[scan_mode] = scan_log->last_write;
-        }
-
         break;
 
-    default: // display last write result
-        g_rt->scan_show = 0;
-        g_rt->scan_done = 0;
-        g_rt->scan_mode_last = scan_mode;
-        g_rt->read_idx[scan_mode] = scan_log->last_write;
-
+    default:
         AppLcdClearAll();
 
         break;
@@ -96,72 +79,6 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
 
         duty = blink_cnt & GENMASK(5, 4);
         duty >>= 4;
-
-        //if (duty == 0x00 || duty == 0x01) // duty 50%
-            //AppLcdSetBattery(TRUE);
-    }
-
-    // read_idx should have synced to write_idx in enter() if comes from scan
-    log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
-
-    // user is viewing log, show big number as log number
-    big_number = log_number;
-
-    if (scan_show) {
-        big_number = g_rt->scan_result[scan_mode];
-
-        if (big_number < g_temp_thres[scan_mode].underflow) {
-            goto lcd_update; // jump out
-        } else if (big_number > g_temp_thres[scan_mode].overflow) {
-            goto lcd_update; // jump out
-        }
-    }
-
-    //
-    // surface mode is always green, and LED is set green already
-    //
-    if (scan_mode == SCAN_BODY) {
-        // currently, body_alarm_C can be smaller than BODY_FEVER_LOW
-        if (big_number >= g_cfg->body_alarm_C) {
-            AppLedEnable(LedRed);
-        } else if (big_number >= BODY_FEVER_LOW) {
-            AppLedEnable(LedOrange);
-        }
-    }
-
-lcd_update:
-    AppLcdDisplayUpdate(0);
-
-    // scan_done will be oneshot after scan done
-    if (g_rt->scan_done) {
-        if (g_cfg->beep_on) {
-            if (scan_mode == SCAN_BODY && big_number >= g_cfg->body_alarm_C) {
-                delay_budget -= body_beep_alarm();
-            } else {
-                // user may wanna release trigger after hearing beep
-                // so put a little delay here
-                beep_once(BEEP_SCAN_DONE_MS);
-                delay_budget -= BEEP_SCAN_DONE_MS;
-            }
-        }
-    }
-
-    // hold trigger to burst scan
-    if (key_pressed_query(KEY_TRIGGER)) {
-        next = FSM_STATE_SCAN;
-        goto out; // jump out
-    }
-
-    if (key_pressed_query(KEY_PLUS)) {
-        scan_log_idx_increase(&g_rt->read_idx[scan_mode]);
-        delay_budget += key_budget_ms;
-        goto delay;
-    }
-
-    if (key_pressed_query(KEY_MINUS)) {
-        scan_log_idx_decrease(&g_rt->read_idx[scan_mode]);
-        delay_budget += key_budget_ms;
-        goto delay;
     }
 
 delay:
@@ -172,13 +89,6 @@ delay:
 out:
     g_rt->scan_done = 0;
     g_rt->scan_mode_last = scan_mode_runtime_update();
-
-    // user switched scan mode
-    if (g_rt->scan_mode_last != scan_mode) {
-        g_rt->scan_show = 0;
-        scan_mode = g_rt->scan_mode_last;
-        g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
-    }
 
     blink_cnt++;
 
@@ -192,13 +102,11 @@ void state_main_exit(fsm_node_t *node, fsm_event_t event)
 
 fsm_state_t state_main_release_minus(fsm_node_t *node, fsm_event_t event, void *data)
 {
-    scan_log_idx_decrease(&g_rt->read_idx[g_rt->scan_mode]);
     return node->state;
 }
 
 fsm_state_t state_main_release_plus(fsm_node_t *node, fsm_event_t event, void *data)
 {
-    scan_log_idx_increase(&g_rt->read_idx[g_rt->scan_mode]);
     return node->state;
 }
 
@@ -208,7 +116,6 @@ fsm_state_t state_main_scan_mode_switch(fsm_node_t *node, fsm_event_t event, voi
     uint8_t scan_mode = scan_mode_runtime_update();
 
     g_rt->scan_show = 0;
-    g_rt->read_idx[scan_mode] = g_scan_log[scan_mode].last_write;
 
     return node->state;
 }
