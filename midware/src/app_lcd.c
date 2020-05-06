@@ -54,6 +54,7 @@
 #include "app_lcd.h"
 #include "lcd.h"
 #include "app.h"
+#include "ssd1306.h"
 
 ///< LCD 初始化
 void AppLcdInit(void)
@@ -67,6 +68,7 @@ void AppLcdDisplayAll(void)
 
 void AppLcdClearAll(void)
 {
+
 }
 
 void AppLcdDisplayUpdate(uint32_t delay_ms)

@@ -122,10 +122,6 @@ fsm_state_t state_main_scan_mode_switch(fsm_node_t *node, fsm_event_t event, voi
 
 static void fn_hold_timer(void *data)
 {
-    // double check
-    if (key_released_query(KEY_FN))
-        return;
-
     fsm_event_post(&g_fsm, FSM_EVENT_RING_PRIO_HI, FSM_EVENT_IRQ_TIMER3);
 }
 

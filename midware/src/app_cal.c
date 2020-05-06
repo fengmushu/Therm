@@ -176,9 +176,6 @@ void AppCalClean(void)
 
     ///< 还原中断
     __enable_irq();
-
-    //擦除i2c factory
-    app_i2c_write_data(I2C_CAL_ADDR, (uint8_t *)&gstFactory, sizeof(gstFactory));
 }
 
 static void SampleInsert(uint32_t *aSum, uint32_t uVal)
@@ -305,7 +302,7 @@ void AppCalibration(void)
         while(!key_pressed_query(KEY_TRIGGER));
 
         ///< 读取ADC        
-        AppAdcCodeGet(&uViR, &uNtcH, &uNtcL);
+        // AppAdcCodeGet(&uViR, &uNtcH, &uNtcL);
 
         beep_once(100);
 

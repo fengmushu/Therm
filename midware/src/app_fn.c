@@ -192,24 +192,6 @@ int app_fn_proc(void)
     if (fn_menus[i].lcd_show)
         fn_menus[i].lcd_show(i);
 
-    if (key_pressed_query(KEY_FN)) {
-        app_fn_next();
-        delay1ms(500);
-        goto out;
-    }
-
-    if (key_pressed_query(KEY_PLUS)) {
-        app_fn_btn_plus();
-        delay1ms(250);
-        goto out;
-    }
-
-    if (key_pressed_query(KEY_MINUS)) {
-        app_fn_btn_minus();
-        delay1ms(250);
-        goto out;
-    }
-
 out:
     return APP_FN_OK;
 }

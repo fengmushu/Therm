@@ -120,24 +120,10 @@ void _AppKeyPortInit(void)
     stcGpioCfg.enPd       = GpioPdDisable;
     stcGpioCfg.enPu       = GpioPuDisable;
     
-    Gpio_Init(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN, &stcGpioCfg);
-    Gpio_Init(M_KEY_MID_PORT, M_KEY_MID_PIN, &stcGpioCfg);
-    Gpio_Init(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, &stcGpioCfg);
     Gpio_Init(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN, &stcGpioCfg);
-    Gpio_Init(M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, &stcGpioCfg);
-    
-    Gpio_EnableIrq(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN, GpioIrqFalling);
-    Gpio_EnableIrq(M_KEY_MID_PORT, M_KEY_MID_PIN, GpioIrqFalling);
-    Gpio_EnableIrq(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, GpioIrqFalling);
     Gpio_EnableIrq(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN, GpioIrqFalling);
-    Gpio_EnableIrq(M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, GpioIrqFalling);
-
-    Gpio_EnableIrq(M_KEY_LEFT_PORT, M_KEY_LEFT_PIN, GpioIrqRising);
-    Gpio_EnableIrq(M_KEY_MID_PORT, M_KEY_MID_PIN, GpioIrqRising);
-    Gpio_EnableIrq(M_KEY_RIGHT_PORT, M_KEY_RIGHT_PIN, GpioIrqRising);
     Gpio_EnableIrq(M_KEY_TRIG_PORT, M_KEY_TRIG_PIN, GpioIrqRising);
-    Gpio_EnableIrq(M_KEY_SWITCH_PORT, M_KEY_SWITCH_PIN, GpioIrqRising);
-    
+
     EnableNvic(PORTC_IRQn, IrqLevel0, TRUE);
     EnableNvic(PORTD_IRQn, IrqLevel0, TRUE);
 }
@@ -156,7 +142,6 @@ void _AppLedPortInit(void)
     
     Gpio_Init(M_LED_RED_PORT, M_LED_RED_PIN, &stcGpioCfg);
     Gpio_Init(M_LED_GREEN_PORT, M_LED_GREEN_PIN, &stcGpioCfg);
-    // Gpio_Init(M_LED3_PORT, M_LED3_PIN, &stcGpioCfg);
 
     Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
     Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
@@ -226,37 +211,6 @@ void _AppAdcPortInit(void)
     AppMAdcPowerOn();
 }
 
-///< LCD 端口初始化
-void _AppLcdPortInit(void)
-{
-    Gpio_SetAnalogMode(M_LCD_COM0_PORT, M_LCD_COM0_PIN); //COM0
-    Gpio_SetAnalogMode(M_LCD_COM1_PORT, M_LCD_COM1_PIN); //COM1
-    Gpio_SetAnalogMode(M_LCD_COM2_PORT, M_LCD_COM2_PIN); //COM2
-    Gpio_SetAnalogMode(M_LCD_COM3_PORT, M_LCD_COM3_PIN); //COM3   
-
-    Gpio_SetAnalogMode(M_LCD_SEG0_PORT, M_LCD_SEG0_PIN); //SEG0
-    Gpio_SetAnalogMode(M_LCD_SEG1_PORT, M_LCD_SEG1_PIN); //SEG1
-    Gpio_SetAnalogMode(M_LCD_SEG2_PORT, M_LCD_SEG2_PIN); //SEG2
-    Gpio_SetAnalogMode(M_LCD_SEG3_PORT, M_LCD_SEG3_PIN); //SEG3
-    Gpio_SetAnalogMode(M_LCD_SEG4_PORT, M_LCD_SEG4_PIN); //SEG4
-    Gpio_SetAnalogMode(M_LCD_SEG5_PORT, M_LCD_SEG5_PIN); //SEG5
-    Gpio_SetAnalogMode(M_LCD_SEG6_PORT, M_LCD_SEG6_PIN); //SEG6
-    Gpio_SetAnalogMode(M_LCD_SEG7_PORT, M_LCD_SEG7_PIN); //SEG7
-    Gpio_SetAnalogMode(M_LCD_SEG8_PORT, M_LCD_SEG8_PIN); //SEG8
-    Gpio_SetAnalogMode(M_LCD_SEG9_PORT, M_LCD_SEG9_PIN); //SEG9
-    /// SEG 10-19
-    Gpio_SetAnalogMode(M_LCD_SEG10_PORT, M_LCD_SEG10_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG11_PORT, M_LCD_SEG11_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG12_PORT, M_LCD_SEG12_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG13_PORT, M_LCD_SEG13_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG14_PORT, M_LCD_SEG14_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG15_PORT, M_LCD_SEG15_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG16_PORT, M_LCD_SEG16_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG17_PORT, M_LCD_SEG17_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG18_PORT, M_LCD_SEG18_PIN);
-    Gpio_SetAnalogMode(M_LCD_SEG19_PORT, M_LCD_SEG19_PIN);
-}
-
 void AppMGpioInit(void)
 {
     ///< 开启GPIO外设时钟
@@ -267,13 +221,7 @@ void AppMGpioInit(void)
     
     ///< LED 背光灯初始化
     _AppLedPortInit();  
-    
-    ///< ADC SENSOR 通信接口初始化
-    // _AppAdcSensorPortInit(); 
-    
-    ///< LCD 端口初始化
-    _AppLcdPortInit();
-    
+
     ///< BEEP 初始化
     _AppBeepPortInit();
     

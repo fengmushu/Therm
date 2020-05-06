@@ -4,12 +4,9 @@
 #include "app.h"
 #include "app_i2c.h"
 
-/* see 24AA02 datasheet, A0-A2 no input */
-#define I2C_SLAVE_ADDR 0xa0
-/* 256 bytes */
-#define I2C_MAX_SIZE 0x100 
-/* page size */
-#define I2C_PAGE_SIZE 8
+/* see SSD1306 datasheet, A0-A2 no input */
+#define I2C_SLAVE_ADDR 0x78
+
 /* 状态等待时间 100 * 10 us */
 #define MAX_WAIT_CNT 100 
 
@@ -147,7 +144,6 @@ void app_i2c_init()
     i2c_cfg.enMode = I2cMasterMode;
     i2c_cfg.u32Pclk = 4000000; /* 4000KHz PCLK */
     i2c_cfg.u32Baud = 100000; /* 100K baudRate */
-    i2c_cfg.u8SlaveAddr = I2C_SLAVE_ADDR;
 
     /* 打开i2c外设时钟门控 */
     Sysctrl_SetPeripheralGate(SysctrlPeripheralI2c0, TRUE);
@@ -164,6 +160,15 @@ void app_i2c_init()
     return;
 }
 
+boolean_t app_i2c_start()
+{
+    return __app_i2c_start();
+}
+
+boolean_t app_i2c_stop()
+{
+    return __app_i2c_stop();
+}
 
 boolean_t app_i2c_write_data(uint8_t addr, uint8_t* pdata, uint16_t len)
 {
@@ -177,13 +182,6 @@ boolean_t app_i2c_write_data(uint8_t addr, uint8_t* pdata, uint16_t len)
         __app_i2c_stop(); \
         goto __start; \
     } while(0)
-
-    if ((uint16_t)addr + len > I2C_MAX_SIZE)
-    {
-        DBG_PRINT("%s:%u Invalid addr=%u len=%u!\r\n", 
-            __func__, __LINE__, addr, len);
-        return FALSE;
-    }
 
 __start:    
     if (!try_cnt) 
@@ -223,14 +221,6 @@ __start:
             continue;
         }
         write_cnt++;
-        
-        /* eeprom write a page over should restart */
-        if (write_cnt % I2C_PAGE_SIZE == 0 && write_cnt < len)
-        {
-            __app_i2c_stop();
-            addr += I2C_PAGE_SIZE;
-            goto __start;
-        }
     }
 
     //DBG_PRINT("wirte data %u bytes, retry_cnt %u\r\n", len, MAX_TRY_CNT - try_cnt);
@@ -252,13 +242,6 @@ boolean_t app_i2c_read_data(uint8_t addr, uint8_t* pdata, uint16_t len)
         __app_i2c_stop(); \
         goto __start; \
     } while(0)
-
-    if ((uint16_t)addr + len > I2C_MAX_SIZE)
-    {
-        DBG_PRINT("%s:%u Invalid addr=%u len=%u!\r\n", 
-            __func__, __LINE__, addr, len);
-        return FALSE;
-    }
 
 __start:    
     if (!try_cnt) 
@@ -320,134 +303,3 @@ __start:
 
     return TRUE;  
 }
-
-void app_i2c_dump()
-{
-    uint16_t i = 0, j = 0;
-    uint8_t buf[16];
-    printf("----i2c dump, size %u bytes----\r\n", I2C_MAX_SIZE);
-    while (i < I2C_MAX_SIZE)
-    {
-        app_i2c_read_data((uint8_t)i, buf, sizeof(buf));
-        
-        printf("%02x: ", i);
-        j = 0;
-        while (j < sizeof(buf))
-        {
-            printf("%02x ", buf[j++]);
-        }
-        printf("\r\n");
-        i += sizeof(buf);
-    }
-    printf("----i2c dump end----\r\n");
-    return;
-}
-
-
-#define I2C_DEBUG 0
-#if I2C_DEBUG
-void i2c_debug()
-{
-    uint16_t i = 0;
-    uint8_t tmp = 0;
-    uint8_t tmp_d[I2C_MAX_SIZE] = { 0 };
-
-    printf("%s:%u begin i2c test!\r\n", __func__, __LINE__);
-    
-    app_i2c_init();
-
-    app_i2c_dump();
-
-    i = 0;
-    while (i < I2C_MAX_SIZE)
-    {
-        uint8_t t = (uint8_t)i;
-        if (!app_i2c_write_data(i, &t, 1))
-        {
-            printf("%s:%u write error: i=0x%x\r\n", __func__, __LINE__, i);
-            return;
-        }
-        
-        i++;
-    }  
-    
-    printf("%s:%u i2c write test OK!\r\n", __func__, __LINE__);
-    
-    i = 0;
-    while (i < I2C_MAX_SIZE)
-    {
-        app_i2c_read_data(i, &tmp, 1);
-        if (i != tmp)
-        {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n", 
-                __func__, __LINE__, i, tmp);
-            return;
-        }
-        i++;
-    }
-
-    printf("%s:%u i2c read one byte test OK!\r\n", __func__, __LINE__);
-
-    app_i2c_read_data(0, tmp_d, I2C_MAX_SIZE);
-    i = 0;
-    while (i < I2C_MAX_SIZE)
-    {
-        if (i != tmp_d[i])
-        {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n",
-                __func__, __LINE__, i, tmp);
-            return;
-        }
-        i++;
-    }
-    
-    printf("%s:%u i2c read %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
-
-    if (!app_i2c_write_data(0, tmp_d, sizeof(tmp_d)))
-    {
-        printf("%s:%u write %d bytes error\r\n",
-                __func__, __LINE__, sizeof(tmp_d));
-        return;
-    }
-    
-    memset(tmp_d, 0, sizeof(tmp_d));
-    app_i2c_read_data(0, tmp_d, I2C_MAX_SIZE);
-    i = 0;
-    while (i < I2C_MAX_SIZE)
-    {
-        if (i != tmp_d[i])
-        {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n",
-                __func__, __LINE__, i, tmp);
-            return;
-        }
-        i++;
-    }
-    printf("%s:%u i2c write %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
-
-    memset(tmp_d, 'S', sizeof(tmp_d));
-    if (!app_i2c_write_data(0, tmp_d, sizeof(tmp_d)))
-    {
-        printf("%s:%u write %d bytes error\r\n",
-                __func__, __LINE__, sizeof(tmp_d));
-        return;
-    }
-    
-    memset(tmp_d, 0, sizeof(tmp_d));
-    app_i2c_read_data(0, tmp_d, I2C_MAX_SIZE);
-    i = 0;
-    while (i < I2C_MAX_SIZE)
-    {
-        if ('S' != tmp_d[i])
-        {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n",
-                __func__, __LINE__, i, tmp);
-            return;
-        }
-        i++;
-    }
-    printf("%s:%u i2c write %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
-    return;
-}
-#endif
-

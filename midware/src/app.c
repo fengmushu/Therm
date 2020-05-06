@@ -99,16 +99,16 @@ void AppLedEnable(en_led_colour_t uColor)
 {
     if(LedRed & uColor)
     {
-        Gpio_ClrIO(M_LED_RED_PORT, M_LED_RED_PIN);
-    } else {
         Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
+    } else {
+        Gpio_ClrIO(M_LED_RED_PORT, M_LED_RED_PIN);
     }
 
     if(LedGreen & uColor)
     {
-        Gpio_ClrIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
-    } else {
         Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
+    } else {
+        Gpio_ClrIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
     }
 }
 

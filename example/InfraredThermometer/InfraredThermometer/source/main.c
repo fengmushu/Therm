@@ -89,10 +89,10 @@ void sys_init(void)
 
     ///< GPIO 初始化
     AppMGpioInit();
-    
+
     ///< ADC 模块初始化
     AppMAdcInit();
-    
+
     ///< LCD 模块初始化
     AppLcdInit();
 
@@ -131,9 +131,11 @@ int main(void)
     sys_late_init();
 
     timer3_init();
+
     app_runtime_init(&g_runtime);
 
     fsm_init(&g_fsm);
+
     fsm_start(&g_fsm);
 
     // dead loop inside until fsm exits (will not, though)

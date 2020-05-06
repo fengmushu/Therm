@@ -34,10 +34,5 @@ void app_runtime_init(app_runtime_t *rt)
 
 uint8_t scan_mode_runtime_update(void)
 {
-    if (key_released_query(KEY_SWITCH))
-        g_rt->scan_mode = SCAN_BODY;
-    else
-        g_rt->scan_mode = SCAN_SURFACE;
-
     return g_rt->scan_mode;
 }
