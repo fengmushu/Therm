@@ -85,53 +85,6 @@ static boolean_t CalLoad(FactoryData_t *pFactory)
     return TRUE;
 }
 
-static boolean_t CalLoadFromI2c(FactoryData_t *pFactory)
-{
-    uint16_t Csum;
-
-    ASSERT(sizeof(FactoryData_t) <= I2C_CAL_SIZE);
-
-    if (!app_i2c_read_data(I2C_CAL_ADDR, (uint8_t *)pFactory, sizeof(FactoryData_t)))
-    {
-        DBG_PRINT("%s:%d read cal error\r\n", __func__, __LINE__);
-        return FALSE;
-    }
-
-    /* check magic */
-    if (pFactory->uMagic != CAL_MAGIC_NUM)
-    {
-        DBG_PRINT("%s:%d magic number error\r\n", __func__, __LINE__);
-        return FALSE;
-    }
-
-    /* check crc */
-    Csum = CRC16_Get8((uint8_t *)&pFactory->CalData, sizeof(CalData_t));
-    if (pFactory->u16Crc != Csum)
-    {
-        DBG_PRINT("%s:%d crc error\r\n", __func__, __LINE__);
-        return FALSE;
-    }
-
-    ///< DUMP Cal
-#ifdef DEBUG
-    {
-        DBG_PRINT("### Cal Data in I2c:\r\n");
-        DBG_PRINT("\tAMP: %f\r\n", pFactory->CalData.fAmp);
-        DBG_PRINT("\tBase: %f\r\n", pFactory->CalData.fCalBase);
-        DBG_PRINT("\tHuman: %u\r\n", pFactory->CalData.u8HumanFix);
-    }
-#endif
-
-    DBG_PRINT("%s load OK\r\n", __func__);
-    return TRUE;
-}
-
-static boolean_t AppCalStoreToI2c(FactoryData_t *pFactory)
-{
-    ASSERT(sizeof(FactoryData_t) <= I2C_CAL_SIZE);
-    return app_i2c_write_data(I2C_CAL_ADDR, (uint8_t *)pFactory, sizeof(FactoryData_t));
-}
-
 static boolean_t AppCalStore(FactoryData_t *pFactory)
 {
     int i;
@@ -180,7 +133,6 @@ void AppCalUpdateAndSaveFactory(CalData_t *pCal)
     memcpy(&pFactory->CalData, pCal, sizeof(CalData_t));
 
     AppCalStore(pFactory);
-    AppCalStoreToI2c(pFactory);
 
     return;
 }
@@ -193,43 +145,14 @@ CalData_t *AppCalGet(void)
 CalData_t *AppCalLoad(void)
 {
     FactoryData_t *pFactory = &gstFactory;
-    FactoryData_t I2cFactory = {0};
     boolean_t FlashCal_valid = FALSE;
-    boolean_t I2cFac_valid = FALSE;
-
-    I2cFac_valid = CalLoadFromI2c(&I2cFactory);
 
     ///< load from flash
     FlashCal_valid = CalLoad(pFactory);
 
     /* check flash and i2c cal data */
-    if (!FlashCal_valid && !I2cFac_valid)
+    if (!FlashCal_valid)
     {
-        return NULL;
-    }
-
-    if (FlashCal_valid && I2cFac_valid)
-    {
-        /* crc不一致，以i2c为准 */
-        if (pFactory->u16Crc != I2cFactory.u16Crc)
-        {
-            FlashCal_valid = FALSE;
-        }
-    }
-
-    if (!I2cFac_valid) /* i2c invalid, 更新flash cal到i2c */
-    {
-        AppCalStoreToI2c(pFactory);
-    }
-
-    if (!FlashCal_valid) /* flash invalid, 更新i2c cal到flash */
-    {
-        memcpy(pFactory, &I2cFactory, sizeof(FactoryData_t));
-        AppCalStore(pFactory);
-    }
-
-    ///< init Setup sensor type
-    if(!NNA_SensorSet(pFactory->CalData.u8SensorType)) {
         return NULL;
     }
 
@@ -294,12 +217,6 @@ static void SampleDump(uint32_t *aSum)
     for (i = 1; i <= aSum[0]; i++)
     {
         DBG_PRINT(" %u", aSum[i]);
-#ifdef FACTORY_MODE_UV_DEBUG
-        if(factory_mode) {
-            AppLcdSetRawNumber(aSum[i], FALSE, 4);
-            AppLcdDisplayUpdate(500);
-        }
-#endif
     }
     DBG_PRINT("\r\n");
 }
@@ -365,191 +282,35 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     // it looks like this embedded processor
     // cannot be intterrupted in float processing
     __disable_irq();
-
     if (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
     {
         __enable_irq();
         return FALSE;
     }
-
-    ///< 环境温度获取
-    fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL, &uRa); ///< NTC 环境温度值获取
-    if (uTNtc)
-        *uTNtc = (uint32_t)(fNtcTemp * 100);
-
-    ///< 物体表面
-    fSurfaceTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 1.0);
-    if (uTSurface)
-        *uTSurface = (uint32_t)(fSurfaceTemp * 100);
-
-    // 人体体表
-    fSkinTemp = fSurfaceTemp;
-    if (fSkinTemp < 36)
-    {
-        fSkinTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
-    }
-
-    ///< 人体温度
-    fHumanTemp = NNA_HumanBodyTempGet(pCal, fNtcTemp, fSkinTemp);
-    if (uTHuman)
-        *uTHuman = (uint32_t)(fHumanTemp * 100);
-
-    if (pViR)
-        *pViR = uViR;
-
-    DBG_PRINT("ViR: %u Ntc: %2.2f Surf: %2.2f Skin: %2.2f Hum: %2.2f\r\n",
-              uViR, fNtcTemp, fSurfaceTemp, fSkinTemp, fHumanTemp);
-
     __enable_irq();
+
     return TRUE;
 }
 
-///< 校准(标定)模式API
 void AppCalibration(void)
 {
     CalData_t Cal;
-    float32_t fNtc, fTemp;
-    uint8_t u8CaType = 0;
-    uint32_t uNtcH, uNtcL, uViR;
-
-    NNA_CalInit(&Cal);
 
     AppLedEnable(LedOrange);
     AppLcdClearAll();
-    AppLcdBlink();
-
-    ///< 当前软件版本
-    AppLcdSetRawNumber(SYS_SW_VERSION, TRUE, 4);
-    ///< 选择传感器
-    Cal.u8SensorType = NNA_SensorGetIndex();
-    NNA_SensorSet(Cal.u8SensorType);
-    AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
-    AppLcdDisplayUpdate(0);
-
-    while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
 
     do {
-        if(key_pressed_query(KEY_MINUS)) {
-            Cal.u8SensorType ++;
-            if(Cal.u8SensorType >= en_sensor_max) {
-                Cal.u8SensorType = 0;
-            }
-            if(Cal.u8SensorType % 2) {
-                AppLedEnable(LedOrange);
-            } else {
-                AppLedEnable(LedGreen);
-            }
-        }
+        uint32_t uNtcH, uNtcL, uViR;
 
-        ///< 设置当前传感器选择
-        NNA_SensorSet(Cal.u8SensorType);
-        AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
-        AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
-        AppLcdDisplayUpdate(150);
-    } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
+        while(!key_pressed_query(KEY_TRIGGER));
 
-    AppLcdSetRawNumber(CAL_TEMP_LOW, FALSE, 2);
-    AppLcdDisplayUpdate(0);
+        ///< 读取ADC        
+        AppAdcCodeGet(&uViR, &uNtcH, &uNtcL);
 
-    while (1)
-    {
-        uint32_t uRa = 0;
+        beep_once(100);
 
-        while (!key_pressed_query(KEY_TRIGGER))
-            ; //等按键触发
+    } while (TRUE);
 
-        ///< 读取ADC
-        if (!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL))
-        {
-            while (key_pressed_query(KEY_TRIGGER))
-                ; //等按键释放
-            continue;
-        }
-
-        ///< 环境温度
-        // it looks like this embedded processor
-        // cannot be intterrupted in float processing
-        __disable_irq();
-        fNtc = NNA_NtcTempGet(uNtcH, uNtcL, &uRa);
-
-        if (u8CaType == 0)
-        {
-            ///< 打出环境温度
-            AppLcdSetTemp((uint32_t)(fNtc * 10));
-            AppLcdDisplayUpdate(300);
-            if (NNA_Calibration(&Cal, fNtc, CAL_TEMP_LOW, &fTemp, uViR))
-            {
-                u8CaType++;
-                __enable_irq();
-                /* log set Ra, uViR */
-                AppLcdSetRawNumber(uViR, FALSE, 4);
-                AppLcdSetLogIndex(TRUE, CAL_TEMP_LOW);
-                AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
-                AppLcdDisplayUpdate(10);
-                AppBeepBlink((SystemCoreClock / 1000));
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
-            }
-            else
-            {
-                __enable_irq();
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
-                continue;
-            }
-        }
-        else
-        {
-            if (NNA_Calibration(&Cal, fNtc, CAL_TEMP_HIGH, &fTemp, uViR))
-            {
-                __enable_irq();
-                /* log set Ra, uViR */
-                AppLcdSetRawNumber(uViR, FALSE, 4);
-                AppLcdSetLogIndex(TRUE, CAL_TEMP_HIGH);
-                AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
-                AppLcdDisplayUpdate(10);
-                AppBeepBlink((SystemCoreClock / 1000));
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
-                break;
-            }
-            else
-            {
-                __enable_irq();
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
-                continue;
-            }
-        }
-    }
-
-    while (1)
-    {
-        uint32_t uNtc, uSurf, uHuman;
-        ///< 用校准后的参数验证测试 & 按键确认
-        while (!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_FN))
-            ; //等按键触发
-
-        if (key_pressed_query(KEY_TRIGGER))
-        {
-            AppTempCalculate(&Cal, &uNtc, &uSurf, &uHuman, &uViR);
-            AppLcdSetTemp(uSurf / 10);
-            /* log set uViR */
-            AppLcdSetLogRawNumber(uViR, FALSE, 1);
-            AppLcdDisplayUpdate(0);
-        }
-
-        if (key_pressed_query(KEY_FN))
-        {
-            break;
-        }
-
-        //while(key_pressed_query(KEY_TRIGGER) || key_pressed_query(KEY_FN)); //等按键释放
-    }
-
-    AppBeepBlink((SystemCoreClock / 1000));
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(100);
     ///< 回写校准数据
     AppCalUpdateAndSaveFactory(&Cal);
 }
@@ -557,7 +318,7 @@ void AppCalibration(void)
 void AppCalInit()
 {
     // hold [FN] on PWRON to force calibration mode
-    if (key_pressed_query(KEY_FN))
+    if (key_pressed_query(KEY_TRIGGER))
     {
         AppCalLoad(); // 可能会用到上一次校准的传感器类型
         AppCalibration();
@@ -572,113 +333,3 @@ void AppCalInit()
     }
     return;
 }
-
-#define CAL_DEBUG 0
-#if CAL_DEBUG
-void cal_debug()
-{
-    CalData_t Cal;
-    CalData_t *pCal = NULL;
-    FactoryData_t Fact;
-
-    AppCalClean();
-    pCal = AppCalLoad();
-    if (pCal != NULL)
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-
-    Cal.fAmp = 0.1;
-    Cal.fCalBase = 0.2;
-    Cal.fTH = 0.3;
-    Cal.fTL = 0.4;
-    Cal.uVAdcH = 12;
-    Cal.uVAdcL = 34;
-    Cal.u8HumanFix = 29;
-    AppCalUpdateAndSaveFactory(&Cal);
-
-    if (!CalLoad(&Fact))
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-    pCal = &gstFactory.CalData;
-    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-
-    memset(&Fact, 0, sizeof(FactoryData_t));
-    if (!CalLoadFromI2c(&Fact))
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-    pCal = &Fact.CalData;
-    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-
-    /* erase flash cal */
-    //< 关闭中断
-    __disable_irq();
-
-    ///< 擦除块
-    while (Ok != Flash_SectorErase(CAL_DATA_ADDR))
-        ;
-
-    ///< 覆盖MAGIC
-    Flash_WriteWord(CAL_DATA_ADDR, 0xFFFFAAAA);
-    __enable_irq();
-
-    pCal = AppCalLoad(); //i2c cal write to flash
-    if (pCal == NULL)
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-
-    memset(&Fact, 0, sizeof(FactoryData_t));
-    if (!CalLoad(&Fact))
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-    pCal = &Fact.CalData;
-    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-
-    /* erase i2c cal */
-    memset(&Fact, 0, sizeof(FactoryData_t));
-    app_i2c_write_data(I2C_CAL_ADDR, (uint8_t *)&Fact, sizeof(FactoryData_t));
-
-    pCal = AppCalLoad(); //flash cal write to i2c
-    if (pCal == NULL)
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-
-    memset(&Fact, 0, sizeof(FactoryData_t));
-    if (!CalLoadFromI2c(&Fact))
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-    pCal = &Fact.CalData;
-    if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
-    {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
-        return;
-    }
-
-    AppCalClean();
-}
-#endif

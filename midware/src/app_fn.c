@@ -34,26 +34,21 @@ static struct fn_menu fn_menus[];
 
 static void fn_temp_sel_show(int8_t idx)
 {
-    AppLcdSetString(fn_menus[idx].lcd_str);
-    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
     AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_temp_sel_btn_minus(int8_t idx)
 {
-    g_cfg->temp_unit = Celsius;
+    //g_cfg->temp_unit = Celsius;
 }
 
 static void fn_temp_sel_btn_plus(int8_t idx)
 {
-    g_cfg->temp_unit = Fahrenheit;
+    //g_cfg->temp_unit = Fahrenheit;
 }
 
 static void fn_body_alarm_show(int8_t idx)
 {
-    AppLcdSetTemp(C2F_by_setting(g_cfg->body_alarm_C));
-    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_body_alarm_btn_minus(int8_t idx)
@@ -74,7 +69,6 @@ static void fn_body_alarm_btn_plus(int8_t idx)
 
 static void fn_body_cal_show(int8_t idx)
 {
-    AppLcdSetRawNumber(g_cfg->body_cal_tweak, TRUE, 2);
     AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
@@ -96,9 +90,6 @@ static void fn_body_cal_plus(int8_t idx)
 
 static void fn_beep_show(int8_t idx)
 {
-    AppLcdSetString(fn_menus[idx].lcd_str);
-    AppLcdSetBuzzer(g_cfg->beep_on);
-    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
 }
 
 static void fn_beep_minus(int8_t idx)
@@ -117,32 +108,31 @@ static struct fn_menu fn_menus[] = {
         .lcd_show   = fn_temp_sel_show,
         .btn_minus  = fn_temp_sel_btn_minus,
         .btn_plus   = fn_temp_sel_btn_plus,
-        .lcd_str    = Str_F1
+        .lcd_str    = 1
     },
     [FN_BODY_ALARM] = {
         .lcd_show   = fn_body_alarm_show,
         .btn_minus  = fn_body_alarm_btn_minus,
         .btn_plus   = fn_body_alarm_btn_plus,
-        .lcd_str    = Str_F2
+        .lcd_str    = 2
     },
     [FN_BODY_CAL]   = {
         .lcd_show   = fn_body_cal_show,
         .btn_minus  = fn_body_cal_minus,
         .btn_plus   = fn_body_cal_plus,
-        .lcd_str    = Str_F3
+        .lcd_str    = 3
     },
     [FN_BEEP_ON]    = {
         .lcd_show   = fn_beep_show,
         .btn_minus  = fn_beep_minus,
         .btn_plus   = fn_beep_plus,
-        .lcd_str    = Str_F4
+        .lcd_str    = 4
     },
 };
 
 static void app_sub_fn_enter(int8_t idx)
 {
     AppLcdClearAll();
-    AppLcdSetString(fn_menus[idx].lcd_str);
     AppLcdDisplayUpdate(FN_TITLE_LCD_STAY_MS);
     AppLcdClearAll();
     AppLcdDisplayUpdate(0);

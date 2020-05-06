@@ -163,8 +163,6 @@ void AppSysClkInit(void);
 
 ///< VCC电压监测功能初始化
 extern void AppVolMonitorInit(void);
-///< 蜂鸣器滴滴
-extern void AppBeepBlink(uint32_t u32FreqIndex);
 
 // 电源管理
 extern void AppPmuInit(void);

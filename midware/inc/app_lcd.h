@@ -55,54 +55,6 @@
 /******************************************************************************/
 #include "ddl.h"
 
-/******************************************************************************
- ** Global type definitions
- *****************************************************************************/
-#define APP_LCD_ENABLE()     {M0P_LCD->CR0_f.EN = TRUE;}
-#define APP_LCD_DISABLE()    {M0P_LCD->CR0_f.EN = TRUE;}
-
- /**
- ******************************************************************************
- ** \brief 温度类型
- *****************************************************************************/
-typedef enum enTempMode
-{
-    Celsius     = 0,            /*!< 摄氏度 */
-    Fahrenheit  = 1,            /*!< 华氏度 */
-    TempNone    = 2,            /*!< 无显示 */
-}enTempMode_t;
-
- /**
- ******************************************************************************
- ** \brief 检测类型
- *****************************************************************************/
-typedef enum enCheckMode
-{
-    Body        = 0,            /*!< body */
-    Surface     = 1,            /*!< surface temp */
-    CheckNone   = 2,            /*!< 无显示 */
-}enCheckMode_t;
-
-/**
-******************************************************************************
-** \brief 字符串显示格式
-*****************************************************************************/
-typedef enum enStrType
-{
-    Str_F1      = 0,            /* F1 */
-    Str_F2      = 1,            /* F2 */
-    Str_F3      = 2,            /* F3 */
-    Str_F4      = 3,            /* F4 */
-    Str_ON      = 4,            /* oN */
-    Str_OFF     = 5,            /* oFF */
-    Str_LO      = 6,            /* Lo */
-    Str_HI      = 7,            /* HI */
-    Str_NONE    = 8,            /* 不显示 */
-    Str_MAX
-}enStrType_t;
-
-
-
 /*******************************************************************************
  ** \brief lcd相关函数声明
  note: 
@@ -110,43 +62,12 @@ typedef enum enStrType
  ******************************************************************************/
 extern void AppLcdInit(void);
 
-extern void AppLcdDisplayClear(void);
-
 extern void AppLcdDisplayAll(void);
-
-extern void AppLcdSetLock(boolean_t display);
-
-extern void AppLcdSetBuzzer(boolean_t display);
-
-extern void AppLcdSetBattery(boolean_t display);
-
-extern void AppLcdSetCheckMode(enCheckMode_t CheckMode, boolean_t display);
-
-extern void AppLcdSetTempMode(enTempMode_t TempMode,  boolean_t display);
-
-extern void AppLcdSetTemp(uint16_t Temp);
-
-extern void AppLcdClearTemp(void);
-
-extern void AppLcdSetLogTemp(uint16_t Temp, int16_t Index);
-
-extern void AppLcdClearLogTemp(void);
-
-extern void AppLcdSetLogIndex(uint8_t icon, int16_t index);
-
-extern void AppLcdSetLogRawNumber(int16_t Temp, 
-    boolean_t dis_dot, uint8_t min_digits);
-
-extern void AppLcdSetString(enStrType_t StrType);
-
-extern void AppLcdSetRawNumber(int16_t Temp, boolean_t dis_dot, uint8_t min_digits);
 
 // say a delay ms to allow lcd stay its content on demand
 extern void AppLcdDisplayUpdate(uint32_t delay_ms);
 
 extern void AppLcdClearAll(void);
-
-extern void AppLcdBlink(void); 
 
 void AppLcdEnable(void);
 

@@ -55,38 +55,6 @@
 #include "app.h"
 #include "app_lcd.h"
 #include "app_i2c.h"
-/**
- *******************************************************************************
- ** \addtogroup FlashGroup
- ******************************************************************************/
-//@{
-
-/*******************************************************************************
- * Local pre-processor symbols/macros ('#define')
- ******************************************************************************/
-#define FREQBEEPVAL             (1200) //Hz
- 
-/*******************************************************************************
- * Global variable definitions (declared in header file with 'extern')
- ******************************************************************************/
-
-/*******************************************************************************
- * Local type definitions ('typedef')
- ******************************************************************************/
-
-/*******************************************************************************
- * Local variable definitions ('static')
- ******************************************************************************/
-
-/*******************************************************************************
- * Local function prototypes ('static')
- ******************************************************************************/
-
-/*******************************************************************************
- * Function implementation - global ('extern') and local ('static')
- ******************************************************************************/
-
-static UID_t           gstUID;
 
 // App 系统时钟/总线初始化
 void AppSysClkInit(void)
@@ -103,21 +71,6 @@ void AppSysClkInit(void)
     Sysctrl_SetPeripheralGate(SysctrlPeripheralCrc, TRUE);  //需要校验和时钟
 }
 
-static void AppLoadUID(void)
-{
-    int i;
-
-    memset(&gstUID, 0, sizeof(gstUID));
-    for(i=0; i<sizeof(UID_t); i++) {
-        *((uint8_t*)&gstUID + i) = *(uint8_t*)(UID_BASE_ADDR);
-    }
-
-    DBG_PRINT("RevID: %2x - %2x, %2x, %2x\r\n", gstUID.RevID, \
-            gstUID.WaterNumber, gstUID.XCoordWater, gstUID.YCoordWater);
-    DBG_PRINT("\t%02x-%02x-%02x-%02x-%02x-%02x\r\n", \
-            gstUID.LotNumber[0], gstUID.LotNumber[1], gstUID.LotNumber[2],
-            gstUID.LotNumber[3], gstUID.LotNumber[4], gstUID.LotNumber[5]);
-}
 
 void AppParaAreaInit(void)
 {
@@ -126,27 +79,6 @@ void AppParaAreaInit(void)
 
     ///< 初始化Flash
     Flash_Init(1, TRUE);
-
-    ///< 加载UID
-    AppLoadUID();
-}
-
-void AppBeepBlink(uint32_t u32FreqIndex)
-{    
-    while(u32FreqIndex--)
-    {
-        if((u32FreqIndex/((SystemCoreClock/FREQBEEPVAL)>>1))&0x01)
-        {
-            Gpio_ClrIO(M_BEEP_PORT, M_BEEP_PIN);
-        }
-        else
-        {
-            Gpio_SetIO(M_BEEP_PORT, M_BEEP_PIN);
-        }
-    
-    }
-    Gpio_ClrIO(M_BEEP_PORT, M_BEEP_PIN);
-    
 }
 
 void AppPmuInit(void)

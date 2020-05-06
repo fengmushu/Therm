@@ -36,11 +36,6 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
             // last_write++ in scan_log_write_safe()
             scan_log_write_safe(scan_log, last_result);
             g_rt->read_idx[scan_mode] = scan_log->last_write;
-
-#ifdef FACTORY_MODE_UV_DEBUG
-            scan_log_write_idx(&log_uv[scan_mode], scan_log->last_write, last_uv);
-            scan_log_write_idx(&log_ntc[scan_mode], scan_log->last_write, last_ntc);
-#endif
         }
 
         break;
@@ -95,11 +90,6 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     // reset color for all not defined patterns
     AppLedEnable(LedGreen);
 
-    AppLcdSetLock(FALSE);
-    AppLcdSetBuzzer(g_cfg->beep_on);
-    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdSetCheckMode(g_rt->scan_mode, TRUE);
-
     // blinking
     if (g_rt->battery_low) {
         uint8_t duty;
@@ -107,40 +97,22 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         duty = blink_cnt & GENMASK(5, 4);
         duty >>= 4;
 
-        AppLcdSetBattery(FALSE);
-
-        if (duty == 0x00 || duty == 0x01) // duty 50%
-            AppLcdSetBattery(TRUE);
+        //if (duty == 0x00 || duty == 0x01) // duty 50%
+            //AppLcdSetBattery(TRUE);
     }
 
     // read_idx should have synced to write_idx in enter() if comes from scan
     log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
 
-    AppLcdSetLogTemp(C2F_by_setting(log_number), lcd_show_idx(read_idx));
-
     // user is viewing log, show big number as log number
     big_number = log_number;
-
-#ifdef FACTORY_MODE_UV_DEBUG
-    if (log_show_uv) {
-        uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
-        log_number = scan_log_read(&log_uv[scan_mode], read_idx);
-        AppLcdSetLogRawNumber(log_number, FALSE, 4);
-        AppLcdSetLogIndex(FALSE, ntc_number);
-        // AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
-    }
-#endif
 
     if (scan_show) {
         big_number = g_rt->scan_result[scan_mode];
 
         if (big_number < g_temp_thres[scan_mode].underflow) {
-            AppLedEnable(LedOrange);
-            AppLcdSetString(Str_LO);
             goto lcd_update; // jump out
         } else if (big_number > g_temp_thres[scan_mode].overflow) {
-            AppLedEnable(LedRed);
-            AppLcdSetString(Str_HI);
             goto lcd_update; // jump out
         }
     }
@@ -156,8 +128,6 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
             AppLedEnable(LedOrange);
         }
     }
-
-    AppLcdSetRawNumber(C2F_by_setting(big_number), TRUE, 2);
 
 lcd_update:
     AppLcdDisplayUpdate(0);

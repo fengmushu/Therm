@@ -62,94 +62,22 @@ extern "C"
 {
 #endif
 
-    /**
- ******************************************************************************
- ** \defgroup BGR
-  **
- ******************************************************************************/
-    //@{
-
-    /******************************************************************************
- * Global type definitions
- ******************************************************************************/
-    typedef enum
-    {
-        en_sensor_1875 = 0,
-        en_sensor_mts01,
-        en_sensor_fatri_sgxv02,
-        en_sensor_b7f55,
-        en_sensor_max,
-    } en_sensor_t;
-
-#define DEFAULTL_SENSOR en_sensor_fatri_sgxv02
-
-    typedef struct
-    {
-        ///< 运放放大系数
-        float32_t fAmp;
-        ///< 温度偏移基数
-        float32_t fCalBase;
-        ///< 校准过程中间参数
-        float32_t fTH, fTL;
-        uint32_t uVAdcH, uVAdcL;
-        ///< 人体温度修正偏移: 29
-        uint8_t u8HumanFix;
-        ///< 传感器识别类型
-        uint8_t u8SensorType;
-        ///< 预留字段, 供后续使用
-        uint8_t u8Res[8];
-    } CalData_t;
-
-    /******************************************************************************
- * Local type definitions ('typedef')
- ******************************************************************************/
-
-    /******************************************************************************
- * Global variable definitions ('extern')
- ******************************************************************************/
-
-    /******************************************************************************
- * Global function prototypes (definition in C source)                        
- ******************************************************************************/
-
-    extern boolean_t NNA_SensorSet(en_sensor_t uSensorType);
-    extern en_sensor_t NNA_SensorGetIndex(void);
-    extern uint16_t NNA_SensorGet(void);
-    extern void NNA_CalInit(CalData_t *pCal);
-
-    /**
- *******************************************************************************
- ** \brief NTC   环境温度获取
- ** \param [in]  u32AdcNtcHCode Ntc H ADC采样值
- ** \param [in]  u32AdcNtcLCode Ntc L ADC采样值
-
- ** \retval      Ok         黑体温度
- ******************************************************************************/
-    extern float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint32_t *uRa);
-
-    /**
- *******************************************************************************
- ** \brief VIR 黑体/物体 温度
- ** \param [in]  f32NtcTemp     Ntc温度
- ** \param [in]  u32AdcCode     Vir ADC采样值
- ** \param [in]  u32AdcBiasCode Vir Bias ADC采样值
- ** \param [in]  fEpsilon       物体表面的 热辐射率
-
- ** \retval      Ok         黑体温度
- ******************************************************************************/
-    extern float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t f32NtcTemp, uint32_t u32VirAdcCode, float32_t fEpsilon);
-
-    /**
- *******************************************************************************
- ** \brief VIR 人体温度获取
- ** \param [in]  fSurfaceTemp   表面温度
-
- ** \retval                         人体温度
- ******************************************************************************/
-    extern float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fSkinTemp);
-
-    extern boolean_t NNA_Calibration(CalData_t *pCal, float32_t fTempEnv, float32_t fTempTarget, float32_t *fTemp, uint32_t u32VirAdc);
-    //@} // APP Group
+typedef struct
+{
+    ///< 运放放大系数
+    float32_t fAmp;
+    ///< 温度偏移基数
+    float32_t fCalBase;
+    ///< 校准过程中间参数
+    float32_t fTH, fTL;
+    uint32_t uVAdcH, uVAdcL;
+    ///< 人体温度修正偏移: 29
+    uint8_t u8HumanFix;
+    ///< 传感器识别类型
+    uint8_t u8SensorType;
+    ///< 预留字段, 供后续使用
+    uint8_t u8Res[8];
+} CalData_t;
 
 #ifdef __cplusplus
 }

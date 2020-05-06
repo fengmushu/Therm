@@ -44,9 +44,6 @@ void sys_halt(void)
     // beep on, in case
     beep_off();
 
-    // reset lcd
-    AppLcdDisplayClear();
-
     // turn off backlight
     AppLedDisable();
 
@@ -105,13 +102,6 @@ static fsm_state_t state_pwron_enter(fsm_node_t *node, fsm_event_t event)
 
     beep_once(225);
 
-    // AppLedEnable(LedOrange);
-
-    // AppLcdClearAll();
-    // AppLcdDisplayClear();
-    // AppLcdDisplayAll();
-    // delay1ms(2500);
-
     return FSM_STATE_SLEEP;
 }
 
@@ -136,12 +126,6 @@ static fsm_state_t state_pwroff_enter(fsm_node_t *node, fsm_event_t event)
 
     if (app_save_i2c_store(g_save))
         DBG_PRINT("failed to save data to i2c\r\n");
-
-    AppLedEnable(LedOrange);
-
-    AppLcdClearAll();
-    AppLcdSetString(Str_OFF);
-    AppLcdDisplayUpdate(2000);
 
     return FSM_STATE_SLEEP;
 }
@@ -180,24 +164,10 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
 
     // hold [-] and [+] to reset, clear config
     if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
-        AppLcdBlink();
         app_save_reset(g_save);
         app_save_i2c_store(g_save);
         app_runtime_readidx_rebase(g_rt);
     }
-
-    //
-    // NOTE: when system wakes up from deep sleep
-    //       adc/bgr needs a little delay to settle down
-    //       otherwise the first sampling may be werid
-    //
-    AppLcdDisplayClear();
-    AppLcdDisplayAll();
-    delay1ms(1000);
-
-    AppLcdDisplayClear();
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(0);
 }
 
 static fsm_state_t state_sleep_proc(fsm_node_t *node, fsm_event_t *out)
@@ -234,16 +204,6 @@ static fsm_node_t state_main = {
     .exit    = state_main_exit,
     .events  = 0,
     .actions = {
-        // {
-        //     .event  = FSM_EVENT_RELEASE_MINUS,
-        //     .action = state_main_release_minus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_PLUS,
-        //     .action = state_main_release_plus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
         {
             .event  = FSM_EVENT_PRESS_FN,
             .action = state_main_press_fn,
@@ -254,26 +214,6 @@ static fsm_node_t state_main = {
             .action = state_main_release_fn,
             .next   = __FSM_STATE_NONE,
         },
-        // {
-        //     .event  = FSM_EVENT_PRESS_TRIGGER,
-        //     .action = NULL,
-        //     .next   = FSM_STATE_SCAN,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_TRIGGER,
-        //     .action = NULL,
-        //     .next   = FSM_STATE_SCAN,
-        // },
-        // {
-        //     .event  = FSM_EVENT_SWITCH_BODY,
-        //     .action = state_main_scan_mode_switch,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_SWITCH_SURFACE,
-        //     .action = state_main_scan_mode_switch,
-        //     .next   = __FSM_STATE_NONE,
-        // },
         {
             .event  = FSM_EVENT_IRQ_TIMER3,
             .action = NULL,
@@ -297,10 +237,6 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
     fsm_state_t next = node->state;
 
     UNUSED_PARAM(event);
-
-    // waited in main->enter()
-    AppLcdSetLock(TRUE);
-    AppLcdDisplayUpdate(0);
 
     return next;
 }
@@ -334,13 +270,6 @@ static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
         g_rt->scan_result[i] /= 10; // display goes with one float digit
     }
 
-#ifdef FACTORY_MODE_UV_DEBUG
-    if (factory_mode) {
-        last_uv = uv;
-        last_ntc = ntc / 100;
-    }
-#endif
-
     state_proc_event_set(out, FSM_EVENT_SCAN_DONE);
 
     return FSM_STATE_MAIN;
@@ -350,10 +279,6 @@ void state_scan_exit(fsm_node_t *node, fsm_event_t event)
 {
     UNUSED_PARAM(node);
     UNUSED_PARAM(event);
-
-    // cleared in main->enter()
-    // AppLcdSetLock(FALSE);
-    // AppLcdDisplayUpdate(0);
 }
 
 static fsm_node_t state_scan = {
@@ -374,8 +299,6 @@ static fsm_node_t state_scan = {
 
 static fsm_state_t state_config_enter(fsm_node_t *node, fsm_event_t event)
 {
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(30);
 
     app_fn_enter();
 
@@ -404,30 +327,6 @@ static void state_config_exit(fsm_node_t *node, fsm_event_t event)
     app_fn_exit();
 }
 
-// static fsm_state_t state_config_release_fn(fsm_node_t *node,
-//                                            fsm_event_t event,
-//                                            void *data)
-// {
-//     app_fn_next();
-//     return node->state;
-// }
-
-// static fsm_state_t state_config_release_minus(fsm_node_t *node,
-//                                               fsm_event_t event,
-//                                               void *data)
-// {
-//     app_fn_btn_minus();
-//     return node->state;
-// }
-
-// static fsm_state_t state_config_release_plus(fsm_node_t *node,
-//                                               fsm_event_t event,
-//                                               void *data)
-// {
-//     app_fn_btn_plus();
-//     return node->state;
-// }
-
 static fsm_node_t state_config = {
     .state   = FSM_STATE_CONFIG,
     .type    = FSM_NODE_NORMAL,
@@ -436,21 +335,6 @@ static fsm_node_t state_config = {
     .exit    = state_config_exit, 
     .events  = 0,
     .actions = {
-        // {
-        //     .event  = FSM_EVENT_RELEASE_MINUS,
-        //     .action = state_config_release_minus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_PLUS,
-        //     .action = state_config_release_plus,
-        //     .next   = __FSM_STATE_NONE,
-        // },
-        // {
-        //     .event  = FSM_EVENT_RELEASE_FN,
-        //     .action = state_config_release_fn,
-        //     .next   = __FSM_STATE_NONE,
-        // },
         {
             .event  = FSM_EVENT_SYS_HALT,
             .action = NULL,
