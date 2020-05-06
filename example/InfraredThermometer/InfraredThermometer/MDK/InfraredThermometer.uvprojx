@@ -188,7 +188,7 @@
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>1</useUlib>
+            <useUlib>0</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
@@ -327,7 +327,7 @@
             <uC99>1</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
-            <v6Lang>6</v6Lang>
+            <v6Lang>5</v6Lang>
             <v6LangP>3</v6LangP>
             <vShortEn>0</vShortEn>
             <vShortWch>0</vShortWch>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\..\..\mcu\common;..\source;..\..\..\..\driver\inc;..\..\..\..\midware\inc</IncludePath>
+              <IncludePath>..\..\..\..\mcu\common;..\source;..\..\..\..\driver\inc;..\..\..\..\midware\inc;..\..\..\..\midware\ssd1306\src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -492,16 +492,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\driver\src\timer3.c</FilePath>
             </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\driver\src\spi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>midware</GroupName>
           <Files>
-            <File>
-              <FileName>app_lcd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\midware\src\app_lcd.c</FilePath>
-            </File>
             <File>
               <FileName>app_gpio.c</FileName>
               <FileType>1</FileType>
@@ -581,6 +581,106 @@
               <FileName>app_factory.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\midware\src\app_factory.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_generic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_generic.c</FilePath>
+            </File>
+            <File>
+              <FileName>lcd_common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\lcd\lcd_common.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_interface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\intf\ssd1306_interface.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\intf\spi\ssd1306_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled_ssd1306.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\lcd\oled_ssd1306.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\intf\i2c\ssd1306_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>platform.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_hal\template\platform.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_lcd.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\midware\src\app_lcd.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>canvas.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\nano_engine\canvas.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_1bit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_1bit.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_8bit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_8bit.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_16bit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_16bit.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_fonts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_fonts.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_menu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_menu.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>nano_gfx.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\nano_gfx.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>sprite_pool.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\sprite_pool.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_console.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\ssd1306_console.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>core.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>..\..\..\..\midware\ssd1306\src\nano_engine\core.cpp</FilePath>
             </File>
           </Files>
         </Group>
