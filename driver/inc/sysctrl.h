@@ -443,6 +443,7 @@ en_result_t Sysctrl_SetRTCAdjustClkFreq(en_sysctrl_rtc_adjust_t enRtcAdj);
 //@} // Sysctrl Group
 
 #ifdef __cplusplus
+}
 #endif
 
 #endif /* __SYSCTRL_H__ */

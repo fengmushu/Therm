@@ -136,6 +136,7 @@ void Lpm_GotoLpmMode(void);
 //@} // LpmGroup
 
 #ifdef __cplusplus
+}
 #endif
 
 

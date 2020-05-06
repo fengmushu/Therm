@@ -68,6 +68,7 @@
 #include "app_cal.h"
 #include "app_key.h"
 #include "app_i2c.h"
+#include "app_spi.h"
 #include "app_data.h"
 #include "app_timer.h"
 #include "app_rtc.h"
@@ -92,9 +93,6 @@ void sys_init(void)
 
     ///< ADC 模块初始化
     AppMAdcInit();
-
-    ///< LCD 模块初始化
-    AppLcdInit();
 
 #ifdef DEBUG
     ///< 串口初始化
@@ -121,7 +119,11 @@ int main(void)
 {
     sys_init();
 
-    app_i2c_init();
+    sys_i2c_init();
+
+    sys_spi_init();
+
+    sys_display_init();
 
     factory_test();
 

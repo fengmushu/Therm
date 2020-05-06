@@ -253,6 +253,7 @@ extern void Pca_GetCcapHL(en_pca_module_t Modulex, uint8_t *ValueH, uint8_t *Val
 //@} // PcaGroup
 
 #ifdef __cplusplus
+}
 #endif
 
 #endif /* __PCA_H__ */

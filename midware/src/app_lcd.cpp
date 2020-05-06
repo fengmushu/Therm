@@ -51,10 +51,23 @@
 /******************************************************************************
  * Include files
  ******************************************************************************/
-#include "app_lcd.h"
 #include "lcd.h"
 #include "app.h"
+#include "app_lcd.h"
+
 #include "ssd1306.h"
+
+#include "nano_engine.h"
+
+NanoEngine<TILE_128x64_MONO> engine;
+
+bool drawAll()
+{
+    engine.canvas.clear();
+    engine.canvas.setColor(RGB_COLOR8(255,255,0));
+    engine.canvas.drawRect(15,12,70,55);
+    return true;   // if to return false, the engine will skip this part of screen update
+}
 
 ///< LCD 初始化
 void sys_display_init(void)
@@ -68,19 +81,28 @@ void AppLcdDisplayAll(void)
 
 void AppLcdClearAll(void)
 {
-
 }
 
 void AppLcdDisplayUpdate(uint32_t delay_ms)
 {
+    if (!engine.nextFrame()) return;
+    engine.refresh();  // Makes engine to refresh whole display content
+    engine.display();
 }
 
 void AppLcdDisable(void)
 {
+    ssd1306_displayOff();
 }
 
 void AppLcdEnable(void)
 {
+    ssd1306_displayOn();
+
+    engine.begin();
+    engine.setFrameRate(30);
+    /* Set callback to draw parts, when NanoEngine8 asks */
+    engine.drawCallback( drawAll );
 }
 
 /******************************************************************************

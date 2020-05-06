@@ -237,6 +237,7 @@ uint8_t Uart_ReceiveData(M0P_UART_TypeDef* UARTx);
 //@} // UartGroup
 
 #ifdef __cplusplus
+}
 #endif
 
 #endif /* __UART_H__ */

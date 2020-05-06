@@ -32,10 +32,6 @@ void sys_spi_init(void)
 
     Spi_SetCS(Spi0, TRUE);
 
-    Gpio_ClrIO(M_SPI0_RESET_PORT, M_SPI0_RESET_PIN);
-    delay1ms(100);
-    Gpio_SetIO(M_SPI0_RESET_PORT, M_SPI0_RESET_PIN);
-
     //SPI模块配置
     SPIConfig.bCPHA = Spicphafirst;//模式0
     SPIConfig.bCPOL = Spicpollow;
@@ -45,23 +41,13 @@ void sys_spi_init(void)
     SPIConfig.pfnSpi0IrqCb = NULL;
 	if(SPIConfig.bIrqEn)
 	{
-		EnableNvic(SPI0_IRQn,IrqLevel3,TRUE);
+		EnableNvic(SPI0_IRQn, IrqLevel3,TRUE);
 	}
-    Spi_Init(Spi0,&SPIConfig);//模块初始化
+    Spi_Init(Spi0, &SPIConfig);//模块初始化
 
-    // Spi_SetCS(Spi0, FALSE);//使能片选信号
-
-    // for(i=0;i<10;i++)
-    // {
-    //   Spi_SendData(Spi0,u8Senddata[i]);//发送数据
-    // }
-    // i = Spi_ReceiveData(Spi0,1);// 接收推回数据AA
-    // for(i=0;i<10;i++)
-    // {
-    //   u8Recvdata[i]=Spi_ReceiveData(Spi0,1);//主机接收数据
-    // }
-
-    // Spi_SetCS(Spi0, TRUE);
+    Gpio_ClrIO(M_SPI0_RESET_PORT, M_SPI0_RESET_PIN);
+    delay1ms(100);
+    Gpio_SetIO(M_SPI0_RESET_PORT, M_SPI0_RESET_PIN);
 }
 
 
@@ -75,14 +61,14 @@ void plat_spi_start(void)
 void plat_spi_stop(void)
 {
     // DCS
-    Spi_SetCS(Spi0, TRUE);
-    // DCS
-    Gpio_SetIO(M_SPI0_DCS_PORT, M_SPI0_DCS_PIN);
+    // Spi_SetCS(Spi0, TRUE);
+    // // DCS
+    // Gpio_SetIO(M_SPI0_DCS_PORT, M_SPI0_DCS_PIN);
 }
 
 void plat_spi_deinit(void)
 {
-    Spi_DeInit(Spi0);
+    // Spi_DeInit(Spi0);
 }
 
 void plat_spi_xmit(const uint8_t *data, uint16_t len)

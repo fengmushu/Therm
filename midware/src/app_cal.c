@@ -295,23 +295,31 @@ void AppCalibration(void)
     CalData_t Cal;
 
     AppLedEnable(LedOrange);
+    AppLcdEnable();
     AppLcdClearAll();
 
     do {
-        while(!key_pressed_query(KEY_TRIGGER));
+
+        // while(!key_pressed_query(KEY_TRIGGER)); //按下
 
         i = 1 - i;
         if(i)
         {
+            // AppLcdEnable();
             AppLedEnable(LedOrange);
         }
         else
         {
+            // AppLcdDisable();
             AppLedEnable(0);
         }
 
+        AppLcdDisplayUpdate(200);
+
         beep_once(100);
         DBG_PRINT("-");
+
+        // while(key_pressed_query(KEY_TRIGGER)); //释放
 
     } while (TRUE);
 

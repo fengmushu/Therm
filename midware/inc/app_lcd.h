@@ -55,6 +55,11 @@
 /******************************************************************************/
 #include "ddl.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /*******************************************************************************
  ** \brief lcd相关函数声明
  note: 
@@ -74,6 +79,7 @@ void AppLcdEnable(void);
 void AppLcdDisable(void);
 
 #ifdef __cplusplus
+}
 #endif
 
 #endif /* __APP_LCD_H__ */
