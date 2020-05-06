@@ -477,12 +477,20 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
                 DBG_PRINT("\t aVariance: %u\r\n", uAcc);
         }
     } while (uReTry++ < MAX_ACC_COUNT);
+    ///< 环境抖动
     if(uReTry == MAX_ACC_COUNT)
     {
         return FALSE;
     }
 
+    ///< 合理范围(37°-42°): 0.7v - 1.5v
     uViR = SampleMeans(aSampleViR);
+    if(uViR < 700 || uViR > 1500)
+    {
+        AppLcdSetRawNumber(uViR, FALSE, 4);
+        AppLcdDisplayUpdate(200);
+        return FALSE;
+    }
 
     ///< 环境温度
     // it looks like this embedded processor
@@ -591,6 +599,7 @@ void AppCalibration(void)
             /* log set uViR */
             AppLcdSetLogRawNumber(uViR, FALSE, 1);
             AppLcdDisplayUpdate(0);
+            beep_once(100);
         }
 
         if (key_pressed_query(KEY_FN))

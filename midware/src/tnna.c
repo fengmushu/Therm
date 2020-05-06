@@ -348,7 +348,7 @@ boolean_t NNA_Calibration(
     {
         // 线性区间放大
         fAmp = (uVAdcH - uVAdcL) / (fTH - fTL);
-        if (fAmp >= 100 && fAmp <= 4000)
+        if (fAmp >= 200 && fAmp <= 1000)
         {
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
