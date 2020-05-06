@@ -60,7 +60,7 @@
  note: 
  AppLcdSetXXX函数，调用后需调用AppLcdDisplayUpdate更新显示屏。
  ******************************************************************************/
-extern void AppLcdInit(void);
+extern void sys_display_init(void);
 
 extern void AppLcdDisplayAll(void);
 

@@ -57,9 +57,9 @@
 #include "ssd1306.h"
 
 ///< LCD 初始化
-void AppLcdInit(void)
+void sys_display_init(void)
 {
-    
+    ssd1306_128x64_spi_init(-1,-1,-1);
 }
 
 void AppLcdDisplayAll(void)

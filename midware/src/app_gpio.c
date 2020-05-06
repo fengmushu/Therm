@@ -202,9 +202,6 @@ void _AppAdcPortInit(void)
     stcGpioCfg.enPd       = GpioPdDisable;
     stcGpioCfg.enPu       = GpioPuDisable; //默認開啓
 
-    // ADC-VCC
-    Gpio_Init(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN, &stcGpioCfg);      //PA15 ON/OFF
-
     stcGpioCfg.enOD       = GpioOdDisable;
     Gpio_Init(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN, &stcGpioCfg);      //PB07 ON/OFF
 

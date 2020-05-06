@@ -291,20 +291,27 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
 void AppCalibration(void)
 {
+    int i = 0;
     CalData_t Cal;
 
     AppLedEnable(LedOrange);
     AppLcdClearAll();
 
     do {
-        uint32_t uNtcH, uNtcL, uViR;
-
         while(!key_pressed_query(KEY_TRIGGER));
 
-        ///< 读取ADC        
-        // AppAdcCodeGet(&uViR, &uNtcH, &uNtcL);
+        i = 1 - i;
+        if(i)
+        {
+            AppLedEnable(LedOrange);
+        }
+        else
+        {
+            AppLedEnable(0);
+        }
 
         beep_once(100);
+        DBG_PRINT("-");
 
     } while (TRUE);
 

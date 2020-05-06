@@ -136,7 +136,7 @@ static boolean_t __app_i2c_recv_data_byte(uint8_t *pdata)
     return TRUE;
 }
 
-void app_i2c_init()
+void sys_i2c_init()
 {
     stc_i2c_cfg_t i2c_cfg;
     
@@ -147,9 +147,6 @@ void app_i2c_init()
 
     /* 打开i2c外设时钟门控 */
     Sysctrl_SetPeripheralGate(SysctrlPeripheralI2c0, TRUE);
-
-    /* use PB08 as SCL, PB09 as SDA, gpio inited int _AppEeI2cPortInit */
-    //_AppEeI2cPortInit();
         
     /* init i2c config */
     I2C_Init(s_i2c, &i2c_cfg); 
@@ -170,7 +167,7 @@ boolean_t app_i2c_stop()
     return __app_i2c_stop();
 }
 
-boolean_t app_i2c_write_data(uint8_t addr, uint8_t* pdata, uint16_t len)
+boolean_t app_i2c_write_data(uint8_t addr, const uint8_t* pdata, uint16_t len)
 {
     uint8_t state = 0;
     uint16_t try_cnt = MAX_TRY_CNT;

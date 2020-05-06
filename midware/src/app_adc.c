@@ -86,13 +86,11 @@
  *****************************************************************************/
 void AppMAdcPowerOn(void)
 {
-    // Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); 
     Gpio_SetIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
 }
 
 void AppMAdcPowerOff(void)
 {
-    // Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
     Gpio_ClrIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
 }
 
