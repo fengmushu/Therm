@@ -642,7 +642,7 @@ void AppCalibration(void)
 void AppCalInit()
 {
     // hold [FN] on PWRON to force calibration mode
-    if (TRUE || key_pressed_query(KEY_FN))
+    if (key_pressed_query(KEY_FN))
     {
         AppCalLoad(); // 可能会用到上一次校准的传感器类型
         AppCalibration();
