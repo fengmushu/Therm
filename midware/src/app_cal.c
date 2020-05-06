@@ -258,9 +258,51 @@ void AppCalClean(void)
     app_i2c_write_data(I2C_CAL_ADDR, (uint8_t *)&gstFactory, sizeof(gstFactory));
 }
 
+///< 数据预处理(滤波)
+#define SAMPLE_MAX (4)
+#define SAMPLE_BUFF_SIZE    (SAMPLE_MAX + 1)
 static void SampleInsert(uint32_t *aSum, uint32_t uVal)
 {
-    aSum[++aSum[0]] = uVal;
+    int i;
+
+    if(aSum[0] < SAMPLE_MAX) {
+        aSum[0]++;
+    }
+    for(i=aSum[0]; i>1; i--)
+    {
+        aSum[i] = aSum[i-1];
+    }
+    aSum[1] = uVal;
+}
+
+static uint32_t SampleMeans(uint32_t *aSum)
+{
+    int i;
+    uint32_t uMeans = 0;
+
+    for(i = 1; i <= aSum[0]; i++)
+    {
+        uMeans += aSum[i];
+    }
+    return (uMeans /= aSum[0]); // 均值
+}
+
+static uint32_t SampleVariance(uint32_t *aSum)
+{
+    int i;
+    uint32_t uMeans, uEpison = 0;
+
+    uMeans = SampleMeans(aSum);
+
+    for(i = 1; i <= aSum[0]; i++) {
+        if(uMeans > aSum[i]) {
+            uEpison += pow((uMeans - aSum[i]), 2);
+        } else {
+            uEpison += pow((aSum[i] - uMeans), 2);
+        }
+    }
+
+    return sqrt(uEpison); // 方差
 }
 
 static uint32_t SampleCal(uint32_t *aSum)
@@ -305,11 +347,10 @@ static void SampleDump(uint32_t *aSum)
 }
 
 ///< ADC 修正值获取
-#define SAMPLE_MAX (4)
 boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
     int iSampleCount = SAMPLE_MAX;
-    uint32_t uSumViR[SAMPLE_MAX + 1], uSumVNtcH[SAMPLE_MAX + 1], uSumVNtcL[SAMPLE_MAX + 1];
+    uint32_t uSumViR[SAMPLE_BUFF_SIZE], uSumVNtcH[SAMPLE_BUFF_SIZE], uSumVNtcL[SAMPLE_BUFF_SIZE];
 
     delay1ms(100); /* 等适应了再采集数据 */
 
@@ -404,20 +445,88 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     return TRUE;
 }
 
+static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
+{
+    #define MAX_ACC_COUNT 10
+    boolean_t bSuCali;
+    float32_t fNtc, fTemp;
+    uint32_t uNtcH = 0, uNtcL = 0, uViR = 0, uRa = 0;
+    uint32_t aSampleViR[SAMPLE_BUFF_SIZE] = {0,}, uReTry = 0;
+
+    AppLcdSetSymbol(SAD_SYM, FALSE);
+    AppLcdSetSymbol(SMILE_SYM, FALSE);
+    AppLcdSetLogIndex(FALSE, uTargetTemp);
+    do {
+        ///< 读取ADC
+        if (!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL))
+        {
+            AppLcdSetSymbol(SAD_SYM, TRUE);
+            AppLcdDisplayUpdate(200);
+            continue;
+        }
+        SampleInsert(aSampleViR, uViR);
+
+        AppLcdSetRawNumber(uViR, FALSE, 4);
+        AppLcdDisplayUpdate(50);
+
+        if(uReTry > 3)
+        {
+            uint32_t uAcc = SampleVariance(aSampleViR);
+            if(uAcc == 0) 
+                break;
+            else
+                DBG_PRINT("\t aVariance: %u\r\n", uAcc);
+        }
+    } while (uReTry++ < MAX_ACC_COUNT);
+    ///< 环境抖动
+    if(uReTry == MAX_ACC_COUNT)
+    {
+        return FALSE;
+    }
+
+    ///< 合理范围(37°-42°): 0.7v - 1.5v
+    uViR = SampleMeans(aSampleViR);
+    if(uViR < 700 || uViR > 1500)
+    {
+        AppLcdSetSymbol(SAD_SYM, TRUE);
+        AppLcdSetRawNumber(uViR, FALSE, 4);
+        AppLcdDisplayUpdate(200);
+        return FALSE;
+    }
+
+    ///< 环境温度
+    // it looks like this embedded processor
+    // cannot be intterrupted in float processing
+    __disable_irq();
+    bSuCali = NNA_Calibration(pCal, 
+                                NNA_NtcTempGet(uNtcH, uNtcL, &uRa),
+                                uTargetTemp,
+                                &fTemp,
+                                uViR);
+    __enable_irq();
+    if(!bSuCali) 
+    {
+        AppLcdSetRawNumber(uViR, FALSE, 4);
+        AppLcdSetSymbol(SAD_SYM, TRUE);
+        AppLcdDisplayUpdate(200);
+        return FALSE;
+    }
+
+    /* log set Ra, uViR */
+    AppLcdSetSymbol(SMILE_SYM, TRUE);
+    AppLcdSetRawNumber(uViR, FALSE, 4);
+    AppLcdDisplayUpdate(100);
+
+    return TRUE;
+}
+
 ///< 校准(标定)模式API
 void AppCalibration(void)
 {
     CalData_t Cal;
-    float32_t fNtc, fTemp;
-    uint8_t u8CaType = 0;
-    uint32_t uNtcH, uNtcL, uViR, uSurf;
+    uint8_t uCaliTarget = CAL_TEMP_LOW;
 
     NNA_CalInit(&Cal);
-
-    factory_mode = 1;
-#ifdef FACTORY_MODE_UV_DEBUG
-    dbg_show_uv = 1;
-#endif
 
     AppLedEnable(LedOrange);
     AppLcdClearAll();
@@ -428,7 +537,6 @@ void AppCalibration(void)
     ///< 选择传感器
     Cal.u8SensorType = NNA_SensorGetIndex();
     NNA_SensorSet(Cal.u8SensorType);
-    //AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
     AppLcdDisplayUpdate(0);
 
     while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
@@ -453,84 +561,33 @@ void AppCalibration(void)
         AppLcdDisplayUpdate(150);
     } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
 
-    AppLcdSetRawNumber(CAL_TEMP_LOW, FALSE, 2);
-    AppLcdDisplayUpdate(0);
-
+    ///< 校准
     while (1)
     {
-        uint32_t uRa = 0;
+        while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
 
-        while (!key_pressed_query(KEY_TRIGGER))
-            ; //等按键触发
-
-        ///< 读取ADC
-        if (!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL))
+        if(AppCaliTargetTemp(&Cal, uCaliTarget))
         {
-            while (key_pressed_query(KEY_TRIGGER))
-                ; //等按键释放
-            continue;
-        }
-
-        ///< 环境温度
-        // it looks like this embedded processor
-        // cannot be intterrupted in float processing
-        __disable_irq();
-        fNtc = NNA_NtcTempGet(uNtcH, uNtcL, &uRa);
-
-        if (u8CaType == 0)
-        {
-            ///< 打出环境温度
-            AppLcdSetTemp((uint32_t)(fNtc * 10));
-            AppLcdDisplayUpdate(300);
-            if (NNA_Calibration(&Cal, fNtc, CAL_TEMP_LOW, &fTemp, uViR))
+            beep_once(100);
+            if(uCaliTarget == CAL_TEMP_HIGH) 
             {
-                u8CaType++;
-                __enable_irq();
-                /* log set Ra, uViR */
-                AppLcdSetRawNumber(uViR, FALSE, 4);
-                AppLcdSetLogIndex(TRUE, CAL_TEMP_LOW);
-                //AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
-                AppLcdDisplayUpdate(10);
-                AppBeepBlink((SystemCoreClock / 1000));
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
-            }
-            else
-            {
-                __enable_irq();
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
-                continue;
-            }
-        }
-        else
-        {
-            if (NNA_Calibration(&Cal, fNtc, CAL_TEMP_HIGH, &fTemp, uViR))
-            {
-                __enable_irq();
-                /* log set Ra, uViR */
-                AppLcdSetRawNumber(uViR, FALSE, 4);
-                AppLcdSetLogIndex(TRUE, CAL_TEMP_HIGH);
-                //AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
-                AppLcdDisplayUpdate(10);
-                AppBeepBlink((SystemCoreClock / 1000));
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
                 break;
             }
             else
             {
-                __enable_irq();
-                while (key_pressed_query(KEY_TRIGGER))
-                    ; //等按键释放
-                continue;
+                uCaliTarget = CAL_TEMP_HIGH;
             }
+        } else {
+            beep_once(800);
         }
+
+        while (key_pressed_query(KEY_TRIGGER)); //等按键释放
     }
 
+    ///< 回测
     while (1)
     {
-        uint32_t uNtc, uHuman;
+        uint32_t uNtc, uSurf, uHuman, uViR = 0;
         static uint16_t s_times = 0;
         ///< 用校准后的参数验证测试 & 按键确认
         while (!key_pressed_query(KEY_TRIGGER) && !key_pressed_query(KEY_FN) && !key_pressed_query(KEY_LOG))
@@ -574,12 +631,18 @@ void AppCalibration(void)
     AppLcdDisplayUpdate(100);
     ///< 回写校准数据
     AppCalUpdateAndSaveFactory(&Cal);
+
+    ///< 默认进入工程模式, 回测
+    factory_mode = 1;
+#ifdef FACTORY_MODE_UV_DEBUG
+    dbg_show_uv = 1;
+#endif
 }
 
 void AppCalInit()
 {
     // hold [FN] on PWRON to force calibration mode
-    if (key_pressed_query(KEY_FN))
+    if (TRUE || key_pressed_query(KEY_FN))
     {
         AppCalLoad(); // 可能会用到上一次校准的传感器类型
         AppCalibration();

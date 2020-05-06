@@ -156,7 +156,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         X1 = (-a1 - N) / a2 / 2;
         X2 = (-a1 + N) / a2 / 2;
 
-        DBG_PRINT("\t* %f %f\r\n", X1, X2);
+        DBG_PRINT("\t- %f %f\r\n", X1, X2);
         // AppLcdSetTemp((uint32_t)(X1 * 10));
         // AppLcdSetLogTemp((uint32_t)(X2 * 10), 0);
         // AppLcdDisplayUpdate(1000);
@@ -187,7 +187,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
 float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint32_t *uRa)
 {
     uint32_t fNtcRL = 51000;
-    float32_t RaT_params[3], fRa;
+    float32_t RaT_params[3];
 
     memcpy(RaT_params, gSensor->RaT_Paras, sizeof(gSensor->RaT_Paras));
 
@@ -216,7 +216,7 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
     float32_t fAmp = pCal->fAmp;
     float32_t fTempFixup = pCal->fCalBase;
 
-    DBG_PRINT("\t# %2.2f mV\r\n", (float32_t)u32VirAdc * 1000);
+    DBG_PRINT("# %2.2f uV\r\n", (float32_t)u32VirAdc * 1000000);
 
     if (0 == fAmp)
     {
@@ -231,7 +231,7 @@ float32_t NNA_SurfaceTempGet(CalData_t *pCal, float32_t fTempEnv, uint32_t u32Vi
     // Vi = (Vo - Vbias) * Ri / (Ri:2K + Rr:680K) --- uV
     fVirVolt = ((u32VirAdc)*1000000) / fAmp / fEpsilon;
 
-    DBG_PRINT("\t$ %2.2f mV\r\n", fVirVolt / 1000);
+    DBG_PRINT("\t$ %2.2f uV\r\n", fVirVolt);
 
 #ifndef USE_FITTING
     // 查表V-Tt
@@ -289,14 +289,20 @@ boolean_t NNA_Calibration(
     float32_t *fTempGet,
     uint32_t u32VirAdc)
 {
-    float32_t fTx, fCaLBase, fCaHBase;
+    static float32_t fLower = 0.0f;
 
+    float32_t fTx, fCaLBase, fCaHBase;
     float32_t fAmp = pCal->fAmp, fTH = pCal->fTH, fTL = pCal->fTL;
     float32_t uVAdcH = pCal->uVAdcH, uVAdcL = pCal->uVAdcL;
 
     if (fAmp)
     {
         return TRUE;
+    }
+
+    if(fTempEnv < 10)
+    {
+        return FALSE;
     }
 
     ///< U35 = k * (A*35*35 + B*35 + a*t35*t35 + b*t35 + cbase )
@@ -330,8 +336,9 @@ boolean_t NNA_Calibration(
     ///< 返回目标温度实测值
     *fTempGet = fTx;
 
-    if (pCal->fTL == VRA_INIT)
+    if ((fLower == 0.0f) || (fLower == fTempTarget))
     {
+        fLower = fTempTarget;
         pCal->fTL = fTL = fTx;
         pCal->uVAdcL = uVAdcL = u32VirAdc * 1000000;
     }
@@ -346,7 +353,7 @@ boolean_t NNA_Calibration(
     {
         // 线性区间放大
         fAmp = (uVAdcH - uVAdcL) / (fTH - fTL);
-        if (fAmp >= 100 && fAmp <= 4000)
+        if (fAmp >= 200 && fAmp <= 1000)
         {
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
@@ -355,14 +362,14 @@ boolean_t NNA_Calibration(
             pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
 
             AppLcdSetTemp((uint32_t)(fAmp * 10));
-            AppLcdDisplayUpdate(400);
+            AppLcdDisplayUpdate(300);
 
             DBG_PRINT("\tAMP: %2.2f L: %2.2f H: %2.2f %2.2f %2.2f\r\n", fAmp, fTL, fTH, fCaLBase, fCaHBase);
         }
         else
         {
             AppLcdSetTemp((uint32_t)(fAmp * 10));
-            AppLcdDisplayUpdate(3000);
+            AppLcdDisplayUpdate(500);
 
             DBG_PRINT("\tAMP-OF: %2.2f, %2.2f\r\n", fAmp, fTx);
             return FALSE;

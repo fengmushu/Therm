@@ -59,6 +59,9 @@ int app_save_verify(app_save_t *save)
 
 int app_save_i2c_load(app_save_t *save)
 {
+    if (factory_mode)
+        return 0;
+
     if (app_i2c_read_data(I2C_DATA_ADDR, (void *)save, sizeof(*save)) == FALSE)
         return 1;
 
