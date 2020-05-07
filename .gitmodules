@@ -1,3 +1,6 @@
 [submodule "ssd1306"]
 	path = midware/ssd1306
 	url =  https://github.com/HotRays/ssd1306.git 
+[submodule "midware/lcdgfx"]
+	path = midware/lcdgfx
+	url = https://github.com/HotRays/lcdgfx.git
