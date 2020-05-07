@@ -50,6 +50,15 @@ void sys_spi_init(void)
     Gpio_SetIO(M_SPI0_RESET_PORT, M_SPI0_RESET_PIN);
 }
 
+void plat_set_DCS(void)
+{
+    Gpio_SetIO(M_SPI0_DCS_PORT, M_SPI0_DCS_PIN);
+}
+
+void plat_clr_DCS(void)
+{
+    Gpio_ClrIO(M_SPI0_DCS_PORT, M_SPI0_DCS_PIN);
+}
 
 void plat_spi_start(void)
 {
@@ -63,7 +72,7 @@ void plat_spi_stop(void)
 
 void plat_spi_deinit(void)
 {
-    // Spi_DeInit(Spi0);
+    Spi_DeInit(Spi0);
 }
 
 void plat_spi_xmit(const uint8_t *data, uint16_t len)
