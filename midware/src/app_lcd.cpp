@@ -142,27 +142,27 @@ void AppLcdClearAll(void)
 
 void AppLcdDisplayUpdate(uint32_t delay_ms)
 {
-    // /* Move sprite every 40 milliseconds */
-    // delay(delay_ms);
-    // sprite.x += speedX;
-    // sprite.y += speedY;
-    // /* If right boundary is reached, reverse X direction */
-    // if (sprite.x == (128 - spriteWidth)) speedX = -speedX;
-    // /* If left boundary is reached, reverse X direction */ 
-    // if (sprite.x == 0) speedX = -speedX;
-    // /* Sprite height is always 8 pixels. Reverse Y direction if bottom boundary is reached. */
-    // if (sprite.y == (64 - 8)) speedY = -speedY;
-    // /* If top boundary is reached, reverse Y direction */
-    // if (sprite.y == 0) speedY = -speedY;
-    // /* Erase sprite on old place. The library knows old position of the sprite. */
-    // sprite.eraseTrace();
-    // /* Draw sprite on new place */
-    // sprite.draw();
+    /* Move sprite every 40 milliseconds */
+    delay(delay_ms);
+    sprite.x += speedX;
+    sprite.y += speedY;
+    /* If right boundary is reached, reverse X direction */
+    if (sprite.x == (128 - spriteWidth)) speedX = -speedX;
+    /* If left boundary is reached, reverse X direction */ 
+    if (sprite.x == 0) speedX = -speedX;
+    /* Sprite height is always 8 pixels. Reverse Y direction if bottom boundary is reached. */
+    if (sprite.y == (64 - 8)) speedY = -speedY;
+    /* If top boundary is reached, reverse Y direction */
+    if (sprite.y == 0) speedY = -speedY;
+    /* Erase sprite on old place. The library knows old position of the sprite. */
+    sprite.eraseTrace();
+    /* Draw sprite on new place */
+    sprite.draw();
 
 
-    ssd1306_clearScreen( );
-    ssd1306_drawXBitmap(0, 0, 40, 32, Soba);
-    delay(3000);
+    // ssd1306_clearScreen( );
+    // ssd1306_drawXBitmap(0, 0, 40, 32, Soba);
+    // delay(3000);
 }
 
 void AppLcdDisable(void)

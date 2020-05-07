@@ -310,9 +310,9 @@ void AppCalibration(void)
             AppLedEnable(0);
         }
 
-        AppLcdDisplayUpdate(200);
+        AppLcdDisplayUpdate(40);
 
-        beep_once(100);
+        // beep_once(100);
         DBG_PRINT("-");
 
         // while(key_pressed_query(KEY_TRIGGER)); //释放
