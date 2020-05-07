@@ -1,6 +1,7 @@
 #ifndef __APP_SPI_H__
 #define __APP_SPI_H__
 
+#include "gpio.h"
 #include "base_types.h"
 
 extern void sys_spi_init(void);

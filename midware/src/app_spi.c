@@ -54,16 +54,11 @@ void sys_spi_init(void)
 void plat_spi_start(void)
 {
     Spi_SetCS(Spi0, FALSE);
-    // DCS
-    Gpio_ClrIO(M_SPI0_DCS_PORT, M_SPI0_DCS_PIN);
 }
 
 void plat_spi_stop(void)
 {
-    // DCS
-    // Spi_SetCS(Spi0, TRUE);
-    // // DCS
-    // Gpio_SetIO(M_SPI0_DCS_PORT, M_SPI0_DCS_PIN);
+    Spi_SetCS(Spi0, TRUE);
 }
 
 void plat_spi_deinit(void)
@@ -73,9 +68,13 @@ void plat_spi_deinit(void)
 
 void plat_spi_xmit(const uint8_t *data, uint16_t len)
 {
-    int i;
+    int i = 0;
 
-    for(i=0; i<len; i++) {
-        Spi_SendData(Spi0, data[i]);
+    while(len) {
+        if (Spi_SendData(Spi0, data[i++]) == Ok) {
+            len --;
+        } else {
+            delay10us(1);
+        }
     }
 }

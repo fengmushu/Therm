@@ -295,8 +295,6 @@ void AppCalibration(void)
     CalData_t Cal;
 
     AppLedEnable(LedOrange);
-    AppLcdEnable();
-    AppLcdClearAll();
 
     do {
 
@@ -305,12 +303,10 @@ void AppCalibration(void)
         i = 1 - i;
         if(i)
         {
-            // AppLcdEnable();
             AppLedEnable(LedOrange);
         }
         else
         {
-            // AppLcdDisable();
             AppLedEnable(0);
         }
 
