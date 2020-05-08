@@ -10,7 +10,7 @@
 #include "app_fn.h"
 
 #define FN_SHOW_LCD_STAY_MS             (30)
-#define FN_TITLE_LCD_STAY_MS            (1000)
+#define FN_TITLE_LCD_STAY_MS            (500)
 
 static int8_t fn_idx;
 static int8_t last_fn = -1;
