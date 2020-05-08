@@ -182,7 +182,7 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
     if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
         AppLcdBlink();
         app_save_reset(g_save);
-        app_save_i2c_store(g_save);
+        __app_save_i2c_store(g_save, 1);
         app_runtime_readidx_rebase(g_rt);
     }
 

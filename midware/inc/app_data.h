@@ -83,8 +83,10 @@ typedef struct app_cfg {
 
 typedef struct app_save {
     uint32_t   magic;
-    scan_log_t scan_log[NUM_SCAN_MODES];
     app_cfg_t  cfg;
+    // NOTE: for app_save_i2c_config_only()
+    //       put @scan_log at the end
+    scan_log_t scan_log[NUM_SCAN_MODES];
 } app_save_t;
 
 //
@@ -163,8 +165,15 @@ int app_save_verify(app_save_t *save);
 void app_save_reset(app_save_t *save);
 
 int app_save_i2c_load(app_save_t *save);
-int app_save_i2c_store(app_save_t *save);
 int app_save_i2c_verify_with(app_save_t *save);
+int app_save_i2c_config_only(app_save_t *save);
+
+int __app_save_i2c_store(app_save_t *save, int force);
+
+static inline int app_save_i2c_store(app_save_t *save)
+{
+    return __app_save_i2c_store(save, 0);
+}
 
 uint8_t scan_mode_runtime_update(void);
 int16_t scan_log_read(scan_log_t *log, uint8_t idx);
