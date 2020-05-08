@@ -254,7 +254,7 @@ static void fn_hold_timer(void *data)
 
 fsm_state_t state_main_press_fn(fsm_node_t *node, fsm_event_t event, void *data)
 {
-    timer3_set(TIM3_PCLK_4M256D_2SEC, 1, fn_hold_timer, NULL);
+    timer3_set(TIM3_PCLK_4M256D_1SEC, 1, fn_hold_timer, NULL);
     timer3_start();
 
     return node->state;
