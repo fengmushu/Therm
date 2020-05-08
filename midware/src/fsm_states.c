@@ -413,6 +413,11 @@ static fsm_node_t state_config = {
     .events  = 0,
     .actions = {
         {
+            .event  = FSM_EVENT_RELEASE_TRIGGER,
+            .action = NULL,
+            .next   = FSM_STATE_MAIN,
+        },
+        {
             .event  = FSM_EVENT_SYS_HALT,
             .action = NULL,
             .next   = FSM_STATE_PWROFF,
