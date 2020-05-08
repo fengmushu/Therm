@@ -192,6 +192,8 @@ void app_fn_enter(void)
 void app_fn_exit(void)
 {
     fn_idx = -1;
+
+    app_save_i2c_config_only(g_save);
 }
 
 void app_fn_next_opt(void)
