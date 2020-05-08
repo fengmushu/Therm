@@ -59,21 +59,41 @@ int app_save_verify(app_save_t *save)
 
 int app_save_i2c_load(app_save_t *save)
 {
-    if (factory_mode)
-        return 0;
-
     if (app_i2c_read_data(I2C_DATA_ADDR, (void *)save, sizeof(*save)) == FALSE)
         return 1;
 
     return 0;
 }
 
-int app_save_i2c_store(app_save_t *save)
+int __app_save_i2c_store(app_save_t *save, int force)
 {
-    if (factory_mode)
+    if (factory_mode && !force)
         return 0;
 
     if (app_i2c_write_data(I2C_DATA_ADDR, (void *)save, sizeof(*save)) == FALSE)
+        return 1;
+
+    return 0;
+}
+
+int app_save_i2c_config_only(app_save_t *save)
+{
+    int ok;
+
+    if (factory_mode) {
+        app_save_t s;
+
+        memcpy(&s, save, sizeof(s));
+        memset(&s.scan_log, 0x00, sizeof(s.scan_log));
+
+        return __app_save_i2c_store(&s, 1);
+    }
+
+    ok = app_i2c_write_data(I2C_DATA_ADDR,
+                            (void *)save,
+                            sizeof(*save) - sizeof(save->scan_log));
+
+    if (ok == FALSE)
         return 1;
 
     return 0;
