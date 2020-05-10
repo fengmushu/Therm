@@ -290,19 +290,19 @@ static uint32_t SampleMeans(uint32_t *aSum)
 static uint32_t SampleVariance(uint32_t *aSum)
 {
     int i;
-    uint32_t uMeans, uEpison = 0;
+    uint32_t uMeans, uSigma = 0;
 
     uMeans = SampleMeans(aSum);
 
     for(i = 1; i <= aSum[0]; i++) {
         if(uMeans > aSum[i]) {
-            uEpison += pow((uMeans - aSum[i]), 2);
+            uSigma += pow((uMeans - aSum[i]), 2);
         } else {
-            uEpison += pow((aSum[i] - uMeans), 2);
+            uSigma += pow((aSum[i] - uMeans), 2);
         }
     }
 
-    return sqrt(uEpison); // 方差
+    return sqrt(uSigma / aSum[0]); // 方差->标准差
 }
 
 static uint32_t SampleCal(uint32_t *aSum)
