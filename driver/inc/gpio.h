@@ -115,18 +115,45 @@ typedef enum en_gpio_pin
 /**
  *******************************************************************************
  ** \brief GPIO 端口复用功能(AF-Alternate function)类型定义
- ** \note  具体功能及含义请参考用户手册GPIO复用表
  ******************************************************************************/
 typedef enum en_gpio_af
 {
     GpioAf0  = 0u,      ///< GPIO功能
-    GpioAf1  = 1u,      ///< GPIO AF1:复用功能1
-    GpioAf2  = 2u,      ///< GPIO AF2:复用功能2
-    GpioAf3  = 3u,      ///< GPIO AF3:复用功能3
-    GpioAf4  = 4u,      ///< GPIO AF4:复用功能4
-    GpioAf5  = 5u,      ///< GPIO AF5:复用功能5 
-    GpioAf6  = 6u,      ///< GPIO AF6:复用功能6 
-    GpioAf7  = 7u,      ///< GPIO AF7:复用功能7
+    GpioAf1  = 1u,      ///< GPIO AF1: 
+                        ///< PA:UART1/SPI0/UART0/IR                             
+                        ///< PB:PCA/LPTIM/SPI0/I2C0/I2C1/SPI1 
+                        ///< PC:LPTIM/SPI1/LPUART0/PCA/LPUART1
+                        ///< PD:I2C0/PCA/I2C1 
+    GpioAf2  = 2u,      ///< GPIO AF2:
+                        ///< PA:LPUART1/TIM0/UART1/PCA/TIM3                             
+                        ///< PB:TIM3/PCLK_OUT/PCA/TIM0/UART0/TIM1/IR/SPI1/I2C1 
+                        ///< PC:PCNT/TIM5/LPTIM/TIM2/TIM6/TIM4/LPUART0/LPUART1/RTC
+                        ///< PD:TIM4/LPUART0/LPUART1
+    GpioAf3  = 3u,      ///< GPIO AF3:
+                        ///< PA:TIM0/VC1/TIM1/PCA/TIM3/HCLK_OUT/TIM0/TIM2/I2C1/LVD/LPUART1                             
+                        ///< PB:LPUART0/TIM3/LPUART1/TIM1/TIM2/SPI1/TIM0 
+                        ///< PC:UART1/PCNT/LPTIM/IR/PCA/TIM2/TIM1/TIM3
+                        ///< PD:UART1/TIM1/UART0    
+    GpioAf4  = 4u,      ///< GPIO AF4:
+                        ///< PA:VC0/TIM1/TIM2/TIM0/TIM3/I2C0/LVD                             
+                        ///< PB:TIM5/TIM6/TIM4/TIM3/UART0/PCA/TIM0/LPUART1/TIM2/LPUART0 
+                        ///< PC:RESERVED
+                        ///< PD:RESERVED   
+    GpioAf5  = 5u,      ///< GPIO AF5:
+                        ///< PA:TIM1/TIM2/SPI1/TIM5/VC0/VC1/RTC/RCH_OUT/TIM0                            
+                        ///< PB:RCH_OUT/LPUART0/TIM1/LPTIM/TIM2/TIM0/TIM3/TIM6/RTC 
+                        ///< PC:RESERVED
+                        ///< PD:RESERVED    
+    GpioAf6  = 6u,      ///< GPIO AF6:
+                        ///< PA:TIM3/HCLK_OUT/PCLK_OUT/LVD/XTL_OUT/VC1/TIM4/SPI0/PCNT/RCL_OUT                             
+                        ///< PB:TIM0/XTL_OUT/TIM3/PCNT/LPTIM/TIM2/LPUART1/LPUART0/TIM1/RTC 
+                        ///< PC:RESERVED
+                        ///< PD:RESERVED    
+    GpioAf7  = 7u,      ///< GPIO AF7:
+                        ///< PA:TIM0/SPI1/TIM5/TIM3/XTH_OUT/LPUART0/TIM4/TIM6/PCNT/PLL_OUT                             
+                        ///< PB:PLL_OUT/TIM2/XTH_OUT/LPTIM/UART0/PCNT/UART1/TIM6/TIM1/LPUART1
+                        ///< PC:RESERVED
+                        ///< PD:RESERVED    
 }en_gpio_af_t;  
  
 /**
@@ -300,18 +327,45 @@ typedef enum en_gpio_sf_ssn_extclk
 /**
  *******************************************************************************
  ** \brief GPIO 辅助功能（SF-Secondary Function）定时器互联功能选择类型定义
- ** \note  具体功能及含义请参考用户手册GPIO辅助寄存器描述
  ******************************************************************************/
 typedef enum en_gpio_sf
 {
     GpioSf0 = 0u,       ///< SF0:PX_SEL的配置功能
-    GpioSf1 = 1u,       ///< SF1:辅助功能1
-    GpioSf2 = 2u,       ///< SF2:辅助功能2
-    GpioSf3 = 3u,       ///< SF3:辅助功能3
-    GpioSf4 = 4u,       ///< SF4:辅助功能4
-    GpioSf5 = 5u,       ///< SF5:辅助功能5 
-    GpioSf6 = 6u,       ///< SF6:辅助功能6 
-    GpioSf7 = 7u,       ///< SF7:辅助功能7
+    GpioSf1 = 1u,       ///< SF1：
+                        ///< TIM_G:UART0_RXD/LPUART0_RXD
+                        ///< TIM_E:UART0_RXD/LPUART0_RXD/PCNT_S0
+                        ///< TIM_C:UART0_RXD/LPUART0_RXD/UART1_RXD/LPUART1_RXD
+                        ///< PCA:PCNT_S1/PCNT_S0
+    GpioSf2 = 2u,       ///< SF2：
+                        ///< TIM_G:UART1_RXD/LPUART1_RXD
+                        ///< TIM_E:UART1_RXD/LPUART1_RXD/LVD_OUT
+                        ///< TIM_C:PA00/VC0_OUT/LPUART0_RXD/UART1_RXD
+                        ///< PCA:LVD_OUT/PCNT_S1
+    GpioSf3 = 3u,       ///< SF3：
+                        ///< TIM_G:VC0_OUT/LPUART0
+                        ///< TIM_E:VC0_OUT/VC1OUT
+                        ///< TIM_C:PA02/PCNT_S0/PCNT_S1
+                        ///< PCA:VC0_OUT/LVD_OUT
+    GpioSf4 = 4u,       ///< SF4：
+                        ///< TIM_G:VC1_OUT/LPUART1
+                        ///< TIM_E:LVD_OUT/PCNT_S1/PCNT_S0/VC1_OUT
+                        ///< TIM_C:PA05/PA06/PA07/VC0_OUT/VC1_OUT
+                        ///< PCA:VC1_OUT
+    GpioSf5 = 5u,       ///< SF5：
+                        ///< TIM_G:PA03/PA08/PA10/VC0_OUT/PB03
+                        ///< TIM_E:PA00/PA01/PA04
+                        ///< TIM_C:PA15/PB08/PA08/PA07
+                        ///< PCA:PA05/PA06
+    GpioSf6 = 6u,       ///< SF6：
+                        ///< TIM_G:PB08/PB03/PB04/PA06/PB05
+                        ///< TIM_E:PA05/PC09/PC04/PA12/PB06
+                        ///< TIM_C:PB06/PB10/PB09/PB03/PB04
+                        ///< PCA:PB02/PB04
+    GpioSf7 = 7u,       ///< SF7：
+                        ///< TIM_G:PB15/PB13/PB11/PC00
+                        ///< TIM_E:PA15/PD02/PC08/PA13/PC03
+                        ///< TIM_C:PB14/PB13/PC06/PB06
+                        ///< PCA:PD02/PC06
 }en_gpio_sf_t;
 
 /**

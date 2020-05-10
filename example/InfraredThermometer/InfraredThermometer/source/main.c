@@ -119,6 +119,10 @@ int main(void)
 {
     sys_init();
 
+    basic_timer_init();
+
+    timer3_init();
+
     sys_i2c_init();
 
     sys_spi_init();
@@ -131,8 +135,6 @@ int main(void)
     AppCalInit();
 
     sys_late_init();
-
-    timer3_init();
 
     app_runtime_init(&g_runtime);
 

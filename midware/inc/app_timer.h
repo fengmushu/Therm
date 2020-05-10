@@ -1,7 +1,9 @@
 #ifndef __APP_TIMER_H__
 #define __APP_TIMER_H__
 
-#include <stdint.h>
+#include "base_types.h"
+
+#define HZ              1000
 
 // clock src: PCLK 4MHz 256DIV
 #define TIM3_PCLK_4M256D_1SEC		(15625)
@@ -20,5 +22,11 @@ void timer3_start(void);
 void timer3_stop(void);
 
 void timer3_init(void);
+
+uint32_t jffies_to_sec(void);
+uint32_t jffies_to_msc(void);
+uint32_t jffies_to_mic(void);
+
+void basic_timer_init(void);
 
 #endif /* __APP_TIMER_H__ */

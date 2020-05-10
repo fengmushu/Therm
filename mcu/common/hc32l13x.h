@@ -4125,22 +4125,18 @@ typedef struct
 
 typedef struct
 {
-    __IO uint32_t MODE                      : 2;
-    __IO uint32_t CLKSEL                    : 2;
-    __IO uint32_t DIR                       : 1;
-    __IO uint32_t S0P                       : 1;
-    __IO uint32_t S1P                       : 1;
-    uint32_t RESERVED7                      :24;
-    __IO uint32_t RSV                       : 1;
-} stc_pcnt_ctrl_field_t;
+    __IO uint8_t MODE                       : 2;
+    __IO uint8_t CLKSEL                     : 2;
+    __IO uint8_t DIR                        : 1;
+    __IO uint8_t S0P                        : 1;
+    __IO uint8_t S1P                        : 1;
+} stc_pcnt_cr_field_t;
 
 typedef struct
 {
     __IO uint32_t CLKDIV                    :13;
     __IO uint32_t DEBTOP                    : 3;
     __IO uint32_t EN                        : 1;
-    uint32_t RESERVED17                     :14;
-    __IO uint32_t RSV                       : 1;
 } stc_pcnt_flt_field_t;
 
 typedef struct
@@ -4148,125 +4144,97 @@ typedef struct
     __IO uint32_t TH                        :12;
     uint32_t RESERVED12                     : 4;
     __IO uint32_t EN                        : 1;
-    uint32_t RESERVED17                     :14;
-    __IO uint32_t RSV                       : 1;
 } stc_pcnt_tocr_field_t;
 
 typedef struct
 {
-    __IO uint32_t T2C                       : 1;
-    __IO uint32_t B2T                       : 1;
-    __IO uint32_t B2C                       : 1;
-    uint32_t RESERVED3                      :28;
-    __IO uint32_t RSV                       : 1;
+    __IO uint8_t T2C                        : 1;
+    __IO uint8_t B2T                        : 1;
+    __IO uint8_t B2C                        : 1;
 } stc_pcnt_cmd_field_t;
 
 typedef struct
 {
-    __IO uint32_t DIR                       : 1;
-    uint32_t RESERVED1                      :30;
-    __IO uint32_t RSV                       : 1;
+    __IO uint8_t DIR                        : 1;
 } stc_pcnt_sr1_field_t;
 
 typedef struct
 {
-    __IO uint32_t CNT                       :16;
-    uint32_t RESERVED16                     :15;
-    __IO uint32_t RSV                       : 1;
+    __IO uint16_t CNT                       :16;
 } stc_pcnt_cnt_field_t;
 
 typedef struct
 {
-    __IO uint32_t TOP                       :16;
-    uint32_t RESERVED16                     :15;
-    __IO uint32_t RSV                       : 1;
+    __IO uint16_t TOP                       :16;
 } stc_pcnt_top_field_t;
 
 typedef struct
 {
-    __IO uint32_t BUF                       :16;
-    uint32_t RESERVED16                     :15;
-    __IO uint32_t RSV                       : 1;
+    __IO uint16_t BUF                       :16;
 } stc_pcnt_buf_field_t;
 
 typedef struct
 {
-    __IO uint32_t UF                        : 1;
-    __IO uint32_t OV                        : 1;
-    __IO uint32_t TO                        : 1;
-    __IO uint32_t DIR                       : 1;
-    __IO uint32_t FE                        : 1;
-    __IO uint32_t BB                        : 1;
-    __IO uint32_t S0E                       : 1;
-    __IO uint32_t S1E                       : 1;
-    uint32_t RESERVED8                      :23;
-    __IO uint32_t RSV                       : 1;
+    __IO uint8_t UF                         : 1;
+    __IO uint8_t OV                         : 1;
+    __IO uint8_t TO                         : 1;
+    __IO uint8_t DIR                        : 1;
+    __IO uint8_t FE                         : 1;
+    __IO uint8_t BB                         : 1;
+    __IO uint8_t S0E                        : 1;
+    __IO uint8_t S1E                        : 1;
 } stc_pcnt_ifr_field_t;
 
 typedef struct
 {
-    __IO uint32_t UF                        : 1;
-    __IO uint32_t OV                        : 1;
-    __IO uint32_t TO                        : 1;
-    __IO uint32_t DIR                       : 1;
-    __IO uint32_t FE                        : 1;
-    __IO uint32_t BB                        : 1;
-    __IO uint32_t S0E                       : 1;
-    __IO uint32_t S1E                       : 1;
-    uint32_t RESERVED8                      :23;
-    __IO uint32_t RSV                       : 1;
+    __IO uint8_t UF                         : 1;
+    __IO uint8_t OV                         : 1;
+    __IO uint8_t TO                         : 1;
+    __IO uint8_t DIR                        : 1;
+    __IO uint8_t FE                         : 1;
+    __IO uint8_t BB                         : 1;
+    __IO uint8_t S0E                        : 1;
+    __IO uint8_t S1E                        : 1;
 } stc_pcnt_icr_field_t;
 
 typedef struct
 {
-    __IO uint32_t UF                        : 1;
-    __IO uint32_t OV                        : 1;
-    __IO uint32_t TO                        : 1;
-    __IO uint32_t DIR                       : 1;
-    __IO uint32_t FE                        : 1;
-    __IO uint32_t BB                        : 1;
-    __IO uint32_t S0E                       : 1;
-    __IO uint32_t S1E                       : 1;
-    uint32_t RESERVED8                      :23;
-    __IO uint32_t RSV                       : 1;
+    __IO uint8_t UF                         : 1;
+    __IO uint8_t OV                         : 1;
+    __IO uint8_t TO                         : 1;
+    __IO uint8_t DIR                        : 1;
+    __IO uint8_t FE                         : 1;
+    __IO uint8_t BB                         : 1;
+    __IO uint8_t S0E                        : 1;
+    __IO uint8_t S1E                        : 1;
 } stc_pcnt_ien_field_t;
 
 typedef struct
 {
-    __IO uint32_t T2C                       : 1;
-    __IO uint32_t B2T                       : 1;
-    __IO uint32_t B2C                       : 1;
-    uint32_t RESERVED3                      :28;
-    __IO uint32_t RSV                       : 1;
+    __IO uint8_t T2C                        : 1;
+    __IO uint8_t B2T                        : 1;
+    __IO uint8_t B2C                        : 1;
 } stc_pcnt_sr2_field_t;
 
 typedef struct
 {
     uint32_t RESERVED0                      : 1;
     __IO uint32_t IE                        : 1;
-    uint32_t RESERVED2                      :29;
-    __IO uint32_t RSV                       : 1;
 } stc_ram_cr_field_t;
 
 typedef struct
 {
     __IO uint32_t ERRADDR                   :13;
-    uint32_t RESERVED13                     :18;
-    __IO uint32_t RSV                       : 1;
 } stc_ram_erraddr_field_t;
 
 typedef struct
 {
     __IO uint32_t ERR                       : 1;
-    uint32_t RESERVED1                      :30;
-    __IO uint32_t RSV                       : 1;
 } stc_ram_ifr_field_t;
 
 typedef struct
 {
     __IO uint32_t ERRCLR                    : 1;
-    uint32_t RESERVED1                      :30;
-    __IO uint32_t RSV                       : 1;
 } stc_ram_iclr_field_t;
 
 typedef struct
@@ -7929,14 +7897,16 @@ typedef struct
 {
     union
     {
-        __IO uint32_t RUN;
+        __IO uint8_t RUN;
         stc_pcnt_run_field_t RUN_f;
     };
+    uint8_t RESERVED1[3];
     union
     {
-        __IO uint32_t CTRL;
-        stc_pcnt_ctrl_field_t CTRL_f;
+        __IO uint8_t CR;
+        stc_pcnt_cr_field_t CR_f;
     };
+    uint8_t RESERVED2[3];
     union
     {
         __IO uint32_t FLT;
@@ -7949,47 +7919,55 @@ typedef struct
     };
     union
     {
-        __IO uint32_t CMD;
+        __IO uint8_t CMD;
         stc_pcnt_cmd_field_t CMD_f;
     };
+    uint8_t RESERVED5[3];
     union
     {
-        __IO uint32_t SR1;
+        __IO uint8_t SR1;
         stc_pcnt_sr1_field_t SR1_f;
     };
+    uint8_t RESERVED6[3];
     union
     {
-        __IO uint32_t CNT;
+        __IO uint16_t CNT;
         stc_pcnt_cnt_field_t CNT_f;
     };
+    uint8_t RESERVED7[2];
     union
     {
-        __IO uint32_t TOP;
+        __IO uint16_t TOP;
         stc_pcnt_top_field_t TOP_f;
     };
+    uint8_t RESERVED8[2];
     union
     {
-        __IO uint32_t BUF;
+        __IO uint16_t BUF;
         stc_pcnt_buf_field_t BUF_f;
     };
+    uint8_t RESERVED9[2];
     union
     {
-        __IO uint32_t IFR;
+        __IO uint8_t IFR;
         stc_pcnt_ifr_field_t IFR_f;
     };
+    uint8_t RESERVED10[3];
     union
     {
-        __IO uint32_t ICR;
+        __IO uint8_t ICR;
         stc_pcnt_icr_field_t ICR_f;
     };
+    uint8_t RESERVED11[3];
     union
     {
-        __IO uint32_t IEN;
+        __IO uint8_t IEN;
         stc_pcnt_ien_field_t IEN_f;
     };
+    uint8_t RESERVED12[3];
     union
     {
-        __IO uint32_t SR2;
+        __IO uint8_t SR2;
         stc_pcnt_sr2_field_t SR2_f;
     };
 }M0P_PCNT_TypeDef;

@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (C) 2019, Huada Semiconductor Co.,Ltd All rights reserved.
+* Copyright (C) 2017, Huada Semiconductor Co.,Ltd All rights reserved.
 *
 * This software is owned and published by:
 * Huada Semiconductor Co.,Ltd ("HDSC").
@@ -45,7 +45,7 @@
  ** pcnt driver API.
  ** @link pcnt Group Some description @endlink
  **
- **   - 2019-04-08       First Version
+ **   - 2018-04-15   Devi    First Version
  **
  ******************************************************************************/
 
@@ -64,10 +64,24 @@
  * Local pre-processor symbols/macros ('#define')
  ******************************************************************************/
 
+#define IS_VALID_pagagain(x) ((x) <= 7)
+
+#define IS_VALID_channel(x) ((OPA0 == (x)) || \
+                             (OPA1 == (x)) || \
+                             (OPA2 == (x)))
+
+#define IS_VALID_STAT(x) ((PCNT_S1E == (x)) || \
+                          (PCNT_S0E == (x)) || \
+                          (PCNT_BB == (x)) ||  \
+                          (PCNT_FE == (x)) ||  \
+                          (PCNT_DIR == (x)) || \
+                          (PCNT_TO == (x)) ||  \
+                          (PCNT_OV == (x)) ||  \
+                          (PCNT_UF == (x)))
+
 /******************************************************************************
  * Global variable definitions (declared in header file with 'extern')
  ******************************************************************************/
-
 
 /******************************************************************************
  * Local type definitions ('typedef')
@@ -76,78 +90,136 @@
 /******************************************************************************
  * Local function prototypes ('static')
  ******************************************************************************/
-
+static func_ptr_t pfnPcntCallback = NULL; ///< callback function pointer for PCNT Irq
 /******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
 
+/*****************************************************************************
+ * Function implementation - global ('extern') and local ('static')
+ *****************************************************************************/
 
-/**
-******************************************************************************
-    ** \brief  PCNT的启动和停止控制
-    ** @param  NewState : Run_Enable 或者 Run_Disable
-    ** @param  NewState : FALSE或者TRUE
-    ** \retval 无
-    **
-******************************************************************************/
-boolean_t Pcnt_Cmd(boolean_t NewState)
+void Pcnt_IRQHandler(void)
 {
-    SetBit((uint32_t)(&(M0P_PCNT->RUN)), 0, NewState);
-    return GetBit((uint32_t)(&(M0P_PCNT->RUN)), 0);
+    if (NULL != pfnPcntCallback)
+    {
+        pfnPcntCallback();
+    }
 }
 
+/**
+ * \brief   
+ *          PCNT 初始化
+ *
+ * \param   无
+ * \param   无
+ *
+ * \retval  无
+ * \retval  无
+ */
+en_result_t PCNT_Init(stc_pcnt_config_t *pstcPcntConfig)
+{
+    M0P_SYSCTRL->PERI_CLKEN_f.PCNT = 1;
+
+    M0P_PCNT->CR_f.S1P = pstcPcntConfig->bS1Sel;
+    M0P_PCNT->CR_f.S0P = pstcPcntConfig->bS0Sel;
+    M0P_PCNT->CR_f.DIR = pstcPcntConfig->u8Direc; //计数方式
+    M0P_PCNT->CR_f.CLKSEL = pstcPcntConfig->u8Clk;
+    M0P_PCNT->CR_f.MODE = pstcPcntConfig->u8Mode;
+
+    M0P_PCNT->FLT_f.CLKDIV = pstcPcntConfig->u8FLTClk;
+
+    if (pstcPcntConfig->bFLTEn)
+    {
+        if (pstcPcntConfig->u8FLTDep == 0)
+        {
+            M0P_PCNT->FLT_f.DEBTOP = 2;
+        }
+        else
+        {
+            M0P_PCNT->FLT_f.DEBTOP = pstcPcntConfig->u8FLTDep;
+        }
+    }
+    M0P_PCNT->FLT_f.EN = pstcPcntConfig->bFLTEn;
+
+    M0P_PCNT->TOCR_f.TH = pstcPcntConfig->u16TODep;
+    M0P_PCNT->TOCR_f.EN = pstcPcntConfig->bTOEn;
+
+    if (TRUE == pstcPcntConfig->bIrqEn)
+    {
+        M0P_PCNT->IEN = pstcPcntConfig->u8IrqStatus;
+        EnableNvic(PCNT_IRQn, IrqLevel3, TRUE);
+    }
+    else
+    {
+        M0P_PCNT->IEN = 0x00;
+        EnableNvic(PCNT_IRQn, IrqLevel3, FALSE);
+    }
+    if (NULL != pstcPcntConfig->pfnIrqCb)
+    {
+        pfnPcntCallback = pstcPcntConfig->pfnIrqCb;
+    }
+    return Ok;
+}
 
 /**
-******************************************************************************
-    ** \brief  将BUF中的值同步到CNT
-    ** @param  value : 要同步到TOP的数值
-    ** \retval ok 或 ErrorTimeout
-    **
-******************************************************************************/
-en_result_t Pcnt_SetB2T(uint16_t value)
+ * \brief   
+ *          PCNT 去初始化
+ *
+ * \param   无
+ * \param   无
+ *
+ * \retval  无
+ * \retval  无
+ */
+void PCNT_DeInit(void)
 {
-    uint16_t u16TimeOut;
+    M0P_PCNT->CR = 0;
+    M0P_PCNT->RUN = 0;
+    M0P_SYSCTRL->PERI_CLKEN_f.PCNT = 0;
+}
 
-    u16TimeOut = 1000;
-    M0P_PCNT->BUF = value;
+/**
+ * \brief   
+ *          PCNT 脉冲计数设置
+ *
+ * \param   [in]  start  开始计数设置
+ * \param   [in]  end    结束计数设置
+ *
+ * \retval  无
+ */
+en_result_t PCNT_Parameter(uint8_t start, uint8_t end)
+{
+    uint32_t u32TimeOut;
+
+    u32TimeOut = 1000;
+    M0P_PCNT->BUF = end; //加载结束溢出值
     M0P_PCNT->CMD_f.B2T = 1;
 
-    while(u16TimeOut--)
+    while (u32TimeOut--)
     {
-        if(M0P_PCNT->SR2_f.B2T == FALSE)
+        if (FALSE == M0P_PCNT->SR2_f.B2T)
         {
             break;
         }
     }
-    if(u16TimeOut == 0)
+    if (u32TimeOut == 0)
     {
         return ErrorTimeout;
     }
-        return Ok;
-}
 
-/**
-******************************************************************************
-    ** \brief  将BUF中的值同步到CNT
-    ** @param  value : 要同步到CNT的数值
-    ** \retval ok 或 ErrorTimeout
-    **
-******************************************************************************/
-en_result_t Pcnt_SetB2C(uint16_t value)
-{
-    uint16_t u16TimeOut;
-    u16TimeOut = 1000;
-    M0P_PCNT->BUF = value;
+    u32TimeOut = 1000;
+    M0P_PCNT->BUF = start; //加载初始值
     M0P_PCNT->CMD_f.B2C = 1;
 
-    while(u16TimeOut--)
+    while (u32TimeOut--)
     {
-        if(M0P_PCNT->SR2_f.B2C == FALSE)
+        if (FALSE == M0P_PCNT->SR2_f.B2C)
         {
             break;
         }
     }
-    if(u16TimeOut == 0)
+    if (u32TimeOut == 0)
     {
         return ErrorTimeout;
     }
@@ -155,161 +227,183 @@ en_result_t Pcnt_SetB2C(uint16_t value)
 }
 
 /**
-******************************************************************************
-    ** \brief  将TOP中的值同步到CNT
-    ** @param  value : 要同步到CNT的数值
-    ** \retval ok 或 ErrorTimeout
-    **
-******************************************************************************/
-en_result_t Pcnt_SetT2C(void)
+ * \brief   
+ *          获取PCNT计数方向
+ * \param   [in]  
+ *
+ * \retval  无
+ */
+en_pcnt_direcsel_t PCNT_Direction(void)
 {
-    uint16_t u16TimeOut;
-    u16TimeOut = 1000;
-    M0P_PCNT->CMD_f.T2C = 1;
-    while(u16TimeOut--)
+    return (en_pcnt_direcsel_t)M0P_PCNT->SR1_f.DIR;
+}
+
+/**
+ * \brief   
+ *          获取PCNT计数值
+ * \param   [in]  
+ *
+ * \retval  无
+ */
+uint16_t PCNT_Count(void)
+{
+    return M0P_PCNT->CNT;
+}
+
+/**
+ * \brief   
+ *          获取PCNT溢出值
+ * \param   [in]  
+ *
+ * \retval  无
+ */
+uint16_t PCNT_TopCount(void)
+{
+    return M0P_PCNT->TOP;
+}
+
+/**
+ * \brief   
+ *          PCNT使能
+ * \param   [in]  
+ *
+ * \retval  无
+ */
+void PCNT_Run(boolean_t work)
+{
+    M0P_PCNT->RUN_f.RUN = work;
+}
+
+/**
+ * \brief   
+ *          PCNT 读取状态
+  * \param  [in]  en_pcnt_status_t  PCNT状态
+ *
+ * \retval  无
+ */
+boolean_t PCNT_GetStatus(en_pcnt_status_t enStatus)
+{
+    boolean_t bFlag = FALSE;
+
+    ASSERT(IS_VALID_STAT(enStatus));
+
+    switch (enStatus)
     {
-        if(M0P_PCNT->SR2_f.T2C == FALSE)
-        {
-            break;
-        }
+    case PCNT_S1E:
+        bFlag = M0P_PCNT->IFR_f.S1E;
+        break;
+    case PCNT_S0E:
+        bFlag = M0P_PCNT->IFR_f.S0E;
+        break;
+    case PCNT_BB:
+        bFlag = M0P_PCNT->IFR_f.BB;
+        break;
+    case PCNT_FE:
+        bFlag = M0P_PCNT->IFR_f.FE;
+        break;
+    case PCNT_DIR:
+        bFlag = M0P_PCNT->IFR_f.DIR;
+        break;
+    case PCNT_TO:
+        bFlag = M0P_PCNT->IFR_f.TO;
+        break;
+    case PCNT_OV:
+        bFlag = M0P_PCNT->IFR_f.OV;
+        break;
+    case PCNT_UF:
+        bFlag = M0P_PCNT->IFR_f.UF;
+        break;
+    default:
+        break;
     }
-    if(u16TimeOut == 0)
+    return bFlag;
+}
+/**
+ * \brief   
+ *          PCNT 清除状态
+  * \param  [in]  en_pcnt_status_t  PCNT状态
+ *
+ * \retval  无
+ */
+void PCNT_ClrStatus(en_pcnt_status_t enStatus)
+{
+
+    ASSERT(IS_VALID_STAT(enStatus));
+
+    switch (enStatus)
     {
-        return ErrorTimeout;
+    case PCNT_S1E:
+        M0P_PCNT->ICR_f.S1E = 0;
+        break;
+    case PCNT_S0E:
+        M0P_PCNT->ICR_f.S0E = 0;
+        break;
+    case PCNT_BB:
+        M0P_PCNT->ICR_f.BB = 0;
+        break;
+    case PCNT_FE:
+        M0P_PCNT->ICR_f.FE = 0;
+        break;
+    case PCNT_DIR:
+        M0P_PCNT->ICR_f.DIR = 0;
+        break;
+    case PCNT_TO:
+        M0P_PCNT->ICR_f.TO = 0;
+        break;
+    case PCNT_OV:
+        M0P_PCNT->ICR_f.OV = 0;
+        break;
+    case PCNT_UF:
+        M0P_PCNT->ICR_f.UF = 0;
+        break;
+    default:
+        break;
     }
-    return Ok;
 }
-
-
 /**
-******************************************************************************
-    ** \brief  赋值BUF
-    ** @param  value : 要赋值给BUF的数值
-    ** \retval 无
-    **
-******************************************************************************/
-void Pcnt_SetBuf(uint16_t value)
+ * \brief   
+ *          PCNT 中断设置
+  * \param  [in]  en_pcnt_status_t  PCNT状态
+ *
+ * \retval  无
+ */
+void PCNT_SetIrqStatus(en_pcnt_status_t enStatus)
 {
-    M0P_PCNT->TOP_f.TOP = value;
-}
 
-/**
-******************************************************************************
-    ** \brief  初始化
-    ** @param  start : 要同步到TOP的数值
-    ** @param  end   : 要同步到CNT的数值
-    ** \retval ok 或 ErrorTimeout
-    **
-******************************************************************************/
-void Pcnt_Init(stc_pcnt_initstruct_t*  InitStruct)
-{
-    M0P_PCNT->CTRL_f.S1P = InitStruct->Pcnt_S1Sel;
-    M0P_PCNT->CTRL_f.S0P = InitStruct->Pcnt_S0Sel;
-    M0P_PCNT->CTRL_f.CLKSEL = InitStruct->Pcnt_Clk;
-    M0P_PCNT->CTRL_f.MODE = InitStruct->Pcnt_Mode;
-    if(InitStruct->Pcnt_Mode == PcntDoubleMode)//如果是双通道正交脉冲计数模式
+    ASSERT(IS_VALID_STAT(enStatus));
+
+    switch (enStatus)
     {
-        M0P_PCNT->SR1_f.DIR = InitStruct->Pcnt_Dir;
-    }
-    else
-    {
-        M0P_PCNT->CTRL_f.DIR = InitStruct->Pcnt_Dir;
-    }
-    M0P_PCNT->FLT_f.EN = InitStruct->Pcnt_FltEn;
-    M0P_PCNT->FLT_f.DEBTOP = InitStruct->Pcnt_DebTop;
-    M0P_PCNT->FLT_f.CLKDIV = InitStruct->Pcnt_ClkDiv;
-    M0P_PCNT->TOCR_f.EN    = InitStruct->Pcnt_TocrEn;
-    M0P_PCNT->TOCR_f.TH    = InitStruct->Pcnt_TocrTh;
-
-}
-
-/**
-******************************************************************************
-    ** \brief  配置中断源的使能
-    ** @param  IT_Src : 中断源再PCNT_IEN内部的位位置
-    ** @param  NewState   : FALSE 或TRUE
-    ** \retval 无
-    **
-******************************************************************************/
-void Pcnt_ItCfg(en_pcnt_itfce_t IT_Src, boolean_t NewState)
-{
-    if(NewState == TRUE)
-    {
-        M0P_PCNT->IEN |= (uint32_t)(1<<IT_Src);
-    }
-    else if(NewState == FALSE)
-    {
-        M0P_PCNT->IEN &= ~(uint32_t)(1<<IT_Src);
-    }
-    else
-    {
-        ;
+    case PCNT_S1E:
+        M0P_PCNT->IEN_f.S1E = 1;
+        break;
+    case PCNT_S0E:
+        M0P_PCNT->IEN_f.S0E = 1;
+        break;
+    case PCNT_BB:
+        M0P_PCNT->IEN_f.BB = 1;
+        break;
+    case PCNT_FE:
+        M0P_PCNT->IEN_f.FE = 1;
+        break;
+    case PCNT_DIR:
+        M0P_PCNT->IEN_f.DIR = 1;
+        break;
+    case PCNT_TO:
+        M0P_PCNT->IEN_f.TO = 1;
+        break;
+    case PCNT_OV:
+        M0P_PCNT->IEN_f.OV = 1;
+        break;
+    case PCNT_UF:
+        M0P_PCNT->IEN_f.UF = 1;
+        break;
+    default:
+        break;
     }
 }
+//@} // OPAGroup
 
-/**
-******************************************************************************
-    ** \brief  获取中断源的标志位
-    ** @param  IT_Src : 中断源标志位
-    ** \retval FALSE 或TRUE
-    **
-******************************************************************************/
-boolean_t Pcnt_GetItStatus(en_pcnt_itfce_t IT_Src)
-{
-    return ((M0P_PCNT->IFR >> IT_Src) & 1u) > 0 ? TRUE : FALSE;
-}
-
-/**
-******************************************************************************
-    ** \brief  清除中断源的标志位
-    ** @param  IT_Src : 中断源标志位
-    ** \retval 无
-    **
-******************************************************************************/
-void Pcnt_ClrItStatus(en_pcnt_itfce_t IT_Src)
-{
-    M0P_PCNT->ICR &= ~(uint32_t)(1<<(uint32_t)IT_Src);
-}
-
-
-/**
-******************************************************************************
-    ** \brief  获取PCNT_CNT寄存器的数值
-    ** @param  无
-    ** \retval PCNT_CNT数值
-    **
-******************************************************************************/
-uint16_t Pcnt_GetCnt(void)
-{
-    return  (uint16_t)(M0P_PCNT->CNT);
-}
-
-/**
-******************************************************************************
-    ** \brief  获取PCNT_TOP寄存器的数值
-    ** @param  无
-    ** \retval PCNT_TOP数值
-    **
-******************************************************************************/
-uint16_t Pcnt_GetTop(void)
-{
-   return  (uint16_t)(M0P_PCNT->TOP);
-}
-
-/**
-******************************************************************************
-    ** \brief  获取PCNT_BUF寄存器的数值
-    ** @param  无
-    ** \retval PCNT_BUF数值
-    **
-******************************************************************************/
-uint16_t Pcnt_GetBuf(void)
-{
-    return (uint16_t)(M0P_PCNT->BUF);
-}
-
-//@} // Group
 /******************************************************************************
  * EOF (not truncated)
  ******************************************************************************/
-

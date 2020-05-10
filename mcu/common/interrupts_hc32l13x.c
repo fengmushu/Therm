@@ -76,9 +76,7 @@ __WEAK void Spi0_IRQHandler(void);
 __WEAK void Spi1_IRQHandler(void);
 __WEAK void I2c0_IRQHandler(void);
 __WEAK void I2c1_IRQHandler(void);
-__WEAK void Tim0_IRQHandler(void);
-__WEAK void Tim1_IRQHandler(void);
-__WEAK void Tim2_IRQHandler(void);
+__WEAK void Tim_IRQHandler(uint8_t TimX);
 __WEAK void LpTim_IRQHandler(void);
 __WEAK void Tim4_IRQHandler(void);
 __WEAK void Tim5_IRQHandler(void);
@@ -342,7 +340,7 @@ void I2C1_IRQHandler(void)
 void TIM0_IRQHandler(void)
 {
 #if (INT_CALLBACK_ON == INT_CALLBACK_TIM0)    
-    Tim0_IRQHandler();
+    Tim_IRQHandler(0);
 #endif
 }
 
@@ -355,7 +353,7 @@ void TIM0_IRQHandler(void)
 void TIM1_IRQHandler(void)
 {
 #if (INT_CALLBACK_ON == INT_CALLBACK_TIM1)    
-    Tim1_IRQHandler();
+    Tim_IRQHandler(1);
 #endif
 }
 
@@ -368,7 +366,7 @@ void TIM1_IRQHandler(void)
 void TIM2_IRQHandler(void)
 {
 #if (INT_CALLBACK_ON == INT_CALLBACK_TIM2)    
-    Tim2_IRQHandler();
+    Tim_IRQHandler(2);
 #endif
 }
 

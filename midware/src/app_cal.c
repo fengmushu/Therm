@@ -5,6 +5,7 @@
 #include "crc.h"
 
 #include "app.h"
+#include "app_timer.h"
 #include "app_i2c.h"
 #include "app_cal.h"
 #include "app_factory.h"
@@ -313,7 +314,7 @@ void AppCalibration(void)
         AppLcdDisplayUpdate(40);
 
         // beep_once(100);
-        DBG_PRINT("-");
+        DBG_PRINT("\t%u - %u\r\n", jffies_to_sec(), jffies_to_msc());
 
         // while(key_pressed_query(KEY_TRIGGER)); //释放
 

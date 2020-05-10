@@ -2,11 +2,11 @@
 #include <stdint.h>
 
 #include "app.h"
+#include "app_timer.h"
 #include "rtc.h"
 #include "timer3.h"
+#include "bt.h"
 #include "sysctrl.h"
-
-#include "app_timer.h"
 
 #define TIMER3_PCLK_DIV         (256)
 
@@ -101,4 +101,73 @@ void timer3_init(void)
     timer3_reg_cfg.enGateP    = Tim3GatePositive;
 
     Tim3_Mode0_Init(&timer3_reg_cfg);
+}
+
+/*******************************************************************************
+ * BT1中断服务函数
+ ******************************************************************************/
+static volatile uint32_t jffies = 0;
+
+#define SYS_TICK_MAP    (0x10000 / HZ)
+#define SYS_TICK_AAR    (0x10000 - SYS_TICK_MAP)
+
+///< sec * HZ
+static inline uint32_t sys_tick_fixup(void)
+{
+    return  (jffies  + (Bt_M0_Cnt16Get(TIM0) - (uint16_t)SYS_TICK_AAR) / SYS_TICK_MAP);
+}
+
+void Tim0Int(void)
+{
+    if(TRUE == Bt_GetIntFlag(TIM0, BtUevIrq))
+    {
+        ///< TODO:
+        jffies ++;
+        Bt_ClearIntFlag(TIM0, BtUevIrq);
+    }
+}
+
+uint32_t jffies_to_msc(void)
+{
+    return (sys_tick_fixup() * 1000 / HZ);
+}
+
+uint32_t jffies_to_mic(void)
+{
+    return jffies_to_msc() * 1000;
+}
+
+uint32_t jffies_to_sec(void)
+{
+    return (sys_tick_fixup() / HZ);
+}
+
+void basic_timer_init(void)
+{
+    stc_bt_mode0_config_t     stcBtBaseCfg;
+
+    DDL_ZERO_STRUCT(stcBtBaseCfg);
+
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralBaseTim, TRUE); //Base Timer外设时钟使能
+
+    stcBtBaseCfg.enWorkMode = BtWorkMode0;                  //定时器模式
+    stcBtBaseCfg.enCT       = BtTimer;                      //定时器功能，计数时钟为内部PCLK
+    stcBtBaseCfg.enPRS      = BtPCLKDiv64;                  //PCLK/64
+    stcBtBaseCfg.enCntMode  = Bt16bitArrMode;               //自动重载16位计数器/定时器
+    stcBtBaseCfg.bEnTog     = FALSE;
+    stcBtBaseCfg.bEnGate    = FALSE;
+    stcBtBaseCfg.enGateP    = BtGatePositive;
+    
+    stcBtBaseCfg.pfnTim0Cb  = Tim0Int;                      //中断函数入口
+    
+    Bt_Mode0_Init(TIM0, &stcBtBaseCfg);                     //TIM0 的模式0功能初始化
+
+    Bt_M0_ARRSet(TIM0, SYS_TICK_AAR);                      //设置重载值(周期 = 0x10000 - ARR)
+
+    DBG_PRINT("TIM0 clk: %u HZ.\r\n", SYS_TICK_AAR);
+
+    Bt_ClearIntFlag(TIM0,BtUevIrq);                         //清中断标志   
+    Bt_Mode0_EnableIrq(TIM0);                               //使能TIM0中断(模式0时只有一个中断)
+    EnableNvic(TIM0_IRQn, IrqLevel3, TRUE);                 //TIM0 中断使能
+    Bt_M0_Run(TIM0);                                        //TIM0 运行
 }

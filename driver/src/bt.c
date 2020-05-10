@@ -45,7 +45,7 @@
  ** Common API of base timer.
  ** @link btGroup Some description @endlink
  **
- **   - 2019-04-15  Husj  First Version
+ **   - 2018-04-18    First Version
  **
  ******************************************************************************/
 
@@ -77,7 +77,9 @@
 /*******************************************************************************
  * Local variable definitions ('static')
  ******************************************************************************/
-
+static func_ptr_t pfnTim0Callback = NULL;
+static func_ptr_t pfnTim1Callback = NULL;
+static func_ptr_t pfnTim2Callback = NULL;
 
 /*******************************************************************************
  * Local function prototypes ('static')
@@ -118,7 +120,7 @@ boolean_t Bt_GetIntFlag(en_bt_unit_t enUnit, en_bt_irq_type_t enBtIrq)
  **
  **
  ** \param [in]  enUnit           Timer通道选择（TIM0、TIM1、TIM2）
- ** \param [in]  enBtIrq          中断类型
+ ** \param [in]  enTim3Irq        中断类型
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
@@ -151,7 +153,14 @@ en_result_t Bt_ClearAllIntFlag(en_bt_unit_t enUnit)
     
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->ICLR  = 0;
+    pstcM0PBt->ICLR_f.UIF  = 0;
+    pstcM0PBt->ICLR_f.CA0F = 0;
+    pstcM0PBt->ICLR_f.CB0F = 0;
+    pstcM0PBt->ICLR_f.BIF  = 0;
+    pstcM0PBt->ICLR_f.TIF  = 0;
+    pstcM0PBt->ICLR_f.CA0E = 0;
+    pstcM0PBt->ICLR_f.CB0E = 0;
+    
     
     return enResult;
 }
@@ -347,29 +356,105 @@ en_result_t Bt_Mode23_DisableIrq (en_bt_unit_t enUnit, en_bt_irq_type_t enBtIrq)
 
 /**
  *****************************************************************************
+ ** \brief Base Timer 中断服务函数
+ **
+ **
+ ** \param [in]  u8Param           Timer通道选择（0 - TIM0、1 - TIM1、2 - TIM2）
+ ** 
+ ** \retval NULL                                     
+ *****************************************************************************/
+void Tim_IRQHandler(uint8_t u8Param)
+{
+    switch (u8Param)
+    {
+        case 0:
+            if(NULL != pfnTim0Callback)
+            {
+                pfnTim0Callback();
+            }
+            break;
+        case 1:
+            if(NULL != pfnTim1Callback)
+            {
+                pfnTim1Callback();
+            }
+            break;
+        case 2:
+            if(NULL != pfnTim2Callback)
+            {
+                pfnTim2Callback();
+            }
+            break;
+        default:
+            ;
+            break;       
+    }
+}
+
+
+
+/**
+ *****************************************************************************
  ** \brief Base Timer 初始化配置(模式0)
  **
  **
  ** \param [in]  enUnit           Timer通道选择（TIM0、TIM1、TIM2）
- ** \param [in]  pstcCfg          初始化配置结构体指针
+ ** \param [in]  pstcConfig       初始化配置结构体指针
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_Mode0_Init(en_bt_unit_t enUnit, stc_bt_mode0_cfg_t* pstcCfg)
+en_result_t Bt_Mode0_Init(en_bt_unit_t enUnit, stc_bt_mode0_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
-    
-    volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
-    
+  
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->M0CR_f.MODE   = pstcCfg->enWorkMode;
-    pstcM0PBt->M0CR_f.GATEP  = pstcCfg->enGateP;
-    pstcM0PBt->M0CR_f.GATE   = pstcCfg->bEnGate;
-    pstcM0PBt->M0CR_f.PRS    = pstcCfg->enPRS;
-    pstcM0PBt->M0CR_f.TOGEN  = pstcCfg->bEnTog;
-    pstcM0PBt->M0CR_f.CT     = pstcCfg->enCT;
-    pstcM0PBt->M0CR_f.MD     = pstcCfg->enCntMode; 
+    switch (enUnit)
+    {
+        case TIM0:
+            {
+                M0P_TIM0_MODE0->M0CR_f.MODE   = pstcConfig->enWorkMode;
+                M0P_TIM0_MODE0->M0CR_f.GATEP  = pstcConfig->enGateP;
+                M0P_TIM0_MODE0->M0CR_f.GATE   = pstcConfig->bEnGate;
+                M0P_TIM0_MODE0->M0CR_f.PRS    = pstcConfig->enPRS;
+                M0P_TIM0_MODE0->M0CR_f.TOGEN  = pstcConfig->bEnTog;
+                M0P_TIM0_MODE0->M0CR_f.CT     = pstcConfig->enCT;
+                M0P_TIM0_MODE0->M0CR_f.MD     = pstcConfig->enCntMode; 
+                
+                pfnTim0Callback      = pstcConfig->pfnTim0Cb;
+            }
+            break;
+        case TIM1:
+            {
+                M0P_TIM1_MODE0->M0CR_f.MODE   = pstcConfig->enWorkMode;
+                M0P_TIM1_MODE0->M0CR_f.GATEP  = pstcConfig->enGateP;
+                M0P_TIM1_MODE0->M0CR_f.GATE   = pstcConfig->bEnGate;
+                M0P_TIM1_MODE0->M0CR_f.PRS    = pstcConfig->enPRS;
+                M0P_TIM1_MODE0->M0CR_f.TOGEN  = pstcConfig->bEnTog;
+                M0P_TIM1_MODE0->M0CR_f.CT     = pstcConfig->enCT;
+                M0P_TIM1_MODE0->M0CR_f.MD     = pstcConfig->enCntMode;
+                
+                pfnTim1Callback      = pstcConfig->pfnTim1Cb;
+            }
+            break;
+        case TIM2:
+            {
+                M0P_TIM2_MODE0->M0CR_f.MODE   = pstcConfig->enWorkMode;
+                M0P_TIM2_MODE0->M0CR_f.GATEP  = pstcConfig->enGateP;
+                M0P_TIM2_MODE0->M0CR_f.GATE   = pstcConfig->bEnGate;
+                M0P_TIM2_MODE0->M0CR_f.PRS    = pstcConfig->enPRS;
+                M0P_TIM2_MODE0->M0CR_f.TOGEN  = pstcConfig->bEnTog;
+                M0P_TIM2_MODE0->M0CR_f.CT     = pstcConfig->enCT;
+                M0P_TIM2_MODE0->M0CR_f.MD     = pstcConfig->enCntMode;
+                
+                pfnTim2Callback      = pstcConfig->pfnTim2Cb;
+
+            }
+            break;
+        default:
+            enResult = Error;
+            break;
+    }
     
     return enResult;
 }
@@ -416,36 +501,15 @@ en_result_t Bt_M0_Stop(en_bt_unit_t enUnit)
 
 /**
  *****************************************************************************
- ** \brief Base Timer 翻转输出使能/禁止（低电平）设定(模式0)
+ ** \brief Base Timer 翻转输出使能/禁止设定(模式0)
  **
  **
  ** \param [in]  enUnit           Timer通道选择（TIM0、TIM1、TIM2）
- ** \param [in]  bEnTOG           翻转输出设定 TRUE:使能, FALSE:禁止
+ ** \param [in]  bEnOutput        翻转输出设定 TRUE:使能, FALSE:禁止
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M0_EnTOG_Output(en_bt_unit_t enUnit, boolean_t bEnTOG)
-{
-    en_result_t enResult = Ok;
-    volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
-    ASSERT(IS_VALID_TIM(enUnit));
-    
-    pstcM0PBt->M0CR_f.TOGEN = bEnTOG;
-    
-    return enResult;    
-}
-    
-/**
- *****************************************************************************
- ** \brief Base Timer 端口输出使能/禁止设定(模式0)
- **
- **
- ** \param [in]  enUnit           Timer通道选择（TIM0、TIM1、TIM2）
- ** \param [in]  bEnOutput        端口输出设定 TRUE:使能, FALSE:禁止
- ** 
- ** \retval Ok or Error                                      
- *****************************************************************************/
-en_result_t Tim3_M0_Enable_Output(en_bt_unit_t enUnit, boolean_t bEnOutput)
+en_result_t Bt_M0_EnTOG_Output(en_bt_unit_t enUnit, boolean_t bEnOutput)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
@@ -470,11 +534,23 @@ en_result_t Bt_M0_Cnt16Set(en_bt_unit_t enUnit, uint16_t u16Data)
 {
     en_result_t enResult = Ok;
     
-    volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->CNT_f.CNT = u16Data;
+    switch (enUnit)
+    {
+        case TIM0:
+            M0P_TIM0_MODE0->CNT_f.CNT = u16Data;
+            break;
+        case TIM1:
+            M0P_TIM1_MODE0->CNT_f.CNT = u16Data;
+            break;
+        case TIM2:
+            M0P_TIM2_MODE0->CNT_f.CNT = u16Data;
+            break;
+        default:
+            enResult = Error;
+            break;
+    }
     
     return enResult; 
 }
@@ -492,11 +568,23 @@ uint16_t Bt_M0_Cnt16Get(en_bt_unit_t enUnit)
 {
     uint16_t    u16CntData = 0;
   
-    volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    u16CntData = pstcM0PBt->CNT_f.CNT;
+    switch (enUnit)
+    {
+        case TIM0:
+            u16CntData = M0P_TIM0_MODE0->CNT_f.CNT;
+            break;
+        case TIM1:
+            u16CntData = M0P_TIM1_MODE0->CNT_f.CNT;
+            break;
+        case TIM2:
+            u16CntData = M0P_TIM2_MODE0->CNT_f.CNT;
+            break;
+        default:
+            u16CntData = 0;
+            break;
+    }
     
     return u16CntData; 
 }
@@ -515,12 +603,24 @@ en_result_t Bt_M0_ARRSet(en_bt_unit_t enUnit, uint16_t u16Data)
 {
     en_result_t enResult = Ok;
   
-    volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->ARR_f.ARR = u16Data;
-
+    switch (enUnit)
+    {
+        case TIM0:
+            M0P_TIM0_MODE0->ARR_f.ARR = u16Data;
+            break;
+        case TIM1:
+            M0P_TIM1_MODE0->ARR_f.ARR = u16Data;
+            break;
+        case TIM2:
+            M0P_TIM2_MODE0->ARR_f.ARR = u16Data;
+            break;
+        default:
+            enResult = Error;
+            break;
+    }
+    
     return enResult; 
 }
 
@@ -538,13 +638,25 @@ en_result_t Bt_M0_Cnt32Set(en_bt_unit_t enUnit, uint32_t u32Data)
 {
     en_result_t enResult = Ok;
   
-    volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->CNT32_f.CNT32 = u32Data;
+    switch (enUnit)
+    {
+        case TIM0:
+            M0P_TIM0_MODE0->CNT32_f.CNT32 = u32Data;
+            break;
+        case TIM1:
+            M0P_TIM1_MODE0->CNT32_f.CNT32 = u32Data;
+            break;
+        case TIM2:
+            M0P_TIM2_MODE0->CNT32_f.CNT32 = u32Data;
+            break;
+        default:
+            enResult = Error;
+            break;
+    }
     
-    return enResult;
+    return enResult; 
 }
 
 /**
@@ -559,12 +671,24 @@ en_result_t Bt_M0_Cnt32Set(en_bt_unit_t enUnit, uint32_t u32Data)
 uint32_t Bt_M0_Cnt32Get(en_bt_unit_t enUnit)
 {
     uint32_t    u32CntData = 0;
-    
-    volatile M0P_TIM0_MODE0_TypeDef *pstcM0PBt = (M0P_TIM0_MODE0_TypeDef *)((uint32_t)M0P_TIM0_MODE0+0x100*enUnit);
   
     ASSERT(IS_VALID_TIM(enUnit));
     
-    u32CntData = pstcM0PBt->CNT32_f.CNT32;
+    switch (enUnit)
+    {
+        case TIM0:
+            u32CntData = M0P_TIM0_MODE0->CNT32_f.CNT32;
+            break;
+        case TIM1:
+            u32CntData = M0P_TIM1_MODE0->CNT32_f.CNT32;
+            break;
+        case TIM2:
+            u32CntData = M0P_TIM2_MODE0->CNT32_f.CNT32;
+            break;
+        default:
+            u32CntData = 0;
+            break;
+    }
     
     return u32CntData;
 }
@@ -575,23 +699,52 @@ uint32_t Bt_M0_Cnt32Get(en_bt_unit_t enUnit)
  **
  **
  ** \param [in]  enUnit           Timer通道选择（TIM0、TIM1、TIM2）
- ** \param [in]  pstcCfg       初始化配置结构体指针
+ ** \param [in]  pstcConfig       初始化配置结构体指针
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_Mode1_Init(en_bt_unit_t enUnit, stc_bt_mode1_cfg_t* pstcCfg)
+en_result_t Bt_Mode1_Init(en_bt_unit_t enUnit, stc_bt_mode1_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
   
-    volatile M0P_TIM0_MODE1_TypeDef *pstcM0PBt = (M0P_TIM0_MODE1_TypeDef *)((uint32_t)M0P_TIM0_MODE1+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->M1CR_f.MODE    = pstcCfg->enWorkMode;
-    pstcM0PBt->M1CR_f.PRS     = pstcCfg->enPRS;
-    pstcM0PBt->M1CR_f.CT      = pstcCfg->enCT;
-    pstcM0PBt->M1CR_f.ONESHOT = pstcCfg->enOneShot;
-
+    switch (enUnit)
+    {
+        case TIM0:
+            {
+                M0P_TIM0_MODE1->M1CR_f.MODE    = pstcConfig->enWorkMode;
+                M0P_TIM0_MODE1->M1CR_f.PRS     = pstcConfig->enPRS;
+                M0P_TIM0_MODE1->M1CR_f.CT      = pstcConfig->enCT;
+                M0P_TIM0_MODE1->M1CR_f.ONESHOT = pstcConfig->enOneShot;
+                
+                pfnTim0Callback      = pstcConfig->pfnTim0Cb;
+            }
+            break;
+        case TIM1:
+            {
+                M0P_TIM1_MODE1->M1CR_f.MODE    = pstcConfig->enWorkMode;
+                M0P_TIM1_MODE1->M1CR_f.PRS     = pstcConfig->enPRS;
+                M0P_TIM1_MODE1->M1CR_f.CT      = pstcConfig->enCT;
+                M0P_TIM1_MODE1->M1CR_f.ONESHOT = pstcConfig->enOneShot;
+                
+                pfnTim1Callback      = pstcConfig->pfnTim1Cb;
+            }
+            break;
+        case TIM2:
+            {
+                M0P_TIM2_MODE1->M1CR_f.MODE    = pstcConfig->enWorkMode;
+                M0P_TIM2_MODE1->M1CR_f.PRS     = pstcConfig->enPRS;
+                M0P_TIM2_MODE1->M1CR_f.CT      = pstcConfig->enCT;
+                M0P_TIM2_MODE1->M1CR_f.ONESHOT = pstcConfig->enOneShot;
+                
+                pfnTim2Callback      = pstcConfig->pfnTim2Cb;
+            }
+            break;
+        default:
+            enResult = Error;
+            break;
+    }
     
     return enResult;
 }
@@ -606,19 +759,19 @@ en_result_t Bt_Mode1_Init(en_bt_unit_t enUnit, stc_bt_mode1_cfg_t* pstcCfg)
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M1_Input_Cfg(en_bt_unit_t enUnit, stc_bt_pwc_input_cfg_t* pstcCfg)
+en_result_t Bt_M1_Input_Config(en_bt_unit_t enUnit, stc_bt_pwc_input_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE1_TypeDef *pstcM0PBt = (M0P_TIM0_MODE1_TypeDef *)((uint32_t)M0P_TIM0_MODE1+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->MSCR_f.TS    = pstcCfg->enTsSel;
-    pstcM0PBt->MSCR_f.IA0S  = pstcCfg->enIA0Sel;
-    pstcM0PBt->MSCR_f.IB0S  = pstcCfg->enIB0Sel;
-    pstcM0PBt->FLTR_f.ETP   = pstcCfg->enETRPhase;
-    pstcM0PBt->FLTR_f.FLTET = pstcCfg->enFltETR;
-    pstcM0PBt->FLTR_f.FLTA0 = pstcCfg->enFltIA0;
-    pstcM0PBt->FLTR_f.FLTB0 = pstcCfg->enFltIB0;
+    pstcM0PBt->MSCR_f.TS    = pstcConfig->enTsSel;
+    pstcM0PBt->MSCR_f.IA0S  = pstcConfig->enIA0Sel;
+    pstcM0PBt->MSCR_f.IB0S  = pstcConfig->enIB0Sel;
+    pstcM0PBt->FLTR_f.ETP   = pstcConfig->enETRPhase;
+    pstcM0PBt->FLTR_f.FLTET = pstcConfig->enFltETR;
+    pstcM0PBt->FLTR_f.FLTA0 = pstcConfig->enFltIA0;
+    pstcM0PBt->FLTR_f.FLTB0 = pstcConfig->enFltIB0;
     
     return enResult;
 }
@@ -719,13 +872,25 @@ en_result_t Bt_M1_Cnt16Set(en_bt_unit_t enUnit, uint16_t u16Data)
 {
     en_result_t enResult = Ok;
   
-    volatile M0P_TIM0_MODE1_TypeDef *pstcM0PBt = (M0P_TIM0_MODE1_TypeDef *)((uint32_t)M0P_TIM0_MODE1+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->CNT_f.CNT = u16Data;
+    switch (enUnit)
+    {
+        case TIM0:
+            M0P_TIM0_MODE1->CNT_f.CNT = u16Data;
+            break;
+        case TIM1:
+            M0P_TIM1_MODE1->CNT_f.CNT = u16Data;
+            break;
+        case TIM2:
+            M0P_TIM2_MODE1->CNT_f.CNT = u16Data;
+            break;
+        default:
+            enResult = Error;
+            break;
+    }
     
-    return enResult;
+    return enResult; 
 }
 
 /**
@@ -741,13 +906,25 @@ uint16_t Bt_M1_Cnt16Get(en_bt_unit_t enUnit)
 {
     uint16_t    u16CntData = 0;
   
-    volatile M0P_TIM0_MODE1_TypeDef *pstcM0PBt = (M0P_TIM0_MODE1_TypeDef *)((uint32_t)M0P_TIM0_MODE1+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    u16CntData = pstcM0PBt->CNT_f.CNT;
+    switch (enUnit)
+    {
+        case TIM0:
+            u16CntData = M0P_TIM0_MODE1->CNT_f.CNT;
+            break;
+        case TIM1:
+            u16CntData = M0P_TIM1_MODE1->CNT_f.CNT;
+            break;
+        case TIM2:
+            u16CntData = M0P_TIM2_MODE1->CNT_f.CNT;
+            break;
+        default:
+            u16CntData = 0;
+            break;
+    }
     
-    return u16CntData;
+    return u16CntData; 
 }
 
 /**
@@ -762,14 +939,26 @@ uint16_t Bt_M1_Cnt16Get(en_bt_unit_t enUnit)
 uint16_t Bt_M1_PWC_CapValueGet(en_bt_unit_t enUnit)
 {
     uint16_t    u16CapData = 0;
-    
-    volatile M0P_TIM0_MODE1_TypeDef *pstcM0PBt = (M0P_TIM0_MODE1_TypeDef *)((uint32_t)M0P_TIM0_MODE1+0x100*enUnit);
   
     ASSERT(IS_VALID_TIM(enUnit));
     
-    u16CapData = pstcM0PBt->CCR0A_f.CCR0A;
+    switch (enUnit)
+    {
+        case TIM0:
+            u16CapData = M0P_TIM0_MODE1->CCR0A_f.CCR0A;
+            break;
+        case TIM1:
+            u16CapData = M0P_TIM1_MODE1->CCR0A_f.CCR0A;
+            break;
+        case TIM2:
+            u16CapData = M0P_TIM2_MODE1->CCR0A_f.CCR0A;
+            break;
+        default:
+            u16CapData = 0;
+            break;
+    }
     
-    return u16CapData;
+    return u16CapData; 
 }
 
 /**
@@ -782,24 +971,63 @@ uint16_t Bt_M1_PWC_CapValueGet(en_bt_unit_t enUnit)
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_Mode23_Init(en_bt_unit_t enUnit, stc_bt_mode23_cfg_t* pstcCfg)
+en_result_t Bt_Mode23_Init(en_bt_unit_t enUnit, stc_bt_mode23_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
   
-    volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
-    
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->M23CR_f.MODE    = pstcCfg->enWorkMode;
-    
-    pstcM0PBt->M23CR_f.PRS     = pstcCfg->enPRS;
-    pstcM0PBt->M23CR_f.CT      = pstcCfg->enCT;
-    pstcM0PBt->M23CR_f.COMP    = pstcCfg->enPWMTypeSel;
-    pstcM0PBt->M23CR_f.PWM2S   = pstcCfg->enPWM2sSel;
-    pstcM0PBt->M23CR_f.ONESHOT = pstcCfg->bOneShot;
-    pstcM0PBt->M23CR_f.URS     = pstcCfg->bURSSel;
-    pstcM0PBt->M23CR_f.DIR     = pstcCfg->enCntDir;
-
+    switch (enUnit)
+    {
+        case TIM0:
+            {
+                M0P_TIM0_MODE23->M23CR_f.MODE    = pstcConfig->enWorkMode;
+                
+                M0P_TIM0_MODE23->M23CR_f.PRS     = pstcConfig->enPRS;
+                M0P_TIM0_MODE23->M23CR_f.CT      = pstcConfig->enCT;
+                M0P_TIM0_MODE23->M23CR_f.COMP    = pstcConfig->enPWMTypeSel;
+                M0P_TIM0_MODE23->M23CR_f.PWM2S   = pstcConfig->enPWM2sSel;
+                M0P_TIM0_MODE23->M23CR_f.ONESHOT = pstcConfig->bOneShot;
+                M0P_TIM0_MODE23->M23CR_f.URS     = pstcConfig->bURSSel;
+                M0P_TIM0_MODE23->M23CR_f.DIR     = pstcConfig->enCntDir;
+                
+                pfnTim0Callback      = pstcConfig->pfnTim0Cb;
+            }
+            break;
+        case TIM1:
+            {
+                M0P_TIM1_MODE23->M23CR_f.MODE    = pstcConfig->enWorkMode;
+                
+                M0P_TIM1_MODE23->M23CR_f.PRS     = pstcConfig->enPRS;
+                M0P_TIM1_MODE23->M23CR_f.CT      = pstcConfig->enCT;
+                M0P_TIM1_MODE23->M23CR_f.COMP    = pstcConfig->enPWMTypeSel;
+                M0P_TIM1_MODE23->M23CR_f.PWM2S   = pstcConfig->enPWM2sSel;
+                M0P_TIM1_MODE23->M23CR_f.ONESHOT = pstcConfig->bOneShot;
+                M0P_TIM1_MODE23->M23CR_f.URS     = pstcConfig->bURSSel;
+                M0P_TIM1_MODE23->M23CR_f.DIR     = pstcConfig->enCntDir;
+                
+                pfnTim1Callback      = pstcConfig->pfnTim1Cb;
+            }
+            break;
+        case TIM2:
+            {
+                M0P_TIM2_MODE23->M23CR_f.MODE    = pstcConfig->enWorkMode;
+                
+                M0P_TIM2_MODE23->M23CR_f.PRS     = pstcConfig->enPRS;
+                M0P_TIM2_MODE23->M23CR_f.CT      = pstcConfig->enCT;
+                M0P_TIM2_MODE23->M23CR_f.COMP    = pstcConfig->enPWMTypeSel;
+                M0P_TIM2_MODE23->M23CR_f.PWM2S   = pstcConfig->enPWM2sSel;
+                M0P_TIM2_MODE23->M23CR_f.ONESHOT = pstcConfig->bOneShot;
+                M0P_TIM2_MODE23->M23CR_f.URS     = pstcConfig->bURSSel;
+                M0P_TIM2_MODE23->M23CR_f.DIR     = pstcConfig->enCntDir;
+                
+                pfnTim2Callback      = pstcConfig->pfnTim2Cb;
+            }
+            break;
+        default:
+            enResult = Error;
+            break;
+    }
     
     return enResult;
 }
@@ -1007,15 +1235,15 @@ uint16_t Bt_M23_CCR_Get(en_bt_unit_t enUnit, en_bt_m23_ccrx_t enCCRSel)
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_GateFuncSel(en_bt_unit_t enUnit,stc_bt_m23_gate_cfg_t* pstcCfg)
+en_result_t Bt_M23_GateFuncSel(en_bt_unit_t enUnit,stc_bt_m23_gate_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->M23CR_f.CSG = pstcCfg->enGateFuncSel;
-    pstcM0PBt->M23CR_f.CRG = pstcCfg->bGateRiseCap;
-    pstcM0PBt->M23CR_f.CFG = pstcCfg->bGateFallCap;
+    pstcM0PBt->M23CR_f.CSG = pstcConfig->enGateFuncSel;
+    pstcM0PBt->M23CR_f.CRG = pstcConfig->bGateRiseCap;
+    pstcM0PBt->M23CR_f.CFG = pstcConfig->bGateFallCap;
     
     return enResult;    
 }
@@ -1030,16 +1258,16 @@ en_result_t Bt_M23_GateFuncSel(en_bt_unit_t enUnit,stc_bt_m23_gate_cfg_t* pstcCf
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_MasterSlave_Set(en_bt_unit_t enUnit, stc_bt_m23_master_slave_cfg_t* pstcCfg)
+en_result_t Bt_M23_MasterSlave_Set(en_bt_unit_t enUnit, stc_bt_m23_master_slave_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->MSCR_f.MSM = pstcCfg->enMasterSlaveSel;
-    pstcM0PBt->MSCR_f.MMS = pstcCfg->enMasterSrc;
-    pstcM0PBt->MSCR_f.SMS = pstcCfg->enSlaveModeSel;
-    pstcM0PBt->MSCR_f.TS  = pstcCfg->enTsSel;
+    pstcM0PBt->MSCR_f.MSM = pstcConfig->enMasterSlaveSel;
+    pstcM0PBt->MSCR_f.MMS = pstcConfig->enMasterSrc;
+    pstcM0PBt->MSCR_f.SMS = pstcConfig->enSlaveModeSel;
+    pstcM0PBt->MSCR_f.TS  = pstcConfig->enTsSel;
     
     return enResult;    
 }
@@ -1054,23 +1282,23 @@ en_result_t Bt_M23_MasterSlave_Set(en_bt_unit_t enUnit, stc_bt_m23_master_slave_
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_PortOutput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_compare_cfg_t* pstcCfg)
+en_result_t Bt_M23_PortOutput_Config(en_bt_unit_t enUnit, stc_bt_m23_compare_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
     pstcM0PBt->CRCH0_f.CSA         = 0;
-    pstcM0PBt->FLTR_f.OCMA0_FLTA0  = pstcCfg->enCH0ACmpCtrl;
-    pstcM0PBt->FLTR_f.CCPA0        = pstcCfg->enCH0APolarity;
-    pstcM0PBt->CRCH0_f.BUFEA       = pstcCfg->bCh0ACmpBufEn;
-    pstcM0PBt->M23CR_f.CIS         = pstcCfg->enCh0ACmpIntSel;
+    pstcM0PBt->FLTR_f.OCMA0_FLTA0  = pstcConfig->enCH0ACmpCtrl;
+    pstcM0PBt->FLTR_f.CCPA0        = pstcConfig->enCH0APolarity;
+    pstcM0PBt->CRCH0_f.BUFEA       = pstcConfig->bCh0ACmpBufEn;
+    pstcM0PBt->M23CR_f.CIS         = pstcConfig->enCh0ACmpIntSel;
     
     pstcM0PBt->CRCH0_f.CSB         = 0;
-    pstcM0PBt->FLTR_f.OCMB0_FLTB0  = pstcCfg->enCH0BCmpCtrl;
-    pstcM0PBt->FLTR_f.CCPB0        = pstcCfg->enCH0BPolarity;
-    pstcM0PBt->CRCH0_f.BUFEB       = pstcCfg->bCH0BCmpBufEn;
-    pstcM0PBt->CRCH0_f.CISB        = pstcCfg->enCH0BCmpIntSel;
+    pstcM0PBt->FLTR_f.OCMB0_FLTB0  = pstcConfig->enCH0BCmpCtrl;
+    pstcM0PBt->FLTR_f.CCPB0        = pstcConfig->enCH0BPolarity;
+    pstcM0PBt->CRCH0_f.BUFEB       = pstcConfig->bCH0BCmpBufEn;
+    pstcM0PBt->CRCH0_f.CISB        = pstcConfig->enCH0BCmpIntSel;
     
     return enResult;    
 }
@@ -1085,21 +1313,21 @@ en_result_t Bt_M23_PortOutput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_compare_cfg_t*
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_PortInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_input_cfg_t* pstcCfg)
+en_result_t Bt_M23_PortInput_Config(en_bt_unit_t enUnit, stc_bt_m23_input_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
     pstcM0PBt->CRCH0_f.CSA           = 1;
-    pstcM0PBt->CRCH0_f.CFA_CRA_BKSA  = pstcCfg->enCH0ACapSel;
-    pstcM0PBt->FLTR_f.OCMA0_FLTA0    = pstcCfg->enCH0AInFlt;
-    pstcM0PBt->FLTR_f.CCPA0          = pstcCfg->enCH0APolarity;
+    pstcM0PBt->CRCH0_f.CFA_CRA_BKSA  = pstcConfig->enCH0ACapSel;
+    pstcM0PBt->FLTR_f.OCMA0_FLTA0    = pstcConfig->enCH0AInFlt;
+    pstcM0PBt->FLTR_f.CCPA0          = pstcConfig->enCH0APolarity;
     
     pstcM0PBt->CRCH0_f.CSB           = 1;
-    pstcM0PBt->CRCH0_f.CFB_CRB_BKSB  = pstcCfg->enCH0BCapSel;
-    pstcM0PBt->FLTR_f.OCMB0_FLTB0    = pstcCfg->enCH0BInFlt;
-    pstcM0PBt->FLTR_f.CCPB0          = pstcCfg->enCH0BPolarity;
+    pstcM0PBt->CRCH0_f.CFB_CRB_BKSB  = pstcConfig->enCH0BCapSel;
+    pstcM0PBt->FLTR_f.OCMB0_FLTB0    = pstcConfig->enCH0BInFlt;
+    pstcM0PBt->FLTR_f.CCPB0          = pstcConfig->enCH0BPolarity;
     
     return enResult;    
 }
@@ -1114,14 +1342,14 @@ en_result_t Bt_M23_PortInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_input_cfg_t* ps
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_ETRInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_etr_input_cfg_t* pstcCfg)
+en_result_t Bt_M23_ETRInput_Config(en_bt_unit_t enUnit, stc_bt_m23_etr_input_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->FLTR_f.ETP    = pstcCfg->enETRPolarity;
-    pstcM0PBt->FLTR_f.FLTET  = pstcCfg->enETRFlt;
+    pstcM0PBt->FLTR_f.ETP    = pstcConfig->enETRPolarity;
+    pstcM0PBt->FLTR_f.FLTET  = pstcConfig->enETRFlt;
     
     return enResult;    
 }
@@ -1136,7 +1364,7 @@ en_result_t Bt_M23_ETRInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_etr_input_cfg_t*
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_BrakeInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_bk_input_cfg_t* pstcCfg)
+en_result_t Bt_M23_BrakeInput_Config(en_bt_unit_t enUnit, stc_bt_m23_bk_input_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     
@@ -1144,17 +1372,17 @@ en_result_t Bt_M23_BrakeInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_bk_input_cfg_t
     
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->DTR_f.BKE             = pstcCfg->bEnBrake;
-    pstcM0PBt->DTR_f.VC0E            = pstcCfg->bEnVC0Brake;
-    pstcM0PBt->DTR_f.VC1E            = pstcCfg->bEnVC1Brake;
-    pstcM0PBt->DTR_f.SAFEEN          = pstcCfg->bEnSafetyBk;
-    pstcM0PBt->DTR_f.BKSEL           = pstcCfg->bEnBKSync;
-    pstcM0PBt->CRCH0_f.CFA_CRA_BKSA  = pstcCfg->enBkCH0AStat;
-    pstcM0PBt->CRCH0_f.CFB_CRB_BKSB  = pstcCfg->enBkCH0BStat;
-    pstcM0PBt->FLTR_f.BKP            = pstcCfg->enBrakePolarity;
-    pstcM0PBt->FLTR_f.FLTBK          = pstcCfg->enBrakeFlt;
+    pstcM0PBt->DTR_f.BKE             = pstcConfig->bEnBrake;
+    pstcM0PBt->DTR_f.VC0E            = pstcConfig->bEnVC0Brake;
+    pstcM0PBt->DTR_f.VC1E            = pstcConfig->bEnVC1Brake;
+    pstcM0PBt->DTR_f.SAFEEN          = pstcConfig->bEnSafetyBk;
+    pstcM0PBt->DTR_f.BKSEL           = pstcConfig->bEnBKSync;
+    pstcM0PBt->CRCH0_f.CFA_CRA_BKSA  = pstcConfig->enBkCH0AStat;
+    pstcM0PBt->CRCH0_f.CFB_CRB_BKSB  = pstcConfig->enBkCH0BStat;
+    pstcM0PBt->FLTR_f.BKP            = pstcConfig->enBrakePolarity;
+    pstcM0PBt->FLTR_f.FLTBK          = pstcConfig->enBrakeFlt;
     
-    return enResult;
+    return enResult;    
 }
 
 /**
@@ -1167,16 +1395,16 @@ en_result_t Bt_M23_BrakeInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_bk_input_cfg_t
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_TrigADC_Cfg(en_bt_unit_t enUnit, stc_bt_m23_adc_trig_cfg_t* pstcCfg)
+en_result_t Bt_M23_TrigADC_Config(en_bt_unit_t enUnit, stc_bt_m23_adc_trig_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->ADTR_f.ADTE   = pstcCfg->bEnTrigADC;
-    pstcM0PBt->ADTR_f.UEVE   = pstcCfg->bEnUevTrigADC;
-    pstcM0PBt->ADTR_f.CMA0E  = pstcCfg->bEnCH0ACmpTrigADC;
-    pstcM0PBt->ADTR_f.CMB0E  = pstcCfg->bEnCH0BCmpTrigADC;
+    pstcM0PBt->ADTR_f.ADTE   = pstcConfig->bEnTrigADC;
+    pstcM0PBt->ADTR_f.UEVE   = pstcConfig->bEnUevTrigADC;
+    pstcM0PBt->ADTR_f.CMA0E  = pstcConfig->bEnCH0ACmpTrigADC;
+    pstcM0PBt->ADTR_f.CMB0E  = pstcConfig->bEnCH0BCmpTrigADC;
     
     return enResult;    
 }
@@ -1191,14 +1419,14 @@ en_result_t Bt_M23_TrigADC_Cfg(en_bt_unit_t enUnit, stc_bt_m23_adc_trig_cfg_t* p
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_DT_Cfg(en_bt_unit_t enUnit, stc_bt_m23_dt_cfg_t* pstcCfg)
+en_result_t Bt_M23_DT_Config(en_bt_unit_t enUnit, stc_bt_m23_dt_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->DTR_f.DTEN = pstcCfg->bEnDeadTime;
-    pstcM0PBt->DTR_f.DTR  = pstcCfg->u8DeadTimeValue;
+    pstcM0PBt->DTR_f.DTEN = pstcConfig->bEnDeadTime;
+    pstcM0PBt->DTR_f.DTR  = pstcConfig->u8DeadTimeValue;
     
     return enResult;    
 }
@@ -1234,14 +1462,14 @@ en_result_t Bt_M23_SetValidPeriod(en_bt_unit_t enUnit, uint8_t u8ValidPeriod)
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_OCRefClr(en_bt_unit_t enUnit, stc_bt_m23_OCREF_Clr_cfg_t* pstcCfg)
+en_result_t Bt_M23_OCRefClr(en_bt_unit_t enUnit, stc_bt_m23_OCREF_Clr_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->M23CR_f.OCCS = pstcCfg->enOCRefClrSrcSel;
-    pstcM0PBt->M23CR_f.OCCE = pstcCfg->bVCClrEn;
+    pstcM0PBt->M23CR_f.OCCS = pstcConfig->enOCRefClrSrcSel;
+    pstcM0PBt->M23CR_f.OCCE = pstcConfig->bVCClrEn;
     
     return enResult;    
 }
@@ -1256,17 +1484,17 @@ en_result_t Bt_M23_OCRefClr(en_bt_unit_t enUnit, stc_bt_m23_OCREF_Clr_cfg_t* pst
  ** 
  ** \retval Ok or Error                                      
  *****************************************************************************/
-en_result_t Bt_M23_EnDMA(en_bt_unit_t enUnit, stc_bt_m23_trig_dma_cfg_t* pstcCfg)
+en_result_t Bt_M23_EnDMA(en_bt_unit_t enUnit, stc_bt_m23_trig_dma_config_t* pstcConfig)
 {
     en_result_t enResult = Ok;
     volatile M0P_TIM0_MODE23_TypeDef *pstcM0PBt = (M0P_TIM0_MODE23_TypeDef *)((uint32_t)M0P_TIM0_MODE23+0x100*enUnit);
     ASSERT(IS_VALID_TIM(enUnit));
     
-    pstcM0PBt->M23CR_f.UDE  = pstcCfg->bUevTrigDMA;
-    pstcM0PBt->M23CR_f.TDE  = pstcCfg->bTITrigDMA;
-    pstcM0PBt->CRCH0_f.CDEA = pstcCfg->bCmpATrigDMA;
-    pstcM0PBt->CRCH0_f.CDEB = pstcCfg->bCmpBTrigDMA;
-    pstcM0PBt->MSCR_f.CCDS  = pstcCfg->enCmpUevTrigDMA;
+    pstcM0PBt->M23CR_f.UDE  = pstcConfig->bUevTrigDMA;
+    pstcM0PBt->M23CR_f.TDE  = pstcConfig->bTITrigDMA;
+    pstcM0PBt->CRCH0_f.CDEA = pstcConfig->bCmpATrigDMA;
+    pstcM0PBt->CRCH0_f.CDEB = pstcConfig->bCmpBTrigDMA;
+    pstcM0PBt->MSCR_f.CCDS  = pstcConfig->enCmpUevTrigDMA;
     
     return enResult;    
 }

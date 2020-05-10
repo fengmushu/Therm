@@ -58,7 +58,6 @@
  *****************************************************************************/
 #include "ddl.h"
 
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -440,7 +439,7 @@ typedef enum en_bt_start
  ******************************************************************************
  ** \brief BaseTimer mode0 配置结构体定义(模式0)
  *****************************************************************************/
-typedef struct stc_bt_mode0_cfg
+typedef struct stc_bt_mode0_config
 {
     en_bt_work_mode_t     enWorkMode;       ///< 工作模式设置
     en_bt_m0_gatep_t      enGateP;          ///< 门控极性控制
@@ -453,13 +452,13 @@ typedef struct stc_bt_mode0_cfg
     func_ptr_t            pfnTim0Cb;        ///< Timer0中断服务回调函数[void function(void)]
     func_ptr_t            pfnTim1Cb;        ///< Timer1中断服务回调函数[void function(void)]
     func_ptr_t            pfnTim2Cb;        ///< Timer2中断服务回调函数[void function(void)]
-}stc_bt_mode0_cfg_t;
+}stc_bt_mode0_config_t;
 
 /**
  ******************************************************************************
  ** \brief BaseTimer mode1 配置结构体定义(模式1)
  *****************************************************************************/
-typedef struct stc_bt_mode1_cfg
+typedef struct stc_bt_mode1_config
 {
     en_bt_work_mode_t     enWorkMode;       ///< 工作模式设置
     en_bt_cr_timclkdiv_t  enPRS;            ///< 预除频配置
@@ -470,13 +469,13 @@ typedef struct stc_bt_mode1_cfg
     func_ptr_t          pfnTim0Cb;        ///< Timer0中断服务回调函数[void function(void)]
     func_ptr_t          pfnTim1Cb;        ///< Timer1中断服务回调函数[void function(void)]
     func_ptr_t          pfnTim2Cb;        ///< Timer2中断服务回调函数[void function(void)]
-}stc_bt_mode1_cfg_t;
+}stc_bt_mode1_config_t;
 
 /**
  ******************************************************************************
  ** \brief PWC输入配置结构体定义(模式1)
  *****************************************************************************/
-typedef struct stc_bt_pwc_input_cfg
+typedef struct stc_bt_pwc_input_config
 {
     en_bt_mscr_ts_t          enTsSel;       ///< 触发输入源选择
     en_bt_m1_mscr_ia0s_t     enIA0Sel;      ///< CHA0输入选择
@@ -485,13 +484,13 @@ typedef struct stc_bt_pwc_input_cfg
     en_bt_flt_t              enFltETR;      ///< ETR滤波设置
     en_bt_flt_t              enFltIA0;      ///< CHA0滤波设置
     en_bt_flt_t              enFltIB0;      ///< CHB0滤波设置
-}stc_bt_pwc_input_cfg_t;
+}stc_bt_pwc_input_config_t;
 
 /**
  ******************************************************************************
  ** \brief BaseTimer mode23 配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_mode23_cfg
+typedef struct stc_bt_mode23_config
 {
     en_bt_work_mode_t         enWorkMode;       ///< 工作模式设置
     en_bt_m23cr_dir_t         enCntDir;         ///< 计数方向
@@ -505,24 +504,24 @@ typedef struct stc_bt_mode23_cfg
     func_ptr_t                pfnTim0Cb;        ///< Timer0中断服务回调函数[void function(void)]
     func_ptr_t                pfnTim1Cb;        ///< Timer1中断服务回调函数[void function(void)]
     func_ptr_t                pfnTim2Cb;        ///< Timer2中断服务回调函数[void function(void)]
-}stc_bt_mode23_cfg_t;
+}stc_bt_mode23_config_t;
 
 /**
  ******************************************************************************
  ** \brief GATE在PWM互补模式下捕获或比较功能 配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_gate_cfg
+typedef struct stc_bt_m23_gate_config
 {
     en_bt_m23cr_csg_t        enGateFuncSel;      ///< Gate比较、捕获功能选择
     boolean_t                bGateRiseCap;       ///< GATE作为捕获功能时，上沿捕获有效控制
     boolean_t                bGateFallCap;       ///< GATE作为捕获功能时，下沿捕获有效控制
-}stc_bt_m23_gate_cfg_t;
+}stc_bt_m23_gate_config_t;
 
 /**
  ******************************************************************************
  ** \brief CHA/CHB通道比较控制 配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_compare_cfg
+typedef struct stc_bt_m23_compare_config
 {
     en_bt_m23_crch0_csa_csb_t  enCh0ACmpCap;     ///< CH0A比较/捕获功能选择
     en_bt_m23_fltr_ocm_t       enCH0ACmpCtrl;    ///< CH0A通道比较控制
@@ -535,13 +534,13 @@ typedef struct stc_bt_m23_compare_cfg
     en_bt_port_polarity_t      enCH0BPolarity;   ///< CH0B输出极性控制
     boolean_t                  bCH0BCmpBufEn;    ///< 比较B缓存功能 使能/禁止
     en_bt_m23_cisa_cisb_t      enCH0BCmpIntSel;  ///< CHB0比较匹配中断选择
-}stc_bt_m23_compare_cfg_t;
+}stc_bt_m23_compare_config_t;
 
 /**
  ******************************************************************************
  ** \brief CHA/CHB通道捕获控制 配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_input_cfg
+typedef struct stc_bt_m23_input_config
 {
     en_bt_m23_crch0_csa_csb_t  enCh0ACmpCap;     ///< CH0A比较/捕获功能选择
     en_bt_m23_crch0_cfx_crx_t  enCH0ACapSel;     ///< CH0A捕获边沿选择
@@ -553,91 +552,91 @@ typedef struct stc_bt_m23_input_cfg
     en_bt_flt_t                enCH0BInFlt;      ///< CH0B通道捕获滤波控制
     en_bt_port_polarity_t      enCH0BPolarity;   ///< CH0B输入相位
     
-}stc_bt_m23_input_cfg_t;   
+}stc_bt_m23_input_config_t;   
 
 /**
  ******************************************************************************
  ** \brief ETR输入相位滤波配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_etr_input_cfg
+typedef struct stc_bt_m23_etr_input_config
 {
     en_bt_port_polarity_t     enETRPolarity;  ///< ETR输入极性设置
     en_bt_flt_t               enETRFlt;       ///< ETR滤波设置
-}stc_bt_m23_etr_input_cfg_t;
+}stc_bt_m23_etr_input_config_t;
 
 /**
  ******************************************************************************
  ** \brief 刹车BK输入相位滤波配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_bk_input_cfg
+typedef struct stc_bt_m23_bk_input_config
 {
     boolean_t                 bEnBrake;         ///< 刹车使能
     boolean_t                 bEnVC0Brake;      ///< 使能VC0刹车
-	boolean_t			      bEnVC1Brake;		///< 使能VC1刹车
+    boolean_t                 bEnVC1Brake;      ///< 使能VC1刹车
     boolean_t                 bEnSafetyBk;      ///< 使能safety刹车
     boolean_t                 bEnBKSync;        ///< TIM0/TIM1/TIM2刹车同步使能
     en_bt_m23_crch0_bks_t     enBkCH0AStat;     ///< 刹车时CHA端口状态设置
     en_bt_m23_crch0_bks_t     enBkCH0BStat;     ///< 刹车时CHB端口状态设置
     en_bt_port_polarity_t     enBrakePolarity;  ///< 刹车BK输入极性设置
     en_bt_flt_t               enBrakeFlt;       ///< 刹车BK滤波设置
-}stc_bt_m23_bk_input_cfg_t;
+}stc_bt_m23_bk_input_config_t;
 
 /**
  ******************************************************************************
 ** \brief 死区功能配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_dt_cfg
+typedef struct stc_bt_m23_dt_config
 {
     boolean_t       bEnDeadTime;      ///< 刹车时CHA端口状态设置
     uint8_t         u8DeadTimeValue;  ///< 刹车时CHA端口状态设置
-}stc_bt_m23_dt_cfg_t;
+}stc_bt_m23_dt_config_t;
 
 /**
  ******************************************************************************
  ** \brief 触发ADC配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_adc_trig_cfg
+typedef struct stc_bt_m23_adc_trig_config
 {
     boolean_t     bEnTrigADC;          ///< 触发ADC全局控制
     boolean_t     bEnUevTrigADC;       ///< 事件更新触发ADC
     boolean_t     bEnCH0ACmpTrigADC;   ///< CH0A比较匹配触发ADC
     boolean_t     bEnCH0BCmpTrigADC;   ///< CH0B比较匹配触发ADC
-}stc_bt_m23_adc_trig_cfg_t;
+}stc_bt_m23_adc_trig_config_t;
 
 /**
  ******************************************************************************
  ** \brief  DMA触发 配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_trig_dma_cfg
+typedef struct stc_bt_m23_trig_dma_config
 {
     boolean_t              bUevTrigDMA;      ///< 更新 触发DMA使能
     boolean_t              bTITrigDMA;       ///< Trig 触发DMA功能
     boolean_t              bCmpATrigDMA;     ///< A捕获比较触发DMA使能
     boolean_t              bCmpBTrigDMA;     ///< B捕获比较触发DMA使能
     en_bt_m23_mscr_ccds_t  enCmpUevTrigDMA;  ///< 比较模式下DMA比较触发选择
-}stc_bt_m23_trig_dma_cfg_t;
+}stc_bt_m23_trig_dma_config_t;
 
 /**
  ******************************************************************************
  ** \brief  主从模式 配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_master_slave_cfg
+typedef struct stc_bt_m23_master_slave_config
 {
     en_bt_m23_mscr_msm_t      enMasterSlaveSel;  ///< 主从模式选择
     en_bt_m23_mscr_mms_t      enMasterSrc;       ///< 主模式触发源选择
     en_bt_m23_mscr_sms_t      enSlaveModeSel;    ///< 从模式选择
     en_bt_mscr_ts_t           enTsSel;           ///< 触发输入源选择
-}stc_bt_m23_master_slave_cfg_t;
+}stc_bt_m23_master_slave_config_t;
 
 /**
  ******************************************************************************
  ** \brief  OCREF清除功能 配置结构体定义(模式23)
  *****************************************************************************/
-typedef struct stc_bt_m23_OCREF_Clr_cfg
+typedef struct stc_bt_m23_OCREF_Clr_config
 {
     en_bt_m23ce_occs_t       enOCRefClrSrcSel;  ///< OCREF清除源选择
     boolean_t                bVCClrEn;          ///< 是否使能来自VC的OCREF_Clr
-}stc_bt_m23_OCREF_Clr_cfg_t;
+}stc_bt_m23_OCREF_Clr_config_t;
 
 /******************************************************************************
  * Global variable declarations ('extern', definition in C source)
@@ -671,7 +670,7 @@ en_result_t Bt_Mode23_DisableIrq (en_bt_unit_t enUnit, en_bt_irq_type_t enBtIrq)
 //模式0初始化及相关功能操作
 
 //timer配置及初始化
-en_result_t Bt_Mode0_Init(en_bt_unit_t enUnit, stc_bt_mode0_cfg_t* pstcCfg);
+en_result_t Bt_Mode0_Init(en_bt_unit_t enUnit, stc_bt_mode0_config_t* pstcConfig);
 //timer 启动/停止
 en_result_t Bt_M0_Run(en_bt_unit_t enUnit);
 en_result_t Bt_M0_Stop(en_bt_unit_t enUnit);
@@ -683,18 +682,16 @@ uint16_t Bt_M0_Cnt16Get(en_bt_unit_t enUnit);
 //32位计数值设置/获取
 en_result_t Bt_M0_Cnt32Set(en_bt_unit_t enUnit, uint32_t u32Data);
 uint32_t Bt_M0_Cnt32Get(en_bt_unit_t enUnit);
-//翻转输出使能/禁止（低电平）设定
-en_result_t Tim3_M0_EnTOG(en_bt_unit_t enUnit, boolean_t bEnTOG);
-//端口输出使能/禁止设定
-en_result_t Tim3_M0_Enable_Output(en_bt_unit_t enUnit, boolean_t bEnOutput);
+//翻转输出使能/禁止设定
+en_result_t Bt_M0_EnTOG_Output(en_bt_unit_t enUnit, boolean_t bEnOutput);
 
 
 //模式1初始化及相关功能操作
 
 //timer配置及初始化
-en_result_t Bt_Mode1_Init(en_bt_unit_t enUnit, stc_bt_mode1_cfg_t* pstcCfg);
+en_result_t Bt_Mode1_Init(en_bt_unit_t enUnit, stc_bt_mode1_config_t* pstcConfig);
 //PWC 输入配置
-en_result_t Bt_M1_Input_Cfg(en_bt_unit_t enUnit, stc_bt_pwc_input_cfg_t* pstcCfg);
+en_result_t Bt_M1_Input_Config(en_bt_unit_t enUnit, stc_bt_pwc_input_config_t* pstcConfig);
 //PWC测量边沿起始结束选择
 en_result_t Bt_M1_PWC_Edge_Sel(en_bt_unit_t enUnit,en_bt_m1cr_Edge_t enEdgeSel);
 //timer 启动/停止
@@ -710,7 +707,7 @@ uint16_t Bt_M1_PWC_CapValueGet(en_bt_unit_t enUnit);
 //模式23初始化及相关功能操作
 
 //timer配置及初始化
-en_result_t Bt_Mode23_Init(en_bt_unit_t enUnit, stc_bt_mode23_cfg_t* pstcCfg);
+en_result_t Bt_Mode23_Init(en_bt_unit_t enUnit, stc_bt_mode23_config_t* pstcConfig);
 //timer 启动/停止
 en_result_t Bt_M23_Run(en_bt_unit_t enUnit);
 en_result_t Bt_M23_Stop(en_bt_unit_t enUnit);
@@ -725,27 +722,27 @@ uint16_t Bt_M23_Cnt16Get(en_bt_unit_t enUnit);
 en_result_t Bt_M23_CCR_Set(en_bt_unit_t enUnit, en_bt_m23_ccrx_t enCCRSel, uint16_t u16Data);
 uint16_t Bt_M23_CCR_Get(en_bt_unit_t enUnit, en_bt_m23_ccrx_t enCCRSel);
 //PWM互补输出模式下，GATE功能选择
-en_result_t Bt_M23_GateFuncSel(en_bt_unit_t enUnit,stc_bt_m23_gate_cfg_t* pstcCfg);
+en_result_t Bt_M23_GateFuncSel(en_bt_unit_t enUnit,stc_bt_m23_gate_config_t* pstcConfig);
 //主从模式配置
-en_result_t Bt_M23_MasterSlave_Set(en_bt_unit_t enUnit, stc_bt_m23_master_slave_cfg_t* pstcCfg);
+en_result_t Bt_M23_MasterSlave_Set(en_bt_unit_t enUnit, stc_bt_m23_master_slave_config_t* pstcConfig);
 //CH0A/CH0B比较通道控制
-en_result_t Bt_M23_PortOutput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_compare_cfg_t* pstcCfg);
+en_result_t Bt_M23_PortOutput_Config(en_bt_unit_t enUnit, stc_bt_m23_compare_config_t* pstcConfig);
 //CH0A/CH0B输入控制
-en_result_t Bt_M23_PortInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_input_cfg_t* pstcCfg);
+en_result_t Bt_M23_PortInput_Config(en_bt_unit_t enUnit, stc_bt_m23_input_config_t* pstcConfig);
 //ERT输入控制
-en_result_t Bt_M23_ETRInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_etr_input_cfg_t* pstcCfg);
+en_result_t Bt_M23_ETRInput_Config(en_bt_unit_t enUnit, stc_bt_m23_etr_input_config_t* pstcConfig);
 //刹车BK输入控制
-en_result_t Bt_M23_BrakeInput_Cfg(en_bt_unit_t enUnit, stc_bt_m23_bk_input_cfg_t* pstcCfg);
+en_result_t Bt_M23_BrakeInput_Config(en_bt_unit_t enUnit, stc_bt_m23_bk_input_config_t* pstcConfig);
 //触发ADC控制
-en_result_t Bt_M23_TrigADC_Cfg(en_bt_unit_t enUnit, stc_bt_m23_adc_trig_cfg_t* pstcCfg);
+en_result_t Bt_M23_TrigADC_Config(en_bt_unit_t enUnit, stc_bt_m23_adc_trig_config_t* pstcConfig);
 //死区功能
-en_result_t Bt_M23_DT_Cfg(en_bt_unit_t enUnit, stc_bt_m23_dt_cfg_t* pstcCfg);
+en_result_t Bt_M23_DT_Config(en_bt_unit_t enUnit, stc_bt_m23_dt_config_t* pstcConfig);
 //重复周期设置
 en_result_t Bt_M23_SetValidPeriod(en_bt_unit_t enUnit, uint8_t u8ValidPeriod);
 //OCREF清除功能
-en_result_t Bt_M23_OCRefClr(en_bt_unit_t enUnit, stc_bt_m23_OCREF_Clr_cfg_t* pstcCfg);
+en_result_t Bt_M23_OCRefClr(en_bt_unit_t enUnit, stc_bt_m23_OCREF_Clr_config_t* pstcConfig);
 //使能DMA传输
-en_result_t Bt_M23_EnDMA(en_bt_unit_t enUnit, stc_bt_m23_trig_dma_cfg_t* pstcCfg);
+en_result_t Bt_M23_EnDMA(en_bt_unit_t enUnit, stc_bt_m23_trig_dma_config_t* pstcConfig);
 //捕获比较A软件触发
 en_result_t Bt_M23_EnSwTrigCapCmpA(en_bt_unit_t enUnit);
 //捕获比较B软件触发
