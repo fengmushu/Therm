@@ -497,6 +497,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\driver\src\spi.c</FilePath>
             </File>
+            <File>
+              <FileName>pcnt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\driver\src\pcnt.c</FilePath>
+            </File>
+            <File>
+              <FileName>bt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\driver\src\bt.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -681,6 +691,16 @@
               <FileName>core.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>..\..\..\..\midware\ssd1306\src\nano_engine\core.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>app_pcnt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_pcnt.c</FilePath>
+            </File>
+            <File>
+              <FileName>rng.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\driver\src\rng.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,6 +1,7 @@
 #ifndef __APP_TIMER_H__
 #define __APP_TIMER_H__
 
+#include "rng.h"
 #include "base_types.h"
 
 #define HZ              1000

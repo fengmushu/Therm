@@ -4288,6 +4288,29 @@ typedef struct
 
 typedef struct
 {
+    __IO uint32_t RNGCIR_EN                 : 1;
+    __IO uint32_t RNG_RUN                   : 1;
+} stc_rng_cr_field_t;
+
+typedef struct
+{
+    __IO uint32_t LOAD                      : 1;
+    __IO uint32_t FDBK                      : 1;
+    __IO uint32_t CNT                       : 3;
+} stc_rng_mode_field_t;
+
+typedef struct
+{
+    __IO uint32_t DATA0                     :32;
+} stc_rng_data0_field_t;
+
+typedef struct
+{
+    __IO uint32_t DATA1                     :32;
+} stc_rng_data1_field_t;
+
+typedef struct
+{
     __IO uint32_t PRDS                      : 3;
     __IO uint32_t AMPM                      : 1;
     uint32_t RESERVED4                      : 1;
@@ -8015,6 +8038,31 @@ typedef struct
 {
     union
     {
+        __IO uint32_t CR;
+        stc_rng_cr_field_t CR_f;
+    };
+    union
+    {
+        __IO uint32_t MODE;
+        stc_rng_mode_field_t MODE_f;
+    };
+    uint8_t RESERVED2[4];
+    union
+    {
+        __IO uint32_t DATA0;
+        stc_rng_data0_field_t DATA0_f;
+    };
+    union
+    {
+        __IO uint32_t DATA1;
+        stc_rng_data1_field_t DATA1_f;
+    };
+}M0P_RNG_TypeDef;
+
+typedef struct
+{
+    union
+    {
         __IO uint32_t CR0;
         stc_rtc_cr0_field_t CR0_f;
     };
@@ -9040,6 +9088,7 @@ typedef struct
 #define M0P_PCNT                               ((M0P_PCNT_TypeDef *)0x40005400UL)
 #define M0P_RAM                                ((M0P_RAM_TypeDef *)0x40020400UL)
 #define M0P_RESET                              ((M0P_RESET_TypeDef *)0x4000201CUL)
+#define M0P_RNG                                ((M0P_RNG_TypeDef *)0x40004C00UL)
 #define M0P_RTC                                ((M0P_RTC_TypeDef *)0x40001400UL)
 #define M0P_SPI0                               ((M0P_SPI_TypeDef *)0x40000800UL)
 #define M0P_SPI1                               ((M0P_SPI_TypeDef *)0x40004800UL)

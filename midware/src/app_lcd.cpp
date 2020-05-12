@@ -59,107 +59,195 @@
 
 #include "nano_engine.h"
 
-NanoEngine<TILE_128x64_MONO> engine;
-
-/* 
- * Heart image below is defined directly in flash memory.
+/*
+ * Define snowflake images directly in flash memory.
  * This reduces SRAM consumption.
- * The image is defined from bottom to top (bits), from left to
- * right (bytes).
+ * The image is defined from bottom to top (bits), from left to right (bytes).
  */
-const PROGMEM uint8_t heartImage[8] =
+const PROGMEM uint8_t snowFlakeImage[8][8] =
 {
-    0B00001110,
-    0B00011111,
-    0B00111111,
-    0B01111110,
-    0B01111110,
-    0B00111101,
-    0B00011001,
-    0B00001110
+    {
+        0B00111000,
+        0B01010100,
+        0B10010010,
+        0B11111110,
+        0B10010010,
+        0B01010100,
+        0B00111000,
+        0B00000000
+    },
+    {
+        0B00010000,
+        0B01010100,
+        0B00111000,
+        0B11101110,
+        0B00111000,
+        0B01010100,
+        0B00010000,
+        0B00000000
+    },
+    {
+        0B00111000,
+        0B00010000,
+        0B10111010,
+        0B11101110,
+        0B10111010,
+        0B00010000,
+        0B00111000,
+        0B00000000
+    },
+    {
+        0B00011000,
+        0B01011010,
+        0B00100100,
+        0B11011011,
+        0B11011011,
+        0B00100100,
+        0B01011010,
+        0B00011000
+    },
+    {
+        0B00010000,
+        0B00111000,
+        0B01010100,
+        0B11101110,
+        0B01010100,
+        0B00111000,
+        0B00010000,
+        0B00000000
+    },
+    {
+        0B10000010,
+        0B00101000,
+        0B01101100,
+        0B00010000,
+        0B01101100,
+        0B00101000,
+        0B10000010,
+        0B00000000
+    },
+    {
+        0B01000100,
+        0B10101010,
+        0B01101100,
+        0B00010000,
+        0B01101100,
+        0B10101010,
+        0B01000100,
+        0B00000000
+    },
+    {
+        0B00101000,
+        0B01010100,
+        0B10111010,
+        0B01101100,
+        0B10111010,
+        0B01010100,
+        0B00101000,
+        0B00000000
+    },
 };
 
-/**
- * Soba bitmap source is generated via script from https://github.com/robertgallup/bmp2hex
- * MIT license
- */
-// const uint8_t Soba [] PROGMEM = {
-// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-// 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x80,
-// 0x09, 0x00, 0x00, 0x00, 0xc0, 0x0c, 0x00, 0x00,
-// 0x00, 0x60, 0x06, 0x00, 0x00, 0x00, 0x30, 0x03,
-// 0x00, 0x00, 0x00, 0x98, 0x01, 0x00, 0xf8, 0x00,
-// 0xcc, 0x00, 0x00, 0xde, 0x03, 0x66, 0x00, 0x80,
-// 0x07, 0x0f, 0x33, 0x00, 0xc0, 0x01, 0x9c, 0x19,
-// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xe0, 0xff,
-// 0xff, 0xff, 0x07, 0xe0, 0xff, 0xff, 0xff, 0x07,
-// 0xe0, 0xff, 0xff, 0xff, 0x07, 0xe0, 0xff, 0xff,
-// 0xff, 0x07, 0xe0, 0xff, 0xff, 0xff, 0x07, 0xc0,
-// 0xff, 0xff, 0xff, 0x03, 0xc0, 0xff, 0xff, 0xff,
-// 0x03, 0x80, 0xff, 0xff, 0xff, 0x01, 0x80, 0xff,
-// 0xff, 0xff, 0x01, 0x00, 0xff, 0xff, 0xff, 0x00,
-// 0x00, 0xfe, 0xff, 0x7f, 0x00, 0x00, 0xfc, 0xff,
-// 0x3f, 0x00, 0x00, 0xf8, 0xff, 0x1f, 0x00, 0x00,
-// 0xf0, 0xff, 0x0f, 0x00, 0x00, 0xc0, 0xff, 0x03,
-// 0x00, 0x00, 0x80, 0xff, 0x01, 0x00, 0x00, 0x00,
-// 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-// };
+NanoEngine1 engine;
 
-/* Lets show 4 hearts on the display */
-const int spritesCount = 4;
-
-/* Declare variable that represents our 4 objects */
-struct
+class SnowFlake: public NanoFixedSprite<NanoEngine1, engine>
 {
-    NanoPoint pos;
+public:
+    SnowFlake(): NanoFixedSprite<NanoEngine1, engine>({0, 0}, {8, 8}, nullptr) { }
+
+    bool isAlive() { return falling; }
+
+    void bringToLife()
+    {
+        setBitmap( &snowFlakeImage[random(0, 8)][0] );
+        /* Set initial position in scaled coordinates */
+        scaled_position = { random(0, ssd1306_displayWidth() * 8), -8 * 8 };
+        /* Use some random speed */
+        speed = { random(-16, 16), random(4, 12) };
+        /* After countdown timer ticks to 0, change X direction */
+        timer = random(24, 48);
+        moveTo( scaled_position/8 );
+        falling = true;
+    }
+
+    void move()
+    {
+        scaled_position += speed;
+        timer--;
+        if (0 == timer)
+        {
+            /* Change movement direction */
+            speed.x = random(-16, 16);
+            timer = random(24, 48);
+        }
+        moveTo( scaled_position/8 );
+        if (y() >= static_cast<lcdint_t>(ssd1306_displayHeight()) )
+        {
+            falling = false;
+        }
+    }
+
+private:
+    NanoPoint scaled_position;
     NanoPoint speed;
-} objects[ spritesCount ];
+    uint8_t timer;
+    bool falling = false;
+};
 
-/*
- * Each pixel in SSD1306 display takes 1 bit of the memory. So, full resolution
- * of 128x64 LCD display will require 128*64/8 = 1024 bytes of SRAM for the buffer.
- * To let this example to run on Attiny devices (they have 256/512 byte SRAM), we
- * will use small canvas buffer: 32x32 (requires 128 bytes of SRAM), so the example
- * would run even on Attiny45.
- */
-const int canvasWidth = 128; // Width must be power of 2, i.e. 16, 32, 64, 128...
-const int canvasHeight = 64; // Height must be divided on 8, i.e. 8, 16, 24, 32...
-uint8_t canvasData[canvasWidth*(canvasHeight/8)];
-/* Create canvas object */
-NanoCanvas1 canvas(canvasWidth, canvasHeight, canvasData);
+static const uint8_t maxCount = 20;
 
-/*
- * Define sprite width. The width can be of any size.
- * But sprite height is always assumed to be 8 pixels
- * (number of bits in single byte).
- */
-// const int spriteWidth = sizeof(heartImage);
+/* These are our snow flakes */
+SnowFlake snowFlakes[maxCount];
 
-// /* Declare variable that represents our sprite */
-// SPRITE sprite;
-// int speedX = 1;
-// int speedY = 1;
+bool onDraw()
+{
+    engine.canvas.clear();
+    for (uint8_t i=0; i<maxCount; i++)
+    {
+        if (snowFlakes[i].isAlive())
+        {
+            snowFlakes[i].draw();
+        }
+    }
+    return true;
+}
 
+void addSnowFlake()
+{
+    for (uint8_t i=0; i<maxCount; i++)
+    {
+        if (!snowFlakes[i].isAlive())
+        {
+            snowFlakes[i].bringToLife();
+            break;
+        }
+    }
+}
+
+static uint8_t globalTimer=3;
+
+void moveSnowFlakes()
+{
+    for (uint8_t i=0; i<maxCount; i++)
+    {
+        if (snowFlakes[i].isAlive())
+        {
+            snowFlakes[i].move();
+        }
+    }
+}
 
 ///< LCD 初始化
 void sys_display_init(void)
 {
     ssd1306_128x64_spi_init(-1,-1,-1);
-    ssd1306_fillScreen(0x00);
 
-    /* Create 4 "hearts", and place them at different positions and give different movement direction */
-    for(uint8_t i = 0; i < spritesCount; i++)
-    {
-        objects[i].speed = { .x = (i & 1) ? -1:  1, .y = (i & 2) ? -1:  1 };
-        objects[i].pos = { .x = i*4, .y = i*4 + 2 };
-    }
-    canvas.setMode( CANVAS_MODE_TRANSPARENT );
+    engine.setFrameRate( 10 );
+    engine.begin();
+    engine.drawCallback( onDraw );
 
-    /* Create sprite at 0,0 position. The function initializes sprite structure. */
-    // sprite = ssd1306_createSprite( 0, 0, spriteWidth, heartImage );
-    // /* Draw sprite on the display */
-    // sprite.draw();
+    engine.canvas.setMode(CANVAS_MODE_TRANSPARENT);
+    engine.refresh();
 }
 
 void AppLcdDisplayAll(void)
@@ -174,54 +262,15 @@ void AppLcdClearAll(void)
 
 void AppLcdDisplayUpdate(uint32_t delay_ms)
 {
-    /* Move sprite every 40 milliseconds */
-    // delay(delay_ms);
-
-    /* Recalculate position and movement direction of all 4 "hearts" */
-    for (uint8_t i = 0; i < spritesCount; i++)
+    if (!engine.nextFrame()) return;
+    if (0 == (--globalTimer))
     {
-        objects[i].pos += objects[i].speed;
-        /* If left or right boundary is reached, reverse X direction */
-        if ((objects[i].pos.x == (canvasWidth - 8)) || (objects[i].pos.x == 0))
-            objects[i].speed.x = -objects[i].speed.x;
-        /* Sprite height is always 8 pixels. Reverse Y direction if bottom or top boundary is reached. */
-        if ((objects[i].pos.y == (canvasHeight - 8)) || (objects[i].pos.y == 0))
-            objects[i].speed.y = -objects[i].speed.y;
+        /* Try to add new snowflake every ~ 90ms */
+        globalTimer = 3;
+        addSnowFlake();
     }
-
-    /* Clear canvas surface */
-    canvas.clear();
-    /* Draw line */
-    canvas.drawLine( 0, 0, canvasWidth - 1, canvasHeight-1);
-    /* Draw rectangle around our canvas. It will show the range of the canvas on the display */
-    canvas.drawRect(0, 0, canvasWidth-1, canvasHeight-1);
-    /* Draw all 4 sprites on the canvas */
-    for (uint8_t i = 0; i < spritesCount; i++)
-    {
-        canvas.drawBitmap1( objects[i].pos.x, objects[i].pos.y, 8, 8, heartImage );
-    }
-    /* Now, draw canvas on the display */
-    canvas.blt(0, 0);
-
-    // sprite.x += speedX;
-    // sprite.y += speedY;
-    // /* If right boundary is reached, reverse X direction */
-    // if (sprite.x == (128 - spriteWidth)) speedX = -speedX;
-    // /* If left boundary is reached, reverse X direction */ 
-    // if (sprite.x == 0) speedX = -speedX;
-    // /* Sprite height is always 8 pixels. Reverse Y direction if bottom boundary is reached. */
-    // if (sprite.y == (64 - 8)) speedY = -speedY;
-    // /* If top boundary is reached, reverse Y direction */
-    // if (sprite.y == 0) speedY = -speedY;
-    // /* Erase sprite on old place. The library knows old position of the sprite. */
-    // sprite.eraseTrace();
-    // /* Draw sprite on new place */
-    // sprite.draw();
-
-
-    // ssd1306_clearScreen( );
-    // ssd1306_drawXBitmap(0, 0, 40, 32, Soba);
-    // delay(1000);
+    moveSnowFlakes();
+    engine.display();
 }
 
 void AppLcdDisable(void)

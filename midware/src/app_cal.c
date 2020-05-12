@@ -296,6 +296,7 @@ void AppCalibration(void)
     CalData_t Cal;
 
     AppLedEnable(LedOrange);
+    AppLcdDisplayAll();
 
     do {
 

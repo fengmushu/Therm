@@ -6,6 +6,7 @@
 #include "rtc.h"
 #include "timer3.h"
 #include "bt.h"
+#include "rng.h"
 #include "sysctrl.h"
 
 #define TIMER3_PCLK_DIV         (256)
@@ -114,7 +115,11 @@ static volatile uint32_t jffies = 0;
 ///< sec * HZ
 static inline uint32_t sys_tick_fixup(void)
 {
-    return  (jffies  + (Bt_M0_Cnt16Get(TIM0) - (uint16_t)SYS_TICK_AAR) / SYS_TICK_MAP);
+    if (Bt_M0_Cnt16Get(TIM0) >= (uint16_t)SYS_TICK_AAR)
+    {
+        return  (jffies  + (Bt_M0_Cnt16Get(TIM0) - (uint16_t)SYS_TICK_AAR) / SYS_TICK_MAP);
+    }
+    return jffies;
 }
 
 void Tim0Int(void)
@@ -127,12 +132,12 @@ void Tim0Int(void)
     }
 }
 
-uint32_t jffies_to_msc(void)
+uint32_t jffies_to_msc(void) //毫秒
 {
     return (sys_tick_fixup() * 1000 / HZ);
 }
 
-uint32_t jffies_to_mic(void)
+uint32_t jffies_to_mic(void) //微秒
 {
     return jffies_to_msc() * 1000;
 }
@@ -164,10 +169,20 @@ void basic_timer_init(void)
 
     Bt_M0_ARRSet(TIM0, SYS_TICK_AAR);                      //设置重载值(周期 = 0x10000 - ARR)
 
-    DBG_PRINT("TIM0 clk: %u HZ.\r\n", SYS_TICK_AAR);
-
     Bt_ClearIntFlag(TIM0,BtUevIrq);                         //清中断标志   
     Bt_Mode0_EnableIrq(TIM0);                               //使能TIM0中断(模式0时只有一个中断)
     EnableNvic(TIM0_IRQn, IrqLevel3, TRUE);                 //TIM0 中断使能
     Bt_M0_Run(TIM0);                                        //TIM0 运行
+
+    /* 随机数发生器 */
+    ///< 打开RNG模块时钟门控
+    Sysctrl_SetPeripheralGate(SysctrlPeripheralRng, TRUE);
+
+    ///< 上电第一次随机数生成并获取
+    Rng_Init();
+
+    ///< 生成一次随机数
+    Rng_Generate();
+
+    DBG_PRINT("TIM0 clk: %u HZ. RNG: %u, %u\r\n", SYS_TICK_AAR, Rng_GetData0(), Rng_GetData1());
 }
