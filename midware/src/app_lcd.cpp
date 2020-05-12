@@ -53,6 +53,7 @@
  ******************************************************************************/
 #include "lcd.h"
 #include "app.h"
+#include "rng.h"
 #include "app_lcd.h"
 
 #include "ssd1306.h"
@@ -268,6 +269,7 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
         /* Try to add new snowflake every ~ 90ms */
         globalTimer = 3;
         addSnowFlake();
+        Rng_Generate();
     }
     moveSnowFlakes();
     engine.display();
