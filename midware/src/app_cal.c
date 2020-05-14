@@ -350,6 +350,7 @@ static void SampleDump(uint32_t *aSum)
 boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
     int iSampleCount = SAMPLE_MAX;
+    uint32_t uVar = 0;
     uint32_t uSumViR[SAMPLE_BUFF_SIZE], uSumVNtcH[SAMPLE_BUFF_SIZE], uSumVNtcL[SAMPLE_BUFF_SIZE];
 
     delay1ms(100); /* 等适应了再采集数据 */
@@ -376,6 +377,11 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
         delay1ms(20);
     }
 
+    uVar = SampleVariance(uSumViR);
+    if(uVar != 0) {
+        return FALSE;
+    }
+
     SampleDump(uSumViR);
 
     *uViR = SampleCal(uSumViR);
@@ -396,7 +402,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
                            uint32_t *uTHuman,
                            uint32_t *pViR)
 {
-    static int i = 0;
+    static int i = 0, iTryCount = 10;
     uint32_t u32SampIndex;         ///< 采样次数
     uint32_t uViR, uRa, uVNtcH, uVNtcL; ///< ADC 采样值
     float32_t fNtcTemp, fSurfaceTemp, fSkinTemp, fHumanTemp;
@@ -407,8 +413,16 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     // cannot be intterrupted in float processing
     __disable_irq();
 
-    if (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
+    while(iTryCount --)
     {
+        if(AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
+        {
+            break;
+        }
+    }
+    ///< TimeOut
+    if(0 == iTryCount)
+		{
         __enable_irq();
         return FALSE;
     }
@@ -425,7 +439,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
     // 人体体表
     fSkinTemp = fSurfaceTemp;
-    if (fSkinTemp < 36)
+    if (fSkinTemp < 34)
     {
         fSkinTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
     }
