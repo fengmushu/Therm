@@ -307,25 +307,7 @@ static uint32_t SampleVariance(uint32_t *aSum)
 
 static uint32_t SampleCal(uint32_t *aSum)
 {
-    uint8_t i;
-    uint32_t uVal = 0, uMin = 0xFFFFFFFF, uMax = 0;
-
-    for (i = 1; i <= aSum[0]; i++)
-    {
-        uVal += aSum[i];
-        if (uMin > aSum[i])
-        {
-            uMin = aSum[i];
-        }
-        if (uMax < aSum[i])
-        {
-            uMax = aSum[i];
-        }
-    }
-
-    uVal -= (uMax + uMin);
-
-    return (uVal / (aSum[0] - 2)) * 2500 / 4096;
+    return SampleMeans(aSum) * 2500 / 4096;
 }
 
 static void SampleDump(uint32_t *aSum)
@@ -349,14 +331,14 @@ static void SampleDump(uint32_t *aSum)
 ///< ADC 修正值获取
 boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
-    int iSampleCount = SAMPLE_MAX;
+    int iSampleCount = 0, iTryMaxCount = 10;
     uint32_t uSumViR[SAMPLE_BUFF_SIZE], uSumVNtcH[SAMPLE_BUFF_SIZE], uSumVNtcL[SAMPLE_BUFF_SIZE];
 
     delay1ms(100); /* 等适应了再采集数据 */
 
     ///<*** ADC数据采集
     uSumViR[0] = uSumVNtcH[0] = uSumVNtcL[0] = 0;
-    while (iSampleCount--)
+    while (iSampleCount++ < iTryMaxCount)
     {
         uint32_t uAdcCode;
 
@@ -372,6 +354,16 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
         SampleInsert(uSumVNtcL, uAdcCode);
 
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
+
+        ///< sample data is aligned
+        if(iSampleCount >= SAMPLE_MAX)
+        {
+            uint32_t uVar = SampleVariance(uSumViR);
+            if(uVar == 0)
+            {
+                break;
+            }
+        }
 
         delay1ms(20);
     }
@@ -425,7 +417,7 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 
     // 人体体表
     fSkinTemp = fSurfaceTemp;
-    if (fSkinTemp < 36)
+    if (fSkinTemp < 34)
     {
         fSkinTemp = NNA_SurfaceTempGet(pCal, fNtcTemp, uViR, 0.98295);
     }
