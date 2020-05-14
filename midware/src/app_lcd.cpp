@@ -269,6 +269,7 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
         /* Try to add new snowflake every ~ 90ms */
         globalTimer = 3;
         addSnowFlake();
+        ///< update location
         Rng_Generate();
     }
     moveSnowFlakes();
