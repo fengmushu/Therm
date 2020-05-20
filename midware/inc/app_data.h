@@ -6,6 +6,16 @@
 #include "app_cal.h"
 #include "utils.h"
 
+#define HW_BOARD_HG03
+
+#ifdef HW_BOARD_HG03
+#define HW_MODEL_STR                "HG03"
+#endif /* HW_BOARD_HG03 */
+
+#ifndef HW_MODEL_STR
+#define HW_MODEL_STR                "????"
+#endif /* HW_MODEL_STR */
+
 #define BODY_TEMP_UNDERFLOW_C       (300)   // show LO
 #define BODY_TEMP_OVERFLOW_C        (440)   // show HI
 
@@ -42,13 +52,11 @@
 #define I2C_CAL_ADDR                (I2C_DATA_ADDR + I2C_DATA_SIZE)
 #define I2C_DATA_ADDR               (0)
 
-// WARN: keep this in sync with app_lcd.h
 enum beep_mode {
     BEEP_OFF = 0,
     BEEP_ON,
 };
 
-// WARN: keep this in sync with app_lcd.h
 enum scan_mode {
     SCAN_BODY = 0,
     SCAN_SURFACE,

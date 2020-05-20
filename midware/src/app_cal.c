@@ -320,8 +320,8 @@ static void SampleDump(uint32_t *aSum)
         DBG_PRINT(" %u", aSum[i]);
 #ifdef FACTORY_MODE_UV_DEBUG
         if(factory_mode) {
-            AppLcdSetRawNumber(aSum[i], FALSE, 4);
-            AppLcdDisplayUpdate(500);
+            lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, aSum[i], 0, LCD_NO_DOT);
+            delay1ms(500);
         }
 #endif
     }
@@ -444,20 +444,20 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
     uint32_t uNtcH = 0, uNtcL = 0, uViR = 0, uRa = 0;
     uint32_t aSampleViR[SAMPLE_BUFF_SIZE] = {0,}, uReTry = 0;
 
-    AppLcdSetLock(FALSE);
-    AppLcdSetLogIndex(FALSE, uTargetTemp);
+    lcd_sym_set_apply(LCD_SYM_LOCK, 0);
+    lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT, uTargetTemp, 2, LCD_NO_DOT);
     do {
         ///< 读取ADC
         if (!AppAdcCodeGet(&uViR, &uNtcH, &uNtcL))
         {
-            AppLcdSetLock(TRUE);
-            AppLcdDisplayUpdate(200);
+            lcd_sym_set_apply(LCD_SYM_LOCK, 1);
+            // AppLcdDisplayUpdate(200);
             continue;
         }
         SampleInsert(aSampleViR, uViR);
 
-        AppLcdSetRawNumber(uViR, FALSE, 4);
-        AppLcdDisplayUpdate(50);
+        lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
+        // AppLcdDisplayUpdate(50);
 
         if(uReTry > 3)
         {
@@ -478,8 +478,8 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
     uViR = SampleMeans(aSampleViR);
     if(uViR < 700 || uViR > 1500)
     {
-        AppLcdSetRawNumber(uViR, FALSE, 4);
-        AppLcdDisplayUpdate(200);
+        lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
+        // AppLcdDisplayUpdate(200);
         return FALSE;
     }
 
@@ -495,15 +495,15 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
     __enable_irq();
     if(!bSuCali) 
     {
-        AppLcdSetLock(TRUE);
-        AppLcdDisplayUpdate(200);
+        lcd_sym_set_apply(LCD_SYM_LOCK, 1);
+        // AppLcdDisplayUpdate(200);
         return FALSE;
     }
 
     /* log set Ra, uViR */
-    AppLcdSetRawNumber(uViR, FALSE, 4);
-    AppLcdSetLogRawNumber((uRa / 100), TRUE, 1);
-    AppLcdDisplayUpdate(100);
+    lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
+    lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, (uRa / 100), 2, LCD_SHOW_DOT);
+    // AppLcdDisplayUpdate(100);
 
     return TRUE;
 }
@@ -517,16 +517,16 @@ void AppCalibration(void)
     NNA_CalInit(&Cal);
 
     AppLedEnable(LedOrange);
-    AppLcdClearAll();
-    AppLcdBlink();
+    lcd_sw_blink(5, 50);
 
     ///< 当前软件版本
-    AppLcdSetRawNumber(SYS_SW_VERSION, TRUE, 4);
+    lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, SYS_SW_VERSION, 0, LCD_NO_DOT);
+    // lcd_string_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, HW_MODEL_STR, strlen(HW_MODEL_STR));
+
     ///< 选择传感器
     Cal.u8SensorType = NNA_SensorGetIndex();
     NNA_SensorSet(Cal.u8SensorType);
-    AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
-    AppLcdDisplayUpdate(0);
+    lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, NNA_SensorGet(), 4, LCD_NO_DOT);
 
     while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
 
@@ -545,9 +545,8 @@ void AppCalibration(void)
 
         ///< 设置当前传感器选择
         NNA_SensorSet(Cal.u8SensorType);
-        AppLcdSetRawNumber(NNA_SensorGet(), FALSE, 4);
-        AppLcdSetLogRawNumber(NNA_SensorGet(), FALSE, 4);
-        AppLcdDisplayUpdate(150);
+        lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, NNA_SensorGet(), 4, LCD_NO_DOT);
+        lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, NNA_SensorGet(), 4, LCD_NO_DOT);
     } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
 
     ///< 校准
@@ -584,12 +583,9 @@ void AppCalibration(void)
         if (key_pressed_query(KEY_TRIGGER))
         {
             AppTempCalculate(&Cal, &uNtc, &uSurf, &uHuman, &uViR);
-            ///< 打出环境温度
-            AppLcdSetLogIndex(FALSE, uNtc / 100);
-            AppLcdSetTemp(uSurf / 10);
-            /* log set uViR */
-            AppLcdSetLogRawNumber(uViR, FALSE, 1);
-            AppLcdDisplayUpdate(0);
+            lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT, uNtc / 100, 2, LCD_NO_DOT);
+            lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, uViR, 1, LCD_NO_DOT);
+            lcd_float1_show(LCD_BIGNUM, uSurf / 10);
             beep_once(100);
         }
 
@@ -602,8 +598,7 @@ void AppCalibration(void)
     }
 
     AppBeepBlink((SystemCoreClock / 1000));
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(100);
+    lcd_display_clear();
     ///< 回写校准数据
     AppCalUpdateAndSaveFactory(&Cal);
 }

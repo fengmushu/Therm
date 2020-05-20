@@ -21,7 +21,7 @@
 
 void sys_resume(void)
 {
-    AppLcdEnable();
+    lcd_sys_enable(1);
 
     AppLedEnable(LedGreen);
 
@@ -45,15 +45,14 @@ void sys_halt(void)
     beep_off();
 
     // reset lcd
-    AppLcdDisplayClear();
+    lcd_display_clear();
 
     // turn off backlight
     AppLedDisable();
 
     // turn off lcd
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(0);
-    AppLcdDisable();
+    lcd_ram_clear_all();
+    lcd_sys_enable(0);
 
     // turn off adc
     AppMAdcPowerOff();
@@ -139,9 +138,7 @@ static fsm_state_t state_pwroff_enter(fsm_node_t *node, fsm_event_t event)
 
     AppLedEnable(LedOrange);
 
-    AppLcdClearAll();
-    AppLcdSetString(Str_OFF);
-    AppLcdDisplayUpdate(2000);
+    lcd_string_clean_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, 2000, "oFF", 3);
 
     return FSM_STATE_SLEEP;
 }
@@ -180,7 +177,7 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
 
     // hold [-] and [+] to reset, clear config
     if (key_pressed_query(KEY_MINUS) && key_pressed_query(KEY_PLUS)) {
-        AppLcdBlink();
+        lcd_sw_blink(3, 200);
         app_save_reset(g_save);
         __app_save_i2c_store(g_save, 1);
         app_runtime_readidx_rebase(g_rt);
@@ -191,13 +188,12 @@ static void state_sleep_exit(fsm_node_t *node, fsm_event_t event)
     //       adc/bgr needs a little delay to settle down
     //       otherwise the first sampling may be werid
     //
-    AppLcdDisplayClear();
-    AppLcdDisplayAll();
+    lcd_ram_clear_all();
+    lcd_ram_display_all();
     delay1ms(1000);
 
-    AppLcdDisplayClear();
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(0);
+    lcd_ram_clear_all();
+    lcd_display_clear();
 }
 
 static fsm_state_t state_sleep_proc(fsm_node_t *node, fsm_event_t *out)
@@ -299,8 +295,7 @@ static fsm_state_t state_scan_enter(fsm_node_t *node, fsm_event_t event)
     UNUSED_PARAM(event);
 
     // waited in main->enter()
-    AppLcdSetLock(TRUE);
-    AppLcdDisplayUpdate(0);
+    lcd_sym_set_apply(LCD_SYM_LOCK, 1);
 
     return next;
 }
@@ -374,8 +369,7 @@ static fsm_node_t state_scan = {
 
 static fsm_state_t state_config_enter(fsm_node_t *node, fsm_event_t event)
 {
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(30);
+    lcd_display_clear();
 
     app_fn_enter();
 

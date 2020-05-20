@@ -51,7 +51,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
         g_rt->scan_mode_last = scan_mode;
         g_rt->read_idx[scan_mode] = scan_log->last_write;
 
-        AppLcdClearAll();
+        lcd_display_clear();
 
         break;
     }
@@ -83,22 +83,18 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     uint8_t scan_show = g_rt->scan_show;
     uint8_t scan_mode = g_rt->scan_mode_last;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
+    uint8_t led_color = LedGreen;
 
-    // by testing, say 5 at least to stabilize lcd
-    const int16_t lcd_budget_ms = 20;
     const int16_t key_budget_ms = 150;
-    int16_t delay_budget = lcd_budget_ms;
+    int16_t delay_budget = 0;
 
     int16_t big_number;
     int16_t log_number;
 
-    // reset color for all not defined patterns
-    AppLedEnable(LedGreen);
-
-    AppLcdSetLock(FALSE);
-    AppLcdSetBuzzer(g_cfg->beep_on);
-    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdSetCheckMode(g_rt->scan_mode, TRUE);
+    lcd_sym_set(LCD_SYM_LOCK, 0);
+    lcd_sym_set(LCD_SYM_BUZZER, g_cfg->beep_on);
+    lcd_sym_temp_unit_set(g_cfg->temp_unit);
+    lcd_sym_scan_mode_set(g_rt->scan_mode);
 
     // blinking
     if (g_rt->battery_low) {
@@ -107,16 +103,18 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         duty = blink_cnt & GENMASK(5, 4);
         duty >>= 4;
 
-        AppLcdSetBattery(FALSE);
+        lcd_sym_set(LCD_SYM_BAT, 0);
 
         if (duty == 0x00 || duty == 0x01) // duty 50%
-            AppLcdSetBattery(TRUE);
+            lcd_sym_set(LCD_SYM_BAT, 1);
     }
 
     // read_idx should have synced to write_idx in enter() if comes from scan
     log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
 
-    AppLcdSetLogTemp(C2F_by_setting(log_number), lcd_show_idx(read_idx));
+    lcd_sym_set(LCD_SYM_TEXT_LOG, 1);
+    lcd_float1_show(LCD_LOGNUM, C2F_by_setting(log_number));
+    lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT, lcd_show_idx(read_idx), 2, LCD_NO_DOT);
 
     // user is viewing log, show big number as log number
     big_number = log_number;
@@ -125,9 +123,9 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     if (log_show_uv) {
         uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
         log_number = scan_log_read(&log_uv[scan_mode], read_idx);
-        AppLcdSetLogRawNumber(log_number, FALSE, 4);
-        AppLcdSetLogIndex(FALSE, ntc_number);
-        // AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
+        lcd_sym_set(LCD_SYM_TEXT_LOG, 0);
+        lcd_number_show(LCD_LOGNUM, LCD_ALIGN_LEFT, log_number, 0, LCD_NO_DOT);
+        lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT, ntc_number, 0, LCD_NO_DOT);
     }
 #endif
 
@@ -135,12 +133,12 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         big_number = g_rt->scan_result[scan_mode];
 
         if (big_number < g_temp_thres[scan_mode].underflow) {
-            AppLedEnable(LedOrange);
-            AppLcdSetString(Str_LO);
+            led_color = LedOrange;
+            lcd_string_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, "Lo", 2);
             goto lcd_update; // jump out
         } else if (big_number > g_temp_thres[scan_mode].overflow) {
-            AppLedEnable(LedRed);
-            AppLcdSetString(Str_HI);
+            led_color = LedRed;
+            lcd_string_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, "Hi", 2);
             goto lcd_update; // jump out
         }
     }
@@ -151,16 +149,20 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     if (scan_mode == SCAN_BODY) {
         // currently, body_alarm_C can be smaller than BODY_FEVER_LOW
         if (big_number >= g_cfg->body_alarm_C) {
-            AppLedEnable(LedRed);
+            led_color = LedRed;
         } else if (big_number >= BODY_FEVER_LOW) {
-            AppLedEnable(LedOrange);
+            led_color = LedOrange;
         }
     }
 
-    AppLcdSetRawNumber(C2F_by_setting(big_number), TRUE, 2);
+    lcd_float1_show(LCD_BIGNUM, C2F_by_setting(big_number));
 
 lcd_update:
-    AppLcdDisplayUpdate(0);
+    AppLedEnable(led_color);
+
+    // lcd symbol batch update here
+    // if lcd_sym_set_apply() used above, may cause flickers
+    lcd_sym_list_apply();
 
     // scan_done will be oneshot after scan done
     if (g_rt->scan_done) {

@@ -35,7 +35,6 @@ static int is_factory_debug(void)
 
 static void factory_test_init(void)
 {
-        AppLcdEnable();
         AppLedEnable(LedOrange);
 }
 
@@ -44,9 +43,9 @@ static void factory_lcd_test(void)
         for (int i = LedRed; i <= LedOrange; i++) {
                 AppLedEnable(i);
 
-                AppLcdDisplayAll();
+                lcd_ram_display_all();
                 delay1ms(500);
-                AppLcdDisplayClear();
+                lcd_ram_clear_all();
                 delay1ms(500);
         }
 }
@@ -56,7 +55,7 @@ static void factory_key_test(void)
         uint8_t led_color = 1;
 
         while (1) {
-                AppLcdDisplayAll();
+                lcd_ram_display_all();
                 delay1ms(30);
 
                 if (key_pressed_query(KEY_SWITCH)) {
@@ -68,7 +67,7 @@ static void factory_key_test(void)
                 if (key_pressed_query(KEY_MINUS)) {
                         AppLedEnable(LedOrange);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_MINUS);
                         beep_off();
                         continue;
@@ -77,7 +76,7 @@ static void factory_key_test(void)
                 if (key_pressed_query(KEY_PLUS)) {
                         AppLedEnable(LedOrange);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_PLUS);
                         beep_off();
                         continue;
@@ -86,7 +85,7 @@ static void factory_key_test(void)
                 if (key_pressed_query(KEY_FN)) {
                         AppLedEnable(LedOrange);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_FN);
                         beep_off();
                         continue;
@@ -95,7 +94,7 @@ static void factory_key_test(void)
                 if (key_pressed_query(KEY_TRIGGER)) {
                         AppLedEnable(LedOrange);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_TRIGGER);
                         beep_off();
                         continue;
