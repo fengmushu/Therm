@@ -3,6 +3,8 @@
 #ifndef __CAL_H__
 #define __CAL_H__
 
+#include "nna.h"
+
 typedef struct {
     ///< 数据校验
     uint32_t    uMagic;
