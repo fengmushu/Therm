@@ -111,8 +111,6 @@ void PortC_IRQHandler(void)
 
     for (int i = KEY_MINUS; i <= KEY_FN; i++)
         key_gpio_irq_handle(i);
-
-    DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }
 
 void PortD_IRQHandler(void)
@@ -121,6 +119,4 @@ void PortD_IRQHandler(void)
 
     for (int i = KEY_TRIGGER; i <= KEY_SWITCH; i++)
         key_gpio_irq_handle(i);
-
-    DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }
