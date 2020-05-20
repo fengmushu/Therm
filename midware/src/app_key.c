@@ -112,8 +112,6 @@ void PortC_IRQHandler(void)
         key_gpio_irq_handle(i);
 
     // FIXME: what if we need to clear other undefined irqs?
-
-    DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }
 
 void PortD_IRQHandler(void)
@@ -121,6 +119,4 @@ void PortD_IRQHandler(void)
     AppRtcFeed();
 
     key_gpio_irq_handle(KEY_TRIGGER);
-
-    DBG_PRINT("PortC GPIO KEY: %02x\r\n", bm_key_pressed);
 }
