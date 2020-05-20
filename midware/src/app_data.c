@@ -56,6 +56,21 @@ int app_save_verify(app_save_t *save)
     return 0;
 }
 
+int app_data_i2c_write_safe(void *data, uint16_t len)
+{
+    if (I2C_DATA_ADDR + len >= I2C_CAL_ADDR) {
+        lcd_display_clear();
+        lcd_string_show(LCD_BIGNUM, LCD_ALIGN_LEFT, "i2c", 3);
+        lcd_string_show(LCD_LOGNUM, LCD_ALIGN_LEFT, "Err", 3);
+        beep_once(3000);
+        lcd_display_clear();
+
+        return 1;
+    }
+
+    return (app_i2c_write_data(I2C_DATA_ADDR, data, len) == FALSE);
+}
+
 int app_save_i2c_load(app_save_t *save)
 {
     if (app_i2c_read_data(I2C_DATA_ADDR, (void *)save, sizeof(*save)) == FALSE)
@@ -69,7 +84,7 @@ int __app_save_i2c_store(app_save_t *save, int force)
     if (factory_mode && !force)
         return 0;
 
-    if (app_i2c_write_data(I2C_DATA_ADDR, (void *)save, sizeof(*save)) == FALSE)
+    if (app_data_i2c_write_safe(save, sizeof(*save)))
         return 1;
 
     return 0;
@@ -77,7 +92,7 @@ int __app_save_i2c_store(app_save_t *save, int force)
 
 int app_save_i2c_config_only(app_save_t *save)
 {
-    int ok;
+    int err;
 
     if (factory_mode) {
         app_save_t s;
@@ -88,11 +103,10 @@ int app_save_i2c_config_only(app_save_t *save)
         return __app_save_i2c_store(&s, 1);
     }
 
-    ok = app_i2c_write_data(I2C_DATA_ADDR,
-                            (void *)save,
-                            sizeof(*save) - sizeof(save->scan_log));
+    err = app_data_i2c_write_safe((void *)save,
+                                  sizeof(*save) - sizeof(save->scan_log));
 
-    if (ok == FALSE)
+    if (err)
         return 1;
 
     return 0;
