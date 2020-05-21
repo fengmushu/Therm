@@ -252,14 +252,24 @@ void lcd_field_clear(struct lcd_field *field)
         lcd_field_dot_set(field, 0);
 }
 
+void lcd_field_buf_clear(struct lcd_field *field)
+{
+        if (!field)
+                return;
+
+        memset(field->buf, '\0', sizeof(field->buf));
+}
+
 void lcd_display_clear(void)
 {
+        lcd_ram_clear_all();
+
         for (size_t i = 0; i < NUM_LCD_SYMS; i++) {
-                lcd_sym_set_apply(i, 0);
+                lcd_sym_set(i, 0);
         }
 
         for (size_t i = 0; i < NUM_LCD_FIELDS; i++) {
-                lcd_field_clear(lcd_field_get(i));
+                lcd_field_buf_clear(lcd_field_get(i));
         }
 }
 
