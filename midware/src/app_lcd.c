@@ -104,7 +104,7 @@ void lcd_ram_bank_write(int bank, uint32_t val)
 }
 
 /*
- * batch write: writing starts from lower SEG to higher..
+ * batch write: write contiguous SEGs from low to high...
  */
 int lcd_seg_same_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
 {
@@ -137,7 +137,7 @@ int lcd_seg_same_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
 
         return 0;
 }
- 
+
 int lcd_seg_cross_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
 {
         int bank;
@@ -150,7 +150,7 @@ int lcd_seg_cross_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
 
         __disable_irq();
 
-        for (size_t i = 0; i < cnt; i++) {
+        for (size_t i = 0; i < cnt; i++, seg++) {
                 // one SEG can have 8 COMS max;
                 uint8_t m = mask ? mask[i] : 0xff;
                 bank      = lcd_seg_to_ram_bank(seg);
