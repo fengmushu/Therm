@@ -121,6 +121,8 @@ int lcd_seg_same_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
         if (offset + cnt * BITS_PER_BYTE > sizeof(uint32_t) * BITS_PER_BYTE)
                 return -EINVAL;
 
+        __disable_irq();
+
         val = lcd_ram_bank_read(bank);
 
         for (size_t i = 0; i < cnt; i++) {
@@ -130,6 +132,8 @@ int lcd_seg_same_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
                 val      |= (data[i] << (offset + i * BITS_PER_BYTE)) & bm;
                 lcd_ram_bank_write(bank, val);
         }
+
+        __enable_irq();
 
         return 0;
 }
@@ -144,6 +148,8 @@ int lcd_seg_cross_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
         if (!data)
                 return 0;
 
+        __disable_irq();
+
         for (size_t i = 0; i < cnt; i++) {
                 // one SEG can have 8 COMS max;
                 uint8_t m = mask ? mask[i] : 0xff;
@@ -155,6 +161,8 @@ int lcd_seg_cross_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
                 val      |= (data[i] << offset) & bm;
                 lcd_ram_bank_write(bank, val);
         }
+
+        __enable_irq();
 
         return 0;
 }
@@ -263,8 +271,6 @@ int __lcd_string_show(struct lcd_field *field, char *buf, size_t len)
         // if (!field || !buf || !len || !g_lcd_chars || !g_lcd_hw)
         //         return -EINVAL;
 
-        __disable_irq();
-
         if (len > sizeof(field->buf))
                 len = sizeof(field->buf);
 
@@ -299,7 +305,6 @@ int __lcd_string_show(struct lcd_field *field, char *buf, size_t len)
         }
 
 out:
-        __enable_irq();
         return ret;
 }
 
@@ -369,6 +374,8 @@ int __lcd_number_show(struct lcd_field *field, uint8_t align, int32_t num,
 
 void lcd_ram_clear_all(void)
 {
+        __disable_irq();
+
         *(volatile uint32_t *)(&M0P_LCD->RAM0) = 0x00000000;
         *(volatile uint32_t *)(&M0P_LCD->RAM1) = 0x00000000;
         *(volatile uint32_t *)(&M0P_LCD->RAM2) = 0x00000000;
@@ -385,10 +392,14 @@ void lcd_ram_clear_all(void)
         *(volatile uint32_t *)(&M0P_LCD->RAMD) = 0x00000000;
         *(volatile uint32_t *)(&M0P_LCD->RAME) = 0x00000000;
         *(volatile uint32_t *)(&M0P_LCD->RAMF) = 0x00000000;
+
+        __enable_irq();
 }
 
 void lcd_ram_display_all(void)
 {
+        __disable_irq();
+
         *(volatile uint32_t *)(&M0P_LCD->RAM0) = 0xFFFFFFFF;
         *(volatile uint32_t *)(&M0P_LCD->RAM1) = 0xFFFFFFFF;
         *(volatile uint32_t *)(&M0P_LCD->RAM2) = 0xFFFFFFFF;
@@ -405,6 +416,8 @@ void lcd_ram_display_all(void)
         *(volatile uint32_t *)(&M0P_LCD->RAMD) = 0x000000FF;
         *(volatile uint32_t *)(&M0P_LCD->RAME) = 0x000000FF;
         *(volatile uint32_t *)(&M0P_LCD->RAMF) = 0x000000FF;
+
+        __enable_irq();
 }
 
 void lcd_sw_blink(size_t cnt, size_t interval_ms)
