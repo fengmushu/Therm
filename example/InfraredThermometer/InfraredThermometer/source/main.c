@@ -77,8 +77,11 @@
 // 串口发送重定向
 int fputc(int ch, FILE * file)
 {
-    Uart_SendDataPoll(DBG_CONSOLE,ch);
-    
+    if (in_irq())
+        Uart_SendDataIt(DBG_CONSOLE, ch);
+    else
+        Uart_SendDataPoll(DBG_CONSOLE, ch);
+
     return ch;
 }
 
