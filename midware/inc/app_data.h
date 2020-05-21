@@ -6,11 +6,16 @@
 #include "app_cal.h"
 #include "utils.h"
 
-#define HW_BOARD_HG03
+// #define HW_BOARD_HG03
+#define HW_BOARD_HG04
 
 #ifdef HW_BOARD_HG03
 #define HW_MODEL_STR                "HG03"
 #endif /* HW_BOARD_HG03 */
+
+#ifdef HW_BOARD_HG04
+#define HW_MODEL_STR                "HG04" // WM
+#endif
 
 #ifndef HW_MODEL_STR
 #define HW_MODEL_STR                "????"

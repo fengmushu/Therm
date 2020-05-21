@@ -4,7 +4,6 @@
 
 #include "app_data.h"
 #include "app_lcd.h"
-#include "app_lcd_hg03.h"
 
 #ifdef HW_BOARD_HG03
 
@@ -13,10 +12,10 @@ static struct lcd_field field_bignum = {
         .slot_cnt  = 4,
         .slot_bm   = { 0b00000111, 0b00001111 }, // LSB -- MSB
         .slot_addr = {
-                [0] = { 18, 0 }, // 18-19, lcd_seg_write() lower seg first
-                [1] = { 16, 0 },
-                [2] = { 14, 0 },
-                [3] = { 12, 0 },
+                [0] = { 18, SAME_BANK }, // 18-19, lcd_seg_write() lower seg first
+                [1] = { 16, SAME_BANK },
+                [2] = { 14, SAME_BANK },
+                [3] = { 12, SAME_BANK },
         },
 };
 
@@ -25,10 +24,10 @@ static struct lcd_field field_lognum = {
         .slot_cnt  = 4,
         .slot_bm   = { 0b00000111, 0b00001111 },
         .slot_addr = {
-                [0] = { 6, 0 },
-                [1] = { 4, 0 },
-                [2] = { 2, 0 },
-                [3] = { 0, 0 },
+                [0] = { 6, SAME_BANK },
+                [1] = { 4, SAME_BANK },
+                [2] = { 2, SAME_BANK },
+                [3] = { 0, SAME_BANK },
         },
 };
 
@@ -37,16 +36,16 @@ static struct lcd_field field_idxnum = {
         .slot_cnt  = 2,
         .slot_bm   = { 0b00000111, 0b00001111 },
         .slot_addr = {
-                [0] = { 10, 0 },
-                [1] = {  8, 0 },
+                [0] = { 10, SAME_BANK },
+                [1] = {  8, SAME_BANK },
         },
 };
 
 struct lcd_hw lcd_hg03 = {
-        .com_cnt      = 4,
-        .seg_cnt      = 20,
-        .seg_per_slot = 2,
-        .slot_cnt_max = 4,
+        .com_cnt      = LCD_COM_CNT,
+        .seg_cnt      = LCD_SEG_CNT,
+        .seg_per_slot = LCD_SEG_PER_SLOT,
+        .slot_cnt_max = LCD_SLOT_CNT_MAX,
         .chars = {
                 //                        LSB    [RAM REG]    MSB
                 //                              _cgb        defa
@@ -91,17 +90,23 @@ struct lcd_hw lcd_hg03 = {
         },
         // inited as NOT enabled, sync by lcd_clear_all()
         .syms = { // val needs shift, fit bm
-                [LCD_SYM_BAT]        = &(struct lcd_sym){ 0,  BIT(3), 0 },
-                [LCD_SYM_LOCK]       = &(struct lcd_sym){ 8,  BIT(3), 0 },
-                [LCD_SYM_BUZZER]     = &(struct lcd_sym){ 12, BIT(3), 0 },
-                [LCD_SYM_TEMP_C]     = &(struct lcd_sym){ 6,  BIT(3), 0 },
-                [LCD_SYM_TEMP_F]     = &(struct lcd_sym){ 4,  BIT(3), 0 },
-                [LCD_SYM_TEXT_LOG]   = &(struct lcd_sym){ 10, BIT(3), 0 },
-                [LCD_SYM_TEXT_BODY]  = &(struct lcd_sym){ 16, BIT(3), 0 },
-                [LCD_SYM_TEXT_SURF]  = &(struct lcd_sym){ 18, BIT(3), 0 },
-                [LCD_SYM_DOT_BIGNUM] = &(struct lcd_sym){ 14, BIT(3), 0 },
-                [LCD_SYM_DOT_LOGNUM] = &(struct lcd_sym){ 2,  BIT(3), 0 },
-                [__LCD_SYM_INVALID]  = NULL,
+                [LCD_SYM_BAT]         = &(struct lcd_sym){ 0,  BIT(3), 0 },
+                [LCD_SYM_BAT_LVL1]    = NULL,
+                [LCD_SYM_BAT_LVL2]    = NULL,
+                [LCD_SYM_BAT_LVL3]    = NULL,
+                [LCD_SYM_EMOJI_SMILE] = NULL,
+                [LCD_SYM_EMOJI_CRY]   = NULL,
+                [LCD_SYM_BLUETOOTH]   = NULL,
+                [LCD_SYM_LOCK]        = &(struct lcd_sym){ 8,  BIT(3), 0 },
+                [LCD_SYM_BUZZER]      = &(struct lcd_sym){ 12, BIT(3), 0 },
+                [LCD_SYM_TEMP_C]      = &(struct lcd_sym){ 6,  BIT(3), 0 },
+                [LCD_SYM_TEMP_F]      = &(struct lcd_sym){ 4,  BIT(3), 0 },
+                [LCD_SYM_TEXT_LOG]    = &(struct lcd_sym){ 10, BIT(3), 0 },
+                [LCD_SYM_TEXT_BODY]   = &(struct lcd_sym){ 16, BIT(3), 0 },
+                [LCD_SYM_TEXT_SURF]   = &(struct lcd_sym){ 18, BIT(3), 0 },
+                [LCD_SYM_DOT_BIGNUM]  = &(struct lcd_sym){ 14, BIT(3), 0 },
+                [LCD_SYM_DOT_LOGNUM]  = &(struct lcd_sym){ 2,  BIT(3), 0 },
+                [__LCD_SYM_INVALID]   = NULL,
         },
         .fields = {
                 [LCD_BIGNUM] = &field_bignum,

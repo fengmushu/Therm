@@ -7,7 +7,17 @@
 #include "app_data.h"
 
 #ifdef HW_BOARD_HG03
-#include "app_lcd_hg03.h"
+#define LCD_SLOT_CNT_MAX                (4)
+#define LCD_COM_CNT                     (4)
+#define LCD_SEG_CNT                     (20)
+#define LCD_SEG_PER_SLOT                (2)
+#endif
+
+#ifdef HW_BOARD_HG04
+#define LCD_SLOT_CNT_MAX                (4)
+#define LCD_COM_CNT                     (4)
+#define LCD_SEG_CNT                     (14)
+#define LCD_SEG_PER_SLOT                (2)
 #endif
 
 enum lcd_fields {
@@ -28,9 +38,20 @@ enum {
         LCD_SHOW_DOT,
 };
 
+enum {
+        SAME_BANK = 0,
+        CROSS_BANK,
+};
+
 // symbol definitions share across devices
 enum lcd_syms {
         LCD_SYM_BAT = 0,
+        LCD_SYM_BAT_LVL1,
+        LCD_SYM_BAT_LVL2,
+        LCD_SYM_BAT_LVL3,
+        LCD_SYM_EMOJI_SMILE,
+        LCD_SYM_EMOJI_CRY,
+        LCD_SYM_BLUETOOTH,
         LCD_SYM_LOCK,
         LCD_SYM_BUZZER,
         LCD_SYM_TEMP_C,
