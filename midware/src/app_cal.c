@@ -634,7 +634,7 @@ void cal_debug()
     pCal = AppCalLoad();
     if (pCal != NULL)
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
 
@@ -649,26 +649,26 @@ void cal_debug()
 
     if (!CalLoad(&Fact))
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
     pCal = &gstFactory.CalData;
     if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
 
     memset(&Fact, 0, sizeof(FactoryData_t));
     if (!CalLoadFromI2c(&Fact))
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
     pCal = &Fact.CalData;
     if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
 
@@ -687,20 +687,20 @@ void cal_debug()
     pCal = AppCalLoad(); //i2c cal write to flash
     if (pCal == NULL)
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
 
     memset(&Fact, 0, sizeof(FactoryData_t));
     if (!CalLoad(&Fact))
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
     pCal = &Fact.CalData;
     if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
 
@@ -711,20 +711,20 @@ void cal_debug()
     pCal = AppCalLoad(); //flash cal write to i2c
     if (pCal == NULL)
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
 
     memset(&Fact, 0, sizeof(FactoryData_t));
     if (!CalLoadFromI2c(&Fact))
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
     pCal = &Fact.CalData;
     if (memcmp(&Cal, pCal, sizeof(CalData_t)) != 0)
     {
-        printf("%s:%u error!\r\n", __func__, __LINE__);
+        DBG_PRINT("%s:%u error!\r\n", __func__, __LINE__);
         return;
     }
 
