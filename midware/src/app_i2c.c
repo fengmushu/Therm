@@ -325,21 +325,21 @@ void app_i2c_dump()
 {
     uint16_t i = 0, j = 0;
     uint8_t buf[16];
-    printf("----i2c dump, size %u bytes----\r\n", I2C_MAX_SIZE);
+    DBG_PRINT("----i2c dump, size %u bytes----\r\n", I2C_MAX_SIZE);
     while (i < I2C_MAX_SIZE)
     {
         app_i2c_read_data((uint8_t)i, buf, sizeof(buf));
         
-        printf("%02x: ", i);
+        DBG_PRINT("%02x: ", i);
         j = 0;
         while (j < sizeof(buf))
         {
-            printf("%02x ", buf[j++]);
+            DBG_PRINT("%02x ", buf[j++]);
         }
-        printf("\r\n");
+        DBG_PRINT("\r\n");
         i += sizeof(buf);
     }
-    printf("----i2c dump end----\r\n");
+    DBG_PRINT("----i2c dump end----\r\n");
     return;
 }
 
@@ -352,7 +352,7 @@ void i2c_debug()
     uint8_t tmp = 0;
     uint8_t tmp_d[I2C_MAX_SIZE] = { 0 };
 
-    printf("%s:%u begin i2c test!\r\n", __func__, __LINE__);
+    DBG_PRINT("%s:%u begin i2c test!\r\n", __func__, __LINE__);
     
     app_i2c_init();
 
@@ -364,14 +364,14 @@ void i2c_debug()
         uint8_t t = (uint8_t)i;
         if (!app_i2c_write_data(i, &t, 1))
         {
-            printf("%s:%u write error: i=0x%x\r\n", __func__, __LINE__, i);
+            DBG_PRINT("%s:%u write error: i=0x%x\r\n", __func__, __LINE__, i);
             return;
         }
         
         i++;
     }  
     
-    printf("%s:%u i2c write test OK!\r\n", __func__, __LINE__);
+    DBG_PRINT("%s:%u i2c write test OK!\r\n", __func__, __LINE__);
     
     i = 0;
     while (i < I2C_MAX_SIZE)
@@ -379,14 +379,14 @@ void i2c_debug()
         app_i2c_read_data(i, &tmp, 1);
         if (i != tmp)
         {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n", 
+            DBG_PRINT("%s:%u read error: i=0x%x tmp=0x%x\r\n", 
                 __func__, __LINE__, i, tmp);
             return;
         }
         i++;
     }
 
-    printf("%s:%u i2c read one byte test OK!\r\n", __func__, __LINE__);
+    DBG_PRINT("%s:%u i2c read one byte test OK!\r\n", __func__, __LINE__);
 
     app_i2c_read_data(0, tmp_d, I2C_MAX_SIZE);
     i = 0;
@@ -394,18 +394,18 @@ void i2c_debug()
     {
         if (i != tmp_d[i])
         {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n",
+            DBG_PRINT("%s:%u read error: i=0x%x tmp=0x%x\r\n",
                 __func__, __LINE__, i, tmp);
             return;
         }
         i++;
     }
     
-    printf("%s:%u i2c read %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
+    DBG_PRINT("%s:%u i2c read %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
 
     if (!app_i2c_write_data(0, tmp_d, sizeof(tmp_d)))
     {
-        printf("%s:%u write %d bytes error\r\n",
+        DBG_PRINT("%s:%u write %d bytes error\r\n",
                 __func__, __LINE__, sizeof(tmp_d));
         return;
     }
@@ -417,18 +417,18 @@ void i2c_debug()
     {
         if (i != tmp_d[i])
         {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n",
+            DBG_PRINT("%s:%u read error: i=0x%x tmp=0x%x\r\n",
                 __func__, __LINE__, i, tmp);
             return;
         }
         i++;
     }
-    printf("%s:%u i2c write %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
+    DBG_PRINT("%s:%u i2c write %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
 
     memset(tmp_d, 'S', sizeof(tmp_d));
     if (!app_i2c_write_data(0, tmp_d, sizeof(tmp_d)))
     {
-        printf("%s:%u write %d bytes error\r\n",
+        DBG_PRINT("%s:%u write %d bytes error\r\n",
                 __func__, __LINE__, sizeof(tmp_d));
         return;
     }
@@ -440,13 +440,13 @@ void i2c_debug()
     {
         if ('S' != tmp_d[i])
         {
-            printf("%s:%u read error: i=0x%x tmp=0x%x\r\n",
+            DBG_PRINT("%s:%u read error: i=0x%x tmp=0x%x\r\n",
                 __func__, __LINE__, i, tmp);
             return;
         }
         i++;
     }
-    printf("%s:%u i2c write %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
+    DBG_PRINT("%s:%u i2c write %d bytes test OK!\r\n", __func__, __LINE__, I2C_MAX_SIZE);
     return;
 }
 #endif
