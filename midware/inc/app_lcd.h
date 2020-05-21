@@ -1,6 +1,8 @@
 #ifndef __APP_LCD_H__
 #define __APP_LCD_H__
 
+#include <stdint.h>
+
 #include "app.h"
 #include "app_data.h"
 
@@ -188,11 +190,11 @@ int lcd_seg_cross_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt);
 int lcd_seg_write(int seg, uint8_t mask, uint8_t data);
 int lcd_seg_read(int seg, uint8_t *data);
 
-struct lcd_field *lcd_field_get(int idx);
+struct lcd_field *lcd_field_get(uint32_t idx);
 void lcd_field_dot_set(struct lcd_field *field, int dot);
 void lcd_field_clear(struct lcd_field *field);
 
-struct lcd_sym *lcd_sym_get(int idx);
+struct lcd_sym *lcd_sym_get(uint32_t idx);
 void __lcd_sym_set(struct lcd_sym *sym, int enabled);
 void __lcd_sym_set_apply(struct lcd_sym *sym, int enabled);
 void lcd_sym_list_apply(void);

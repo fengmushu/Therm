@@ -177,9 +177,11 @@ int lcd_seg_read(int seg, uint8_t *data)
         return 0;
 }
 
-struct lcd_sym *lcd_sym_get(int idx)
+struct lcd_sym *lcd_sym_get(uint32_t idx)
 {
-        // null not checked
+        if (idx >= NUM_LCD_SYMS)
+                return NULL;
+
         return g_lcd_syms[idx];
 }
 
@@ -225,8 +227,11 @@ void __lcd_sym_set_apply(struct lcd_sym *sym, int enabled)
         lcd_seg_write(sym->seg, sym->bm, sym->val);
 }
 
-struct lcd_field *lcd_field_get(int idx)
+struct lcd_field *lcd_field_get(uint32_t idx)
 {
+        if (idx >= NUM_LCD_FIELDS)
+                return NULL;
+
         return g_lcd_fields[idx];
 }
 
