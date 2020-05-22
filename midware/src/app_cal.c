@@ -457,7 +457,7 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
         SampleInsert(aSampleViR, uViR);
 
         lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
-        // AppLcdDisplayUpdate(50);
+        delay1ms(100);
 
         if(uReTry > 3)
         {
@@ -479,7 +479,6 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
     if(uViR < 700 || uViR > 1500)
     {
         lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
-        delay1ms(200);
         return FALSE;
     }
 
@@ -496,14 +495,12 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
     if(!bSuCali) 
     {
         lcd_sym_set_apply(LCD_SYM_LOCK, 1);
-        delay1ms(200);
         return FALSE;
     }
 
     /* log set Ra, uViR */
     lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
     lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, (uRa / 100), 2, LCD_SHOW_DOT);
-    delay1ms(100);
 
     return TRUE;
 }
@@ -517,10 +514,10 @@ void AppCalibration(void)
     NNA_CalInit(&Cal);
 
     AppLedEnable(LedOrange);
-    lcd_sw_blink(3, 150);
+    lcd_sw_blink(3, 200);
 
     ///< 当前软件版本
-    lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, SYS_SW_VERSION, 0, LCD_NO_DOT);
+    lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, SYS_SW_VERSION, 0, LCD_SHOW_DOT);
     // lcd_string_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, HW_MODEL_STR, strlen(HW_MODEL_STR));
 
     ///< 选择传感器
@@ -529,7 +526,6 @@ void AppCalibration(void)
     lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, NNA_SensorGet(), 4, LCD_NO_DOT);
 
     while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
-
     do {
         if(key_pressed_query(KEY_MINUS)) {
             Cal.u8SensorType ++;
@@ -541,15 +537,19 @@ void AppCalibration(void)
             } else {
                 AppLedEnable(LedGreen);
             }
+
+            delay1ms(300); // slow down key burst
         }
 
         ///< 设置当前传感器选择
         NNA_SensorSet(Cal.u8SensorType);
+        lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, NNA_SensorGet(), 4, LCD_NO_DOT);
         lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, NNA_SensorGet(), 4, LCD_NO_DOT);
-        lcd_number_show(LCD_LOGNUM, LCD_ALIGN_RIGHT, NNA_SensorGet(), 4, LCD_NO_DOT);
-
-        delay1ms(150); // slow down key burst
     } while (key_pressed_query(KEY_TRIGGER)); //等按键释放
+
+    while (!key_pressed_query(KEY_TRIGGER)); //等按键触发
+
+    lcd_display_clear();
 
     ///< 校准
     while (1)
