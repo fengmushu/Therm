@@ -326,7 +326,10 @@ static fsm_state_t state_scan_proc(fsm_node_t *node, fsm_event_t *out)
     AppRtcFeed();
 
     // AppTempCalculate() return least 2 digit as float points
-    AppTempCalculate(g_cal, &ntc, &result[SCAN_SURFACE], &result[SCAN_BODY], &uv);
+    if(FALSE == AppTempCalculate(g_cal, &ntc, &result[SCAN_SURFACE], &result[SCAN_BODY], &uv))
+    {
+        return FSM_STATE_MAIN;
+    }
 
     for (uint8_t i = 0; i < NUM_SCAN_MODES; i++) {
         int16_t last_written = scan_log_last_written(&g_scan_log[i]);

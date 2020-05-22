@@ -418,7 +418,7 @@ boolean_t NNA_Calibration(
     {
         // 线性区间放大
         fAmp = (uVAdcH - uVAdcL) / (fTH - fTL);
-        if (fAmp >= 100 && fAmp <= 1000)
+        if (fAmp >= 100 && fAmp <= 1500)
         {
             fCaLBase = uVAdcL / fAmp - fTL;
             fCaHBase = uVAdcH / fAmp - fTH;
@@ -488,8 +488,8 @@ float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fS
 
     if (fSkinTemp <= 38)
     {
-        return pCal->u8HumanFix + fSkinTemp + 0.8;
+        return cal_tweak + fSkinTemp + 0.8;
     }
 
-    return pCal->u8HumanFix + fSkinTemp + 1.3;
+    return cal_tweak + fSkinTemp + 1.3;
 }

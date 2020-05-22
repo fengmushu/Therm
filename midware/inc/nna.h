@@ -82,7 +82,7 @@ extern "C"
         en_sensor_max,
     } en_sensor_t;
 
-#define DEFAULTL_SENSOR en_sensor_mts01
+#define DEFAULTL_SENSOR en_sensor_otp_638d2
 
     typedef struct
     {
