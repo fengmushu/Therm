@@ -412,7 +412,8 @@ boolean_t AppTempCalculate(CalData_t *pCal,
         return FALSE;
     }
     */
-   while (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL));
+   while (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
+		 ;
 
     ///< 环境温度获取
     fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL, &uRa); ///< NTC 环境温度值获取
@@ -467,9 +468,9 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
         SampleInsert(aSampleViR, uViR);
 
         AppLcdSetRawNumber(uViR, FALSE, 4);
-        AppLcdDisplayUpdate(50);
+        AppLcdDisplayUpdate(0);
 
-        if(++uReTry > 3)
+        if(++uReTry > 1)
         {
             uint32_t uAcc = SampleVariance(aSampleViR);
             DBG_PRINT("\t aVariance: %u\r\n", uAcc);
