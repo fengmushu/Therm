@@ -17,9 +17,11 @@ typedef struct
     float32_t VtE1_Paras[3];
     float32_t VtE2_Paras[3];
 
+    int32_t RaT_Paras_Func;
     int32_t RaT_Paras_P;
     float32_t RaT_Paras_F;
     float32_t RaT_Paras[3];
+    float32_t RaT_Paras_Log[2];
 } sensor_t;
 
 static const sensor_t Sensors[en_sensor_max] = {
@@ -28,9 +30,11 @@ static const sensor_t Sensors[en_sensor_max] = {
         .VtE2_Paras = {495.00, 0, 0},
         .VtE1_Paras = {54351.00, 0, 0},
         .VtE0_Paras = {0, -54351.00, -495.00},
+        .RaT_Paras_Func = 0,
         .RaT_Paras_P = 2,
         .RaT_Paras_F = 1,
         .RaT_Paras = {19263, -4305.730, 42.1632},
+        .RaT_Paras_Log = {100, 3950},
     },
     {
         .uSensorType = 01, //MTS01
@@ -38,9 +42,12 @@ static const sensor_t Sensors[en_sensor_max] = {
         .VtE1_Paras = {37659.74, 0, 0},
         .VtE0_Paras = {27624.49, -40557.05, -271.40},
         //0 = 0.1479x2 - 11.97x + 305.12 - R
+        //T1 =ln(Rt/100)/3950+1/T2
+        .RaT_Paras_Func = 1, //0 多项式，1 对数
         .RaT_Paras_P = 0,
         .RaT_Paras_F = -1,
         .RaT_Paras = {295.51, -10.8, 0.1184},
+        .RaT_Paras_Log = {100, 3950},
     },
     {
         //ratio[2]: out: [2.9424606190505456e-10 -1.2098577044334428e-08 4.101750012635941e-05]
@@ -52,9 +59,12 @@ static const sensor_t Sensors[en_sensor_max] = {
         .VtE1_Paras = {60445.47, 0, 0},
         .VtE0_Paras = {-25327.93, -55045.62, -144.42},
         //y = 0.1409x2 - 11.814x + 304.23        
+        //T1 =ln(Rt/100)/3950+1/T2  
+        .RaT_Paras_Func = 1,   //0 多项式，1 对数 
         .RaT_Paras_P = 0,
         .RaT_Paras_F = -1,
         .RaT_Paras = {304.23, -11.814, 0.1409},
+        .RaT_Paras_Log = {100, 3950},
     },
     {
         //ratio[2]: out: [4.093161029499387e-22 -2.523797389249901e-07 0.0002357456197685742]
@@ -66,11 +76,30 @@ static const sensor_t Sensors[en_sensor_max] = {
         .VtE1_Paras = {96398.77, 0, 0},
         .VtE0_Paras = {-806065.31, -62487.14, -251.73},
         //y = 0.1412x2 - 12.066x + 310.91       
+        //T1 =ln(Rt/100)/3950+1/T2 
+        .RaT_Paras_Func = 0,
         .RaT_Paras_P = 0,
         .RaT_Paras_F = -1,
         .RaT_Paras = {310.91, -12.066, 0.1412},
+        .RaT_Paras_Log = {100, 3950},
+    },
+    {
+        //ratio[2]: out: [-1.1485077596836335e-21 1.8914841876441e-09 0.000322357723734274]
+        //ratio[1]: out: [-1.8914841876072105e-09 7.831654146569759e-19 0.07171864781870162]
+        //ratio[0]: out: [-0.0003223577237342546 -0.07171864781870264 8.814206078917603e-15]   
+        .uSensorType = 6382, //otp-638d2
+        .VtE2_Paras = {322.36, 0, 0},
+        .VtE1_Paras = {71718.65, 0, 0},
+        .VtE0_Paras = {-322.36, -71718.65, 0},  
+        //y = 0.1227x2 - 11.525x + 315.54
+        //T1 =ln(Rt/100)/3964+1/T2
+        .RaT_Paras_Func = 1, //0 多项式，1 对数
+        .RaT_Paras_P = 0,
+        .RaT_Paras_F = -1,
+        .RaT_Paras = {315.54, -11.525, 0.1227},
+        .RaT_Paras_Log = {100, 3964},
     }
-    };
+};
 
 static const sensor_t *gSensor = &Sensors[DEFAULTL_SENSOR];
 
@@ -156,7 +185,7 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         X1 = (-a1 - N) / a2 / 2;
         X2 = (-a1 + N) / a2 / 2;
 
-        DBG_PRINT("\t- %f %f\r\n", X1, X2);
+        DBG_PRINT("\tfac-T: %f %f\r\n", X1, X2);
         // AppLcdSetTemp((uint32_t)(X1 * 10));
         // AppLcdSetLogTemp((uint32_t)(X2 * 10), 0);
         // AppLcdDisplayUpdate(1000);
@@ -174,6 +203,42 @@ static float32_t TNNA_Fitting(float32_t a0, float32_t a1, float32_t a2, float32_
         return 0;
     }
 }
+
+/*
+const float Rp = 100000.0; //100K at 25
+const float T2 = (273.15 + 25.0);
+;                        //T2
+const float Bx = 3964.0; //B
+const float Ka = 273.15;
+float Get_Temp(void)
+{
+    float Rt;
+    float temp;
+    Rt = Get_TempResistor();
+    //like this R=5000, T2=273.15+25,B=3470, RT=5000*EXP(3470*(1/T1-1/(273.15+25)),
+    temp = Rt / Rp;
+    temp = log(temp); //ln(Rt/Rp)
+    temp /= Bx;       //ln(Rt/Rp)/B
+    temp += (1 / T2);
+    temp = 1 / (temp);
+    temp -= Ka;
+    return temp;
+}
+*/
+
+//a0 R at 25 , a1  B
+static float32_t TNNA_Fitting_Log(float32_t a0, float32_t a1, float32_t Y)
+{
+    float32_t temp;
+
+    temp =(log(Y / a0))/a1 + 1/298.15;
+    temp = 1/temp;
+
+    DBG_PRINT("\tlog-T: %f\r\n", temp-273.15);
+    return temp-273.15;
+
+}
+
 #endif //USE_FITTING
 
 /**
@@ -200,6 +265,11 @@ float32_t NNA_NtcTempGet(uint32_t u32AdcNtcHCode, uint32_t u32AdcNtcLCode, uint3
     return TNNA_TempNtcFind(*uRa);
 #else
     // 拟合R-Te曲线
+    if (gSensor->RaT_Paras_Func == 1) //Log
+    {
+        return TNNA_Fitting_Log(gSensor->RaT_Paras_Log[0], gSensor->RaT_Paras_Log[1], ((float32_t)(*uRa) / 1000));
+    }
+
     RaT_params[gSensor->RaT_Paras_P] = RaT_params[gSensor->RaT_Paras_P] + gSensor->RaT_Paras_F * ((float32_t)(*uRa) / 1000);
     return TNNA_Fitting(RaT_params[0], RaT_params[1], RaT_params[2], 0, (gSensor->RaT_Paras_P == 0));
 #endif //USE_FITTING
@@ -418,8 +488,8 @@ float32_t NNA_HumanBodyTempGet(CalData_t *pCal, float32_t fNtcTemp, float32_t fS
 
     if (fSkinTemp <= 38)
     {
-        return fSkinTemp + 0.8;
+        return pCal->u8HumanFix + fSkinTemp + 0.8;
     }
 
-    return fSkinTemp + 1.3;
+    return pCal->u8HumanFix + fSkinTemp + 1.3;
 }

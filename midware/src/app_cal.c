@@ -476,7 +476,7 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
 
     ///< 合理范围(37°-42°): 0.7v - 1.5v
     uViR = SampleMeans(aSampleViR);
-    if(uViR < 700 || uViR > 1500)
+    if(uViR < 700 || uViR > 1900)
     {
         AppLcdSetRawNumber(uViR, FALSE, 4);
         AppLcdDisplayUpdate(200);
