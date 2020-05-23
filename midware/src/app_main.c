@@ -88,9 +88,9 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         // reset color for all not defined patterns
         uint8_t led_color = LedGreen;
         uint8_t bat_level = g_rt->battery_lvl;
-                
+
+        int16_t idx_number;
         int16_t big_number;
-        int16_t log_number;
 
         lcd_sym_set(LCD_SYM_EMOJI_CRY, 0);
         lcd_sym_set(LCD_SYM_EMOJI_SMILE, 0);
@@ -105,14 +105,10 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
                         lcd_sym_bat_bar_hide();
         }
 
+        // show log data as big number for viewing scan log
         // read_idx should have synced to write_idx in enter() if comes from scan
-        log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
-
-        lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT,
-                        lcd_show_idx(read_idx), 2, LCD_NO_DOT);
-
-        // user is viewing log, show big number as log number
-        big_number = log_number;
+        big_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
+        idx_number = lcd_show_idx(read_idx);
 
         if (scan_show) {
                 big_number = g_rt->scan_result[scan_mode];
@@ -129,18 +125,16 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         }
 
 #ifdef FACTORY_MODE_UV_DEBUG
-        if (dbg_show_uv) {
-                uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
-                log_number = scan_log_read(&log_uv[scan_mode], read_idx);
+        if (dbg_show_uv && blink_is_on_duty(BLINK_DUTY_50, 6)) {
+                uint16_t uv_data = scan_log_read(&log_uv[scan_mode], read_idx);
+                idx_number       = scan_log_read(&log_ntc[scan_mode], read_idx);
 
                 lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT,
-                                ntc_number, 2, LCD_NO_DOT);
+                                idx_number, 2, LCD_NO_DOT);
+                lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT,
+                                uv_data, 2, LCD_NO_DOT);
 
-                if (blink_is_on_duty(BLINK_DUTY_50, 6)) {
-                        lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT,
-                                        log_number, 2, LCD_NO_DOT);
-                        goto lcd_update;
-                }
+                goto lcd_update;
         }
 #endif
 
@@ -167,7 +161,10 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
                 }
         }
 
-        lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, C2F_by_setting(big_number), 2, LCD_SHOW_DOT);
+        lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT,
+                        idx_number, 2, LCD_NO_DOT);
+        lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT,
+                        C2F_by_setting(big_number), 2, LCD_SHOW_DOT);
 
 lcd_update:
         AppLedEnable(led_color);
