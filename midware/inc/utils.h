@@ -16,7 +16,10 @@
 #endif
 
 #if !defined(__always_inline)
-#define __always_inline __inline __attribute__ ((__always_inline__))
+// forced:
+// #define __always_inline         __inline __attribute__ ((__always_inline__))
+// not forced:
+#define __always_inline         inline
 #endif
 
 #define MACRO_STR_EXPAND(mm)    #mm
