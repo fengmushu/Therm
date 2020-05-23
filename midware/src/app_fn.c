@@ -9,6 +9,8 @@
 #include "app_fn.h"
 #include "app_timer.h"
 
+#define FN_OPT_LOOP_KEY             (KEY_LOG)
+
 static int8_t fn_idx;
 static int8_t last_fn = -1;
 
@@ -45,6 +47,12 @@ static __always_inline int opt_cycle_inc_in_range(int val, int min, int max)
     return val;
 }
 
+static __always_inline int opt_on_blink(void)
+{
+    return (blink_is_on_duty(BLINK_DUTY_50, 8) &&
+            key_released_query(FN_OPT_LOOP_KEY));
+}
+
 static void fn_scmode_sel_show(int8_t idx)
 {
     uint8_t scan_mode = g_cfg->scan_mode;
@@ -54,7 +62,7 @@ static void fn_scmode_sel_show(int8_t idx)
                     fn_menus[idx].big_str,
                     strlen(fn_menus[idx].big_str));
 
-    if (blink_is_on_duty(BLINK_DUTY_50, 8))
+    if (opt_on_blink())
         scan_mode = INVALID_SCAN_MODE;
 
     lcd_sym_scan_mode_apply(scan_mode);
@@ -74,7 +82,7 @@ static void fn_tunit_sel_show(int8_t idx)
                     fn_menus[idx].big_str,
                     strlen(fn_menus[idx].big_str));
 
-    if (blink_is_on_duty(BLINK_DUTY_50, 8))
+    if (opt_on_blink())
         tunit = INVALID_TUNIT;
 
     lcd_sym_temp_unit_apply(tunit);
@@ -240,8 +248,13 @@ int app_fn_proc(void)
         goto out;
     }
 
-    if (key_pressed_query(KEY_LOG)) {
+    if (key_pressed_query(FN_OPT_LOOP_KEY)) {
         app_fn_next_opt();
+
+        // refresh instantly
+        if (fn_menus[i].lcd_show)
+            fn_menus[i].lcd_show(i);
+
         delay1ms(250);
         goto out;
     }
