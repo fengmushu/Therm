@@ -7,11 +7,11 @@
 
 // NOTE: do not change the order
 typedef enum gpio_key {
-    KEY_BEEP = 0,
-    KEY_LOG,
-    KEY_FN,
-    KEY_TRIGGER,
-    NUM_GPIO_KEYS,
+        KEY_BEEP = 0,
+        KEY_LOG,
+        KEY_FN,
+        KEY_TRIGGER,
+        NUM_GPIO_KEYS,
 } gpio_key_t;
 
 extern uint8_t bm_key_pressed;
@@ -32,17 +32,17 @@ int key_released_query(gpio_key_t key);
 //
 static __always_inline int is_key_pressed(gpio_key_t key)
 {
-    return test_bit_u8(&bm_key_pressed, key);
+        return test_bit_u8(&bm_key_pressed, key);
 }
 
 static __always_inline int is_key_released(gpio_key_t key)
 {
-    return !is_key_pressed(key);
+        return !is_key_pressed(key);
 }
 
 static __always_inline int is_any_key_pressed(void)
 {
-    return bm_key_pressed;
+        return bm_key_pressed;
 }
 
 //
@@ -50,14 +50,14 @@ static __always_inline int is_any_key_pressed(void)
 //
 static __always_inline void key_wait_for_press(gpio_key_t key)
 {
-    while (key_released_query(key))
-        ;
+        while (key_released_query(key))
+                ;
 }
 
 static __always_inline void key_wait_for_release(gpio_key_t key)
 {
-    while (key_pressed_query(key))
-        ;
+        while (key_pressed_query(key))
+                ;
 }
 
 #endif /* __APP_KEY_H__ */
