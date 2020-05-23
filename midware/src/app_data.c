@@ -101,6 +101,8 @@ int app_save_i2c_config_only(app_save_t *save)
                 memcpy(&s, save, sizeof(s));
                 memset(&s.scan_log, 0x00, sizeof(s.scan_log));
 
+                s.cfg.scan_mode = SCAN_BODY;
+
                 return __app_save_i2c_store(&s, 1);
         }
 
