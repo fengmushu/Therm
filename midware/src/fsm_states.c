@@ -110,11 +110,6 @@ static fsm_state_t state_pwron_enter(fsm_node_t *node, fsm_event_t event)
     // AppLcdDisplayClear();
     // AppLcdDisplayAll();
     // delay1ms(2500);
-        
-        while (1)
-        {
-                lcd_test();
-        }
 
     return FSM_STATE_SLEEP;
 }
