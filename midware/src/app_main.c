@@ -78,7 +78,7 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     uint8_t scan_mode = g_cfg->scan_mode;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
 
-    const int16_t key_budget_ms = 150;
+    const int16_t key_budget_ms = 300;
     int16_t delay_budget = 0;
 
     // reset color for all not defined patterns
