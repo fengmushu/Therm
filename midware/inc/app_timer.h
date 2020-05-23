@@ -19,7 +19,7 @@ enum {
 	BLINK_DUTY_100,
 };
 
-extern uint8_t blink_cnt;
+extern uint32_t blink_cnt;
 
 uint16_t timer3_tick_calc(uint32_t ms);
 

@@ -9,9 +9,6 @@
 #include "app_fn.h"
 #include "app_timer.h"
 
-#define FN_SHOW_LCD_STAY_MS             (20)
-#define FN_TITLE_LCD_STAY_MS            (250)
-
 static int8_t fn_idx;
 static int8_t last_fn = -1;
 
@@ -27,7 +24,7 @@ enum {
 struct fn_menu {
     void        (*lcd_show)(int8_t idx);
     void        (*opt_next)(int8_t idx);
-    uint8_t     lcd_str;
+    char        big_str[4];
     uint8_t     hidden;
 };
 
@@ -50,13 +47,17 @@ static __always_inline int opt_cycle_inc_in_range(int val, int min, int max)
 
 static void fn_scmode_sel_show(int8_t idx)
 {
-    AppLcdSetString(fn_menus[idx].lcd_str);
+    uint8_t scan_mode = g_cfg->scan_mode;
 
-    AppLcdSetCheckMode(g_cfg->scan_mode, TRUE);
-    if (blink_is_on_duty(BLINK_DUTY_50, 4))
-        AppLcdSetCheckMode(g_cfg->scan_mode, FALSE);
+    lcd_string_show(LCD_BIGNUM,
+                    LCD_ALIGN_RIGHT,
+                    fn_menus[idx].big_str,
+                    strlen(fn_menus[idx].big_str));
 
-    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
+    if (blink_is_on_duty(BLINK_DUTY_50, 8))
+        scan_mode = INVALID_SCAN_MODE;
+
+    lcd_sym_scan_mode_apply(scan_mode);
 }
 
 static void fn_scmode_opt_next(int8_t idx)
@@ -66,13 +67,17 @@ static void fn_scmode_opt_next(int8_t idx)
 
 static void fn_tunit_sel_show(int8_t idx)
 {
-    AppLcdSetString(fn_menus[idx].lcd_str);
+    uint8_t tunit = g_cfg->temp_unit;
 
-    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    if (blink_is_on_duty(BLINK_DUTY_50, 4))
-        AppLcdSetTempMode(g_cfg->temp_unit, FALSE);
+    lcd_string_show(LCD_BIGNUM,
+                    LCD_ALIGN_RIGHT,
+                    fn_menus[idx].big_str,
+                    strlen(fn_menus[idx].big_str));
 
-    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
+    if (blink_is_on_duty(BLINK_DUTY_50, 8))
+        tunit = INVALID_TUNIT;
+
+    lcd_sym_temp_unit_apply(tunit);
 }
 
 static void fn_tunit_opt_next(int8_t idx)
@@ -82,9 +87,8 @@ static void fn_tunit_opt_next(int8_t idx)
 
 static void fn_body_alarm_show(int8_t idx)
 {
-    AppLcdSetTemp(C2F_by_setting(g_cfg->body_alarm_C));
-    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
+    lcd_temperature_show(LCD_BIGNUM, C2F_by_setting(g_cfg->body_alarm_C));
+    lcd_sym_temp_unit_apply(g_cfg->temp_unit);
 }
 
 static void fn_body_alarm_opt_next(int8_t idx)
@@ -96,8 +100,8 @@ static void fn_body_alarm_opt_next(int8_t idx)
 
 static void fn_body_cal_show(int8_t idx)
 {
-    AppLcdSetRawNumber(g_cfg->body_cal_tweak, TRUE, 2);
-    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
+    lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT,
+                    g_cfg->body_cal_tweak, 2, LCD_SHOW_DOT);
 }
 
 static void fn_body_cal_opt_next(int8_t idx)
@@ -109,8 +113,8 @@ static void fn_body_cal_opt_next(int8_t idx)
 
 static void fn_beep_on_show(int8_t idx)
 {
-    AppLcdSetRawNumber(g_cfg->body_cal_tweak, TRUE, 2);
-    AppLcdDisplayUpdate(FN_SHOW_LCD_STAY_MS);
+    lcd_string_show(LCD_BIGNUM, LCD_ALIGN_LEFT,
+                    fn_menus[idx].big_str, strlen(fn_menus[idx].big_str));
 }
 
 static void fn_beep_on_opt_next(int8_t idx)
@@ -137,42 +141,40 @@ static struct fn_menu fn_menus[] = {
     [FN_SCAN_MODE_SEL] = {
         .lcd_show      = fn_scmode_sel_show,
         .opt_next      = fn_scmode_opt_next,
-        .lcd_str       = Str_F1,
+        .big_str       = "F1",
         .hidden        = 0,
     },
     [FN_TUNIT_SEL]     = {
         .lcd_show      = fn_tunit_sel_show,
         .opt_next      = fn_tunit_opt_next,
-        .lcd_str       = Str_F2,
+        .big_str       = "F2",
         .hidden        = 0,
     },
     [FN_BODY_ALARM]    = {
         .lcd_show      = fn_body_alarm_show,
         .opt_next      = fn_body_alarm_opt_next,
-        .lcd_str       = Str_F3,
+        .big_str       = "F3",
         .hidden        = 1,
     },
     [FN_BODY_CAL]      = {
         .lcd_show      = fn_body_cal_show,
         .opt_next      = fn_body_cal_opt_next,
-        .lcd_str       = Str_F4,
+        .big_str       = "F4",
         .hidden        = 1,
     },
     [FN_BEEP_ON]      = {
         .lcd_show      = fn_beep_on_show,
         .opt_next      = fn_beep_on_opt_next,
-        .lcd_str       = Str_NONE,
+        .big_str       = "BEEP",
         .hidden        = 1,
     },
 };
 
 static void app_sub_fn_enter(int8_t idx)
 {
-    AppLcdClearAll();
-    AppLcdSetString(fn_menus[idx].lcd_str);
-    AppLcdDisplayUpdate(FN_TITLE_LCD_STAY_MS);
-    AppLcdClearAll();
-    AppLcdDisplayUpdate(0);
+    lcd_string_clean_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, 300,
+                          fn_menus[idx].big_str, strlen(fn_menus[idx].big_str));
+    lcd_display_clear();
 }
 
 void app_fn_next(void)
@@ -191,9 +193,13 @@ void app_fn_enter(void)
 
 void app_fn_exit(void)
 {
+    char str[] = "SAVE";
     fn_idx = -1;
 
     app_save_i2c_config_only(g_save);
+
+    lcd_string_clean_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, 500, str, sizeof(str));
+    lcd_display_clear();
 }
 
 void app_fn_next_opt(void)
@@ -210,7 +216,7 @@ int app_fn_proc(void)
     uint8_t i = fn_idx;
 
     if (i < 0 || i >= NUM_FN) {
-        AppLcdClearAll();
+        lcd_display_clear();
         return APP_FN_DONE;
     }
 

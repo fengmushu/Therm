@@ -96,9 +96,8 @@ void sys_init(void)
     
     ///< ADC 模块初始化
     AppMAdcInit();
-    
-    ///< LCD 模块初始化
-    AppLcdInit();
+
+    lcd_init(g_lcd_def_hw);
 
 #ifdef DEBUG
     ///< 串口初始化

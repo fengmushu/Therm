@@ -36,7 +36,6 @@ static int is_factory_debug(void)
 
 static void factory_test_init(void)
 {
-        AppLcdEnable();
         AppLedEnable(LedOrange);
 }
 
@@ -45,9 +44,9 @@ static void factory_lcd_test(void)
         for (int i = LedRed; i <= LedOrange; i++) {
                 AppLedEnable(i);
 
-                AppLcdDisplayAll();
+                lcd_ram_display_all();
                 delay1ms(500);
-                AppLcdDisplayClear();
+                lcd_ram_clear_all();
                 delay1ms(500);
         }
 }
@@ -58,14 +57,14 @@ static void factory_key_test(void)
         uint32_t last_jiffy;
 
         while (1) {
-                AppLcdDisplayAll();
+                lcd_ram_display_all();
                 AppLedEnable(LedGreen);
                 delay1ms(30);
 
                 if (key_pressed_query(KEY_BEEP)) {
                         AppLedEnable(LedOrange);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_BEEP);
                         beep_off();
                         continue;
@@ -74,7 +73,7 @@ static void factory_key_test(void)
                 if (key_pressed_query(KEY_LOG)) {
                         AppLedEnable(LedOrange);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_LOG);
                         beep_off();
                         continue;
@@ -83,7 +82,7 @@ static void factory_key_test(void)
                 if (key_pressed_query(KEY_FN)) {
                         AppLedEnable(LedOrange);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_FN);
                         beep_off();
                         continue;
@@ -94,7 +93,7 @@ static void factory_key_test(void)
 
                         AppLedEnable(LedRed);
                         beep_on();
-                        AppLcdDisplayClear();
+                        lcd_ram_clear_all();
                         key_wait_for_release(KEY_TRIGGER);
                         beep_off();
 

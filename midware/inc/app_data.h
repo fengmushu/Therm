@@ -6,6 +6,21 @@
 #include "app_cal.h"
 #include "utils.h"
 
+// #define HW_BOARD_HG03
+#define HW_BOARD_HG04
+
+#ifdef HW_BOARD_HG03
+#define HW_MODEL_STR                "HG03"
+#endif /* HW_BOARD_HG03 */
+
+#ifdef HW_BOARD_HG04
+#define HW_MODEL_STR                "HG04" // WM
+#endif
+
+#ifndef HW_MODEL_STR
+#define HW_MODEL_STR                "????"
+#endif /* HW_MODEL_STR */
+
 #define BODY_TEMP_UNDERFLOW_C       (300)   // show LO
 #define BODY_TEMP_OVERFLOW_C        (440)   // show HI
 
@@ -54,12 +69,14 @@ enum scan_mode {
     SCAN_BODY = 0,
     SCAN_SURFACE,
     NUM_SCAN_MODES,
+    INVALID_SCAN_MODE,
 };
 
 enum temp_unit {
     TUNIT_C = 0,
     TUNIT_F,
     NUM_TEMP_UNITS,
+    INVALID_TUNIT,
 };
 
 enum bat_lvl {
@@ -68,6 +85,7 @@ enum bat_lvl {
     BAT_LVL_NRM,
     BAT_LVL_HI,
     NUM_BAT_LVLS,
+    INVALID_BAT_LVL,
 };
 
 typedef struct temp_thres {

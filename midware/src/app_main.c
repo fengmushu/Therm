@@ -45,7 +45,7 @@ fsm_state_t state_main_enter(fsm_node_t *node, fsm_event_t event)
         g_rt->scan_done = 0;
         g_rt->read_idx[scan_mode] = scan_log->last_write;
 
-        AppLcdClearAll();
+        lcd_ram_clear_all();
 
         break;
     }
@@ -78,35 +78,33 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     uint8_t scan_mode = g_cfg->scan_mode;
     uint8_t read_idx = g_rt->read_idx[scan_mode];
 
-    // by testing, say 5 at least to stabilize lcd
-    const int16_t lcd_budget_ms = 20;
     const int16_t key_budget_ms = 150;
-    int16_t delay_budget = lcd_budget_ms;
+    int16_t delay_budget = 0;
 
+    // reset color for all not defined patterns
+    uint8_t led_color = LedGreen;
+    uint8_t bat_level = g_rt->battery_lvl;
+        
     int16_t big_number;
     int16_t log_number;
 
-    // reset color for all not defined patterns
-    AppLedEnable(LedGreen);
-
-    AppLcdSetBuzzer(g_cfg->beep_on);
-    AppLcdSetTempMode(g_cfg->temp_unit, TRUE);
-    AppLcdSetCheckMode(g_cfg->scan_mode, TRUE);
-    AppLcdSetBattery(TRUE, g_rt->battery_lvl);
-
-    AppLcdSetSymbol(SAD_SYM, FALSE);
-    AppLcdSetSymbol(SMILE_SYM, FALSE);
+    lcd_sym_set(LCD_SYM_EMOJI_CRY, 0);
+    lcd_sym_set(LCD_SYM_EMOJI_SMILE, 0);
+    lcd_sym_set(LCD_SYM_BUZZER, g_cfg->beep_on);
+    lcd_sym_temp_unit_set(g_cfg->temp_unit);
+    lcd_sym_scan_mode_set(g_cfg->scan_mode);
+    lcd_sym_bat_lvl_set(bat_level);
 
     // blinking
-    if (g_rt->battery_lvl == BAT_LVL_CRIT) {
-        if (blink_is_on_duty(BLINK_DUTY_50, 4))
-            AppLcdSetBattery(FALSE, g_rt->battery_lvl);
+    if (bat_level == BAT_LVL_CRIT) {
+        if (blink_is_on_duty(BLINK_DUTY_50, 5))
+            lcd_sym_bat_bar_hide();
     }
 
     // read_idx should have synced to write_idx in enter() if comes from scan
     log_number = scan_log_read(&g_scan_log[scan_mode], read_idx);
 
-    AppLcdSetLogIndex(TRUE, lcd_show_idx(read_idx));
+    lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT, lcd_show_idx(read_idx), 2, LCD_NO_DOT);
 
     // user is viewing log, show big number as log number
     big_number = log_number;
@@ -115,12 +113,12 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         big_number = g_rt->scan_result[scan_mode];
 
         if (big_number < g_temp_thres[scan_mode].underflow) {
-            AppLedEnable(LedOrange);
-            AppLcdSetString(Str_LO);
+            led_color = LedOrange;
+            lcd_string_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, "Lo", 2);
             goto lcd_update; // jump out
         } else if (big_number > g_temp_thres[scan_mode].overflow) {
-            AppLedEnable(LedRed);
-            AppLcdSetString(Str_HI);
+            led_color = LedRed;
+            lcd_string_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, "Hi", 2);
             goto lcd_update; // jump out
         }
     }
@@ -130,10 +128,10 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
         uint16_t ntc_number = scan_log_read(&log_ntc[scan_mode], read_idx);
         log_number = scan_log_read(&log_uv[scan_mode], read_idx);
 
-        AppLcdSetLogIndex(FALSE, ntc_number);
+        lcd_number_show(LCD_IDXNUM, LCD_ALIGN_LEFT, ntc_number, 2, LCD_NO_DOT);
 
-        if (blink_is_on_duty(BLINK_DUTY_50, 4)) {
-            AppLcdSetRawNumber(log_number, FALSE, 4);
+        if (blink_is_on_duty(BLINK_DUTY_50, 6)) {
+            lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, log_number, 2, LCD_NO_DOT);
             goto lcd_update;
         }
     }
@@ -144,28 +142,29 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     //
     if (scan_mode == SCAN_BODY) {
         if (big_number > BODY_TEMP_UNDERFLOW_C) {
-            AppLcdSetSymbol(SMILE_SYM, TRUE);
-            AppLcdSetSymbol(SAD_SYM, FALSE);
+            lcd_sym_set(LCD_SYM_EMOJI_SMILE, 1);
+            lcd_sym_set(LCD_SYM_EMOJI_CRY, 0);
         }
 
         if (big_number >= BODY_FEVER_LOW) {
-            AppLedEnable(LedOrange);
-            AppLcdSetSymbol(SMILE_SYM, FALSE);
-            AppLcdSetSymbol(SAD_SYM, TRUE);
+            led_color = LedOrange;
+            lcd_sym_set(LCD_SYM_EMOJI_SMILE, 0);
+            lcd_sym_set(LCD_SYM_EMOJI_CRY, 1);
         }
 
         // currently, body_alarm_C can be smaller than BODY_FEVER_LOW
         if (big_number >= g_cfg->body_alarm_C) {
-            AppLedEnable(LedRed);
-            AppLcdSetSymbol(SMILE_SYM, FALSE);
-            AppLcdSetSymbol(SAD_SYM, TRUE);
+            led_color = LedRed;
+            lcd_sym_set(LCD_SYM_EMOJI_SMILE, 1);
+            lcd_sym_set(LCD_SYM_EMOJI_CRY, 1);
         }
     }
 
-    AppLcdSetRawNumber(C2F_by_setting(big_number), TRUE, 2);
+    lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, C2F_by_setting(big_number), 2, LCD_SHOW_DOT);
 
 lcd_update:
-    AppLcdDisplayUpdate(0);
+    AppLedEnable(led_color);
+    lcd_sym_list_apply();
 
     // scan_done will be oneshot after scan done
     if (g_rt->scan_done) {
