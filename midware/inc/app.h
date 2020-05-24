@@ -78,7 +78,7 @@
 #define DBG_PRINT(x, ...) do{} while(0)
 #endif
 
-#define SYS_SW_VERSION      18 //VERSION 1.8
+#define SYS_SW_VERSION      19 //VERSION 1.9
 
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
