@@ -259,7 +259,7 @@ void AppCalClean(void)
 }
 
 ///< 数据预处理(滤波)
-#define SAMPLE_MAX (4)
+#define SAMPLE_MAX (16)
 #define SAMPLE_BUFF_SIZE    (SAMPLE_MAX + 1)
 static void SampleInsert(uint32_t *aSum, uint32_t uVal)
 {
@@ -284,25 +284,25 @@ static uint32_t SampleMeans(uint32_t *aSum)
     {
         uMeans += aSum[i];
     }
-    return (uMeans /= aSum[0]); // 均值
+    return (uMeans / aSum[0]); // 均值
 }
 
 static uint32_t SampleVariance(uint32_t *aSum)
 {
     int i;
-    uint32_t uMeans, uEpison = 0;
+    uint32_t uMeans, uSigma = 0;
 
     uMeans = SampleMeans(aSum);
 
     for(i = 1; i <= aSum[0]; i++) {
         if(uMeans > aSum[i]) {
-            uEpison += pow((uMeans - aSum[i]), 2);
+            uSigma += pow((uMeans - aSum[i]), 2);
         } else {
-            uEpison += pow((aSum[i] - uMeans), 2);
+            uSigma += pow((aSum[i] - uMeans), 2);
         }
     }
 
-    return sqrt(uEpison); // 方差
+    return (sqrt(uSigma) / aSum[0]); // 方差
 }
 
 static uint32_t SampleCal(uint32_t *aSum)
@@ -331,7 +331,7 @@ static void SampleDump(uint32_t *aSum)
 ///< ADC 修正值获取
 boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
 {
-    int iSampleCount = 0, iTryMaxCount = 10;
+    int iSampleCount = 0, iTryMaxCount = 10 + SAMPLE_MAX;
     uint32_t uSumViR[SAMPLE_BUFF_SIZE], uSumVNtcH[SAMPLE_BUFF_SIZE], uSumVNtcL[SAMPLE_BUFF_SIZE];
 
     delay1ms(100); /* 等适应了再采集数据 */
@@ -359,13 +359,15 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
         if(iSampleCount >= SAMPLE_MAX)
         {
             uint32_t uVar = SampleVariance(uSumViR);
-            if(uVar == 0)
-            {
-                break;
-            }
+            DBG_PRINT("\tsqart uVar: %u\r\n", uVar);
+            break;
+            // if(uVar == 0)
+            // {
+            //     break;
+            // }
         }
 
-        delay1ms(20);
+        delay1ms(10);
     }
 
     SampleDump(uSumViR);
@@ -399,11 +401,14 @@ boolean_t AppTempCalculate(CalData_t *pCal,
     // cannot be intterrupted in float processing
     __disable_irq();
 
-    if (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
-    {
-        __enable_irq();
-        return FALSE;
-    }
+    // if (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
+    // {
+    //     __enable_irq();
+    //     return FALSE;
+    // }
+    ///< 直到波动在范围内
+    while (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
+        ;
 
     ///< 环境温度获取
     fNtcTemp = NNA_NtcTempGet(uVNtcH, uVNtcL, &uRa); ///< NTC 环境温度值获取
@@ -461,24 +466,27 @@ static boolean_t AppCaliTargetTemp(CalData_t *pCal, uint8_t uTargetTemp)
 
         lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
 
-        if(uReTry > 3)
+        if(++uReTry > 1)
         {
             uint32_t uAcc = SampleVariance(aSampleViR);
-            if(uAcc == 0) 
-                break;
-            else
-                DBG_PRINT("\t aVariance: %u\r\n", uAcc);
+            // if(uAcc == 0) 
+            //     break;
+            // else
+            DBG_PRINT("\t aVariance: %u\r\n", uAcc);
+            break;
         }
-    } while (uReTry++ < MAX_ACC_COUNT);
+    } while (uReTry < MAX_ACC_COUNT);
     ///< 环境抖动
     if(uReTry == MAX_ACC_COUNT)
     {
         return FALSE;
     }
 
+    SampleDump(aSampleViR);
+
     ///< 合理范围(37°-42°): 0.7v - 1.5v
     uViR = SampleMeans(aSampleViR);
-    if(uViR < 700 || uViR > 1500)
+    if(uViR < 700 || uViR > 2000)
     {
         lcd_number_show(LCD_BIGNUM, LCD_ALIGN_RIGHT, uViR, 4, LCD_NO_DOT);
         return FALSE;
