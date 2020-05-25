@@ -9,6 +9,11 @@
 #include "app.h"
 #include "app_key.h"
 
+#ifndef FSM_DBG_PRINT
+#undef DBG_PRINT
+#define DBG_PRINT(x, ...) do { } while(0)
+#endif
+
 // XXX: to handle null dereference at start
 const fsm_node_t state_uninit = {
     .state   = __FSM_STATE_UNINIT,
