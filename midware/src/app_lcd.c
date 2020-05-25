@@ -121,7 +121,7 @@ int lcd_seg_same_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
         if (offset + cnt * BITS_PER_BYTE > sizeof(uint32_t) * BITS_PER_BYTE)
                 return -EINVAL;
 
-        __disable_irq();
+        // __disable_irq();
 
         val = lcd_ram_bank_read(bank);
 
@@ -133,7 +133,7 @@ int lcd_seg_same_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
                 lcd_ram_bank_write(bank, val);
         }
 
-        __enable_irq();
+        // __enable_irq();
 
         return 0;
 }
@@ -148,7 +148,7 @@ int lcd_seg_cross_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
         if (!data)
                 return 0;
 
-        __disable_irq();
+        // __disable_irq();
 
         for (size_t i = 0; i < cnt; i++, seg++) {
                 // one SEG can have 8 COMS max;
@@ -162,7 +162,7 @@ int lcd_seg_cross_bank_write(int seg, uint8_t *mask, uint8_t *data, size_t cnt)
                 lcd_ram_bank_write(bank, val);
         }
 
-        __enable_irq();
+        // __enable_irq();
 
         return 0;
 }
@@ -389,7 +389,7 @@ int __lcd_number_show(struct lcd_field *field, uint8_t align, int32_t num,
 
 void lcd_ram_clear_all(void)
 {
-        __disable_irq();
+        // __disable_irq();
 
         *(volatile uint32_t *)(&M0P_LCD->RAM0) = 0x00000000;
         *(volatile uint32_t *)(&M0P_LCD->RAM1) = 0x00000000;
@@ -408,12 +408,12 @@ void lcd_ram_clear_all(void)
         *(volatile uint32_t *)(&M0P_LCD->RAME) = 0x00000000;
         *(volatile uint32_t *)(&M0P_LCD->RAMF) = 0x00000000;
 
-        __enable_irq();
+        // __enable_irq();
 }
 
 void lcd_ram_display_all(void)
 {
-        __disable_irq();
+        // __disable_irq();
 
         *(volatile uint32_t *)(&M0P_LCD->RAM0) = 0xFFFFFFFF;
         *(volatile uint32_t *)(&M0P_LCD->RAM1) = 0xFFFFFFFF;
@@ -432,7 +432,7 @@ void lcd_ram_display_all(void)
         *(volatile uint32_t *)(&M0P_LCD->RAME) = 0x000000FF;
         *(volatile uint32_t *)(&M0P_LCD->RAMF) = 0x000000FF;
 
-        __enable_irq();
+        // __enable_irq();
 }
 
 void lcd_sw_blink(size_t cnt, size_t interval_ms)
