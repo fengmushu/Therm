@@ -60,18 +60,30 @@
 enum beep_mode {
         BEEP_OFF = 0,
         BEEP_ON,
+        NUM_BEEP_MODES,
 };
 
 enum scan_mode {
         SCAN_BODY = 0,
         SCAN_SURFACE,
         NUM_SCAN_MODES,
+        INVALID_SCAN_MODE,
 };
 
 enum temp_unit {
         TUNIT_C = 0,
         TUNIT_F,
         NUM_TEMP_UNITS,
+        INVALID_TUNIT,
+};
+
+enum bat_lvl {
+        BAT_LVL_CRIT = 0,
+        BAT_LVL_LOW,
+        BAT_LVL_NRM,
+        BAT_LVL_HI,
+        NUM_BAT_LVLS,
+        INVALID_BAT_LVL,
 };
 
 typedef struct temp_thres {
