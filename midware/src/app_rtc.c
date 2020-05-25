@@ -59,6 +59,9 @@ static inline uint32_t AppRtcUpdate(void)
         goto out;
     }
 
+    if (!g_cfg)
+        goto out;
+
     if (time_after(g_jiffies, last_feed + g_cfg->sleep_jiffies)) {
         fsm_event_post(&g_fsm, FSM_EVENT_RING_PRIO_HI, FSM_EVENT_SYS_HALT);
     }
