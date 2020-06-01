@@ -122,7 +122,7 @@ static inline uint32_t sys_tick_fixup(void)
     return jffies;
 }
 
-void Tim0Int(void)
+static void Tim0Int(void)
 {
     if(TRUE == Bt_GetIntFlag(TIM0, BtUevIrq))
     {

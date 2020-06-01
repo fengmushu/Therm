@@ -1,13 +1,22 @@
-#include "app.h"
-#include "pcnt.h"
+#include "app_afe.h"
 
-static volatile uint32_t u32InitCntData;
-static volatile uint16_t u16CcapData[8] = {0};
-
+static volatile uint32_t u32InitCntData = 0;
 /*******************************************************************************
  * PCNT中断服务程序
  ******************************************************************************/
-void PcntInt(void)
+uint32_t PcntGetData(boolean_t reset)
+{
+    uint32_t uRet = u32InitCntData;
+
+    if(reset)
+    {
+        u32InitCntData = 0;
+    }
+
+    return uRet;
+}
+
+static void PcntInt(void)
 {
     PCNT_Run(FALSE);
 
@@ -41,7 +50,7 @@ void PcntInt(void)
 
         u32InitCntData++;
 
-        PCNT_Parameter(1, 10);
+        PCNT_Parameter(0, AFE_PCNT_RELOAD);
 
         PCNT_Run(TRUE);
     }
@@ -73,4 +82,6 @@ void AppPcntInit(void)
     stcConfig.pfnIrqCb = PcntInt;
 
     PCNT_Init(&stcConfig);
+
+    // PCNT_Parameter(0, AFE_PCNT_RELOAD);
 }

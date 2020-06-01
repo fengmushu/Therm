@@ -78,11 +78,11 @@
 #define M_ADC_VOUT_PORT    GpioPortA
 #define M_ADC_VOUT_PIN     GpioPin0
 // NTC+
-#define M_ADC_NTCH_PORT  GpioPortA
-#define M_ADC_NTCH_PIN   GpioPin1
-// NTC-
-#define M_ADC_NTCL_PORT  GpioPortA
-#define M_ADC_NTCL_PIN   GpioPin2
+// #define M_ADC_NTCH_PORT  GpioPortA
+// #define M_ADC_NTCH_PIN   GpioPin1
+// // NTC-
+// #define M_ADC_NTCL_PORT  GpioPortA
+// #define M_ADC_NTCL_PIN   GpioPin2
 // VIN +/- --- V2.0硬件, 已删除
 // V-Bias-REF-IN
 // #define M_ADC_VREF_PORT  GpioPortA
@@ -91,8 +91,12 @@
 // #define M_ADC_VBIRS_PORT  GpioPortA
 // #define M_ADC_VBIRS_PIN   GpioPin15
 // USE PB07 as ADC_VOUT_CTRL_PIN
-#define M_ADC_VBIRS_EN_PORT     GpioPortB
-#define M_ADC_VBIRS_EN_PIN      GpioPin7
+#define M_LCD_PWR_EN_PORT     GpioPortB
+#define M_LCD_PWR_EN_PIN      GpioPin7
+
+///<AFE COUNTER PIN
+#define M_AFE_CNTER_PORT        GpioPortC
+#define M_AFE_CNTER_PIN         GpioPin0
 
 //< M BEEP
 #define M_BEEP_PORT       GpioPortD

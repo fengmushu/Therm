@@ -113,6 +113,9 @@ void sys_late_init(void)
 
     // deep sleep wake up
     AppPmuInit();
+
+    // 单路脉冲计数器
+    AppPcntInit();
 }
 
 int main(void)

@@ -58,6 +58,9 @@
 
 #include "ssd1306.h"
 
+#define TEST_EXAMPLE 0
+
+#if TEST_EXAMPLE
 #include "nano_engine.h"
 
 /*
@@ -238,17 +241,30 @@ void moveSnowFlakes()
     }
 }
 
+#else
+typedef struct {
+    
+} Waveform_t;
+
+#endif ///TEST_EXAMPLE
+
 ///< LCD 初始化
 void sys_display_init(void)
 {
     ssd1306_128x64_spi_init(-1,-1,-1);
 
+#if TEST_EXAMPLE
     engine.setFrameRate( 10 );
     engine.begin();
     engine.drawCallback( onDraw );
 
     engine.canvas.setMode(CANVAS_MODE_TRANSPARENT);
     engine.refresh();
+#else /// GFX
+
+// #include "nano_gfx.h"
+
+#endif ///TEST_EXAMPLE
 }
 
 void AppLcdDisplayAll(void)
@@ -263,6 +279,7 @@ void AppLcdClearAll(void)
 
 void AppLcdDisplayUpdate(uint32_t delay_ms)
 {
+#if TEST_EXAMPLE    
     if (!engine.nextFrame()) return;
     if (0 == (--globalTimer))
     {
@@ -274,6 +291,17 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
     }
     moveSnowFlakes();
     engine.display();
+#else
+    ssd1306_fillScreen(0x00);
+    // ssd1306_setFixedFont(ssd1306xled_font6x8);
+    // ssd1306_printFixedN (8,  0, "SpO2%", STYLE_NORMAL, FONT_SIZE_2X);
+    // ssd1306_printFixedN (80,  0, "RBpm", STYLE_BOLD, FONT_SIZE_2X);
+    // ssd1306_printFixed (0, 16, "Line 2. Bold text", STYLE_BOLD);
+    // ssd1306_printFixed (0, 24, "Line 3. Italic text", STYLE_ITALIC);
+    // ssd1306_printFixedN (0, 32, "Line 4. Double size", STYLE_BOLD, FONT_SIZE_NORMAL);
+    
+    delay1ms(1000);
+#endif ///TEST_EXAMPLE
 }
 
 void AppLcdDisable(void)

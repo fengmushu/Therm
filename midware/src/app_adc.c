@@ -86,12 +86,12 @@
  *****************************************************************************/
 void AppMAdcPowerOn(void)
 {
-    Gpio_SetIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
+    Gpio_SetIO(M_LCD_PWR_EN_PORT, M_LCD_PWR_EN_PIN);
 }
 
 void AppMAdcPowerOff(void)
 {
-    Gpio_ClrIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
+    Gpio_ClrIO(M_LCD_PWR_EN_PORT, M_LCD_PWR_EN_PIN);
 }
 
 ///< ADC 顺序扫描(多次采样) 功能配置
@@ -170,29 +170,13 @@ void AppAdcChAvgCodeGet(en_adc_samp_ch_sel_t ch, uint32_t *pu32AdcRestultAcc)
     Adc_ClrIrqStatus(AdcMskIrqSqr);
 }
 
-///< 环境温度采样值L获取(采样16次取平均)
-void AppAdcNtcLAvgCodeGet(uint32_t *pu32AdcRestultAcc)
-{    
-    AppAdcChAvgCodeGet(AdcExInputCH1, pu32AdcRestultAcc);
-}
-
-///< 环境温度采样值L获取(采样16次取平均)
-void AppAdcNtcHAvgCodeGet(uint32_t *pu32AdcRestultAcc)
-{    
-    AppAdcChAvgCodeGet(AdcExInputCH2, pu32AdcRestultAcc);
-}
-
 ///< 红外温度采样值获取(采样16次取平均)
 void AppAdcVirAvgCodeGet(uint32_t *pu32AdcRestultAcc)
 {    
     AppAdcChAvgCodeGet(AdcExInputCH0, pu32AdcRestultAcc);
 }
 
-///< VBias采样值获取(采样16次取平均)
-// void AppAdcVBiasAvgCodeGet(uint32_t *pu32AdcRestultAcc)
-// {    
-//         AppAdcChAvgCodeGet(AdcExInputCH11, pu32AdcRestultAcc);
-// }
+
 
 //@} // AdcGroup
 

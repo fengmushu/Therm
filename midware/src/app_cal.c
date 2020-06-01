@@ -221,15 +221,15 @@ static void SampleDump(uint32_t *aSum)
 
 ///< ADC 修正值获取
 #define SAMPLE_MAX (4)
-boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
+boolean_t AppAdcCodeGet(uint32_t *uViR)
 {
     int iSampleCount = SAMPLE_MAX;
-    uint32_t uSumViR[SAMPLE_MAX + 1], uSumVNtcH[SAMPLE_MAX + 1], uSumVNtcL[SAMPLE_MAX + 1];
+    uint32_t uSumViR[SAMPLE_MAX + 1];
 
     delay1ms(100); /* 等适应了再采集数据 */
 
     ///<*** ADC数据采集
-    uSumViR[0] = uSumVNtcH[0] = uSumVNtcL[0] = 0;
+    uSumViR[0] = 0;
     while (iSampleCount--)
     {
         uint32_t uAdcCode;
@@ -239,12 +239,6 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
         AppAdcVirAvgCodeGet(&uAdcCode); ///< 表面温度 ADC采样
         SampleInsert(uSumViR, uAdcCode);
 
-        AppAdcNtcHAvgCodeGet(&uAdcCode); ///< 环境温度RH ADC采样
-        SampleInsert(uSumVNtcH, uAdcCode);
-
-        AppAdcNtcLAvgCodeGet(&uAdcCode); ///< 表面温度RL ADC采样
-        SampleInsert(uSumVNtcL, uAdcCode);
-
         Sysctrl_SetPCLKDiv(SysctrlPclkDiv1);
 
         delay1ms(20);
@@ -253,10 +247,8 @@ boolean_t AppAdcCodeGet(uint32_t *uViR, uint32_t *uVNtcH, uint32_t *uVNtcL)
     SampleDump(uSumViR);
 
     *uViR = SampleCal(uSumViR);
-    *uVNtcH = SampleCal(uSumVNtcH);
-    *uVNtcL = SampleCal(uSumVNtcL);
 
-    DBG_PRINT("\tADC: %u H-L: %u %u\r\n", *uViR, *uVNtcH, *uVNtcL);
+    DBG_PRINT("\tADC: %u\r\n", *uViR);
 
     return TRUE;
 }
@@ -272,15 +264,14 @@ boolean_t AppTempCalculate(CalData_t *pCal,
 {
     static int i = 0;
     uint32_t u32SampIndex;         ///< 采样次数
-    uint32_t uViR, uRa, uVNtcH, uVNtcL; ///< ADC 采样值
-    float32_t fNtcTemp, fSurfaceTemp, fSkinTemp, fHumanTemp;
+    uint32_t uViR, uRa; ///< ADC 采样值
 
     ASSERT(pCal);
 
     // it looks like this embedded processor
     // cannot be intterrupted in float processing
     __disable_irq();
-    if (FALSE == AppAdcCodeGet(&uViR, &uVNtcH, &uVNtcL))
+    if (FALSE == AppAdcCodeGet(&uViR))
     {
         __enable_irq();
         return FALSE;

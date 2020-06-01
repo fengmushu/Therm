@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "app.h"
+#include "pcnt.h"
 #include "app_lcd.h"
 #include "app_gpio.h"
 #include "app_timer.h"
@@ -27,6 +28,7 @@ void sys_resume(void)
 
     AppMAdcPowerOn();
     Adc_Enable();
+    PCNT_Run(TRUE);
     Bgr_BgrEnable();
 
     Rtc_Cmd(TRUE);
@@ -55,6 +57,7 @@ void sys_halt(void)
     // turn off adc
     AppMAdcPowerOff();
     Adc_Disable();
+    PCNT_Run(FALSE);
     Bgr_BgrDisable();
 
     // go deep sleep
