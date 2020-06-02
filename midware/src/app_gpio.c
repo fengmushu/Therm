@@ -189,9 +189,6 @@ void _AppEeI2cPortInit(void)
 void _AppAdcPortInit(void)
 {
     Gpio_SetAnalogMode(M_ADC_VOUT_PORT, M_ADC_VOUT_PIN);            //PA00
-    // Gpio_SetAnalogMode(M_ADC_NTCH_PORT, M_ADC_NTCH_PIN);            //PA01
-    // Gpio_SetAnalogMode(M_ADC_NTCL_PORT, M_ADC_NTCL_PIN);            //PA02
-    // Gpio_SetAnalogMode(M_ADC_VREF_PORT, M_ADC_VREF_PIN);         //PA03 --- V-Bias-Ref-In 没用到
 
     stc_gpio_cfg_t  stcGpioCfg;
 
@@ -203,9 +200,10 @@ void _AppAdcPortInit(void)
     stcGpioCfg.enPu       = GpioPuDisable; //默認開啓
 
     stcGpioCfg.enOD       = GpioOdDisable;
-    Gpio_Init(M_LCD_PWR_EN_PORT, M_LCD_PWR_EN_PIN, &stcGpioCfg);      //PB07 ON/OFF
+    Gpio_Init(M_LCD_PWR_EN_PORT, M_LCD_PWR_EN_PIN, &stcGpioCfg);        //PB07 LCD ON/OFF
+    Gpio_Init(M_SW_PWR_EN_PORT, M_SW_PWR_EN_PIN, &stcGpioCfg);          //PD05 System ON/OFF
 
-    AppMAdcPowerOn();
+    AppSwPowerOn();
 }
 
 ///< AFE 计数器输入

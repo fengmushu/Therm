@@ -73,6 +73,7 @@
 #include "app_timer.h"
 #include "app_rtc.h"
 #include "app_factory.h"
+#include "app_afe.h"
 #include "fsm.h"
 
 // 串口发送重定向

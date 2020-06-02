@@ -16,14 +16,11 @@ static int is_factory_test(void)
 static void factory_test_init(void)
 {
         AppLcdEnable();
-        AppLedEnable(LedOrange);
 }
 
 static void factory_lcd_test(void)
 {
         for (int i = LedRed; i <= LedOrange; i++) {
-                AppLedEnable(i);
-
                 AppLcdDisplayAll();
                 delay1ms(500);
         }
@@ -38,7 +35,6 @@ static void factory_key_test(void)
                 delay1ms(30);
 
                 if (key_pressed_query(KEY_TRIGGER)) {
-                        AppLedEnable(LedOrange);
                         beep_on();
                         key_wait_for_release(KEY_TRIGGER);
                         beep_off();

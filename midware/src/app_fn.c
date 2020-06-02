@@ -148,8 +148,6 @@ void app_fn_enter(void)
 {
     fn_idx = 0;
     last_fn = -1;
-
-    AppLedEnable(LedOrange);
 }
 
 void app_fn_exit(void)

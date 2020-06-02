@@ -55,6 +55,7 @@
 #include "app.h"
 #include "rng.h"
 #include "app_lcd.h"
+#include "app_afe.h"
 
 #include "ssd1306.h"
 
@@ -251,6 +252,8 @@ typedef struct {
 ///< LCD 初始化
 void sys_display_init(void)
 {
+    int progress = 0;
+
     ssd1306_128x64_spi_init(-1,-1,-1);
 
 #if TEST_EXAMPLE
@@ -261,9 +264,13 @@ void sys_display_init(void)
     engine.canvas.setMode(CANVAS_MODE_TRANSPARENT);
     engine.refresh();
 #else /// GFX
-
-// #include "nano_gfx.h"
-
+    ssd1306_clearScreen();
+    ssd1306_setFixedFont(ssd1306xled_font6x8);
+    do {
+        ssd1306_drawProgressBar( progress ++ );
+        delay1ms(1);
+    } while(progress < 100);
+    ssd1306_fillScreen(0x00);
 #endif ///TEST_EXAMPLE
 }
 
@@ -291,17 +298,25 @@ void AppLcdDisplayUpdate(uint32_t delay_ms)
     }
     moveSnowFlakes();
     engine.display();
-#else
-    ssd1306_fillScreen(0x00);
+#else2
     // ssd1306_setFixedFont(ssd1306xled_font6x8);
     // ssd1306_printFixedN (8,  0, "SpO2%", STYLE_NORMAL, FONT_SIZE_2X);
     // ssd1306_printFixedN (80,  0, "RBpm", STYLE_BOLD, FONT_SIZE_2X);
     // ssd1306_printFixed (0, 16, "Line 2. Bold text", STYLE_BOLD);
     // ssd1306_printFixed (0, 24, "Line 3. Italic text", STYLE_ITALIC);
     // ssd1306_printFixedN (0, 32, "Line 4. Double size", STYLE_BOLD, FONT_SIZE_NORMAL);
-    
-    delay1ms(1000);
+
+    ssd1306_drawXBitmap(0, 0, 56, 16, bmpSpO2);
+    ssd1306_drawXBitmap(56, 0, 16, 16, bmpBatt);
+    ssd1306_drawXBitmap(72, 0, 56, 16, bmpRbpm);
+
+    ssd1306_drawXBitmap(0, 16, 16, 32, bmpPulse);
+    ssd1306_printFixedN(16, 16, "98", STYLE_BOLD, FONT_SIZE_4X);
+    ssd1306_printFixedN(72, 16, "76", STYLE_BOLD, FONT_SIZE_4X);
+
+    AfeGetFreq();
 #endif ///TEST_EXAMPLE
+    delay1ms(delay_ms);
 }
 
 void AppLcdDisable(void)

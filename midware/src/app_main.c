@@ -70,9 +70,6 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
     int16_t big_number;
     int16_t log_number;
 
-    // reset color for all not defined patterns
-    AppLedEnable(LedGreen);
-
     // blinking
     if (g_rt->battery_low) {
         uint8_t duty;

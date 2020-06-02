@@ -91,8 +91,10 @@
 // #define M_ADC_VBIRS_PORT  GpioPortA
 // #define M_ADC_VBIRS_PIN   GpioPin15
 // USE PB07 as ADC_VOUT_CTRL_PIN
-#define M_LCD_PWR_EN_PORT     GpioPortB
-#define M_LCD_PWR_EN_PIN      GpioPin7
+#define M_LCD_PWR_EN_PORT       GpioPortB
+#define M_LCD_PWR_EN_PIN        GpioPin7
+#define M_SW_PWR_EN_PORT        GpioPortD
+#define M_SW_PWR_EN_PIN         GpioPin5
 
 ///<AFE COUNTER PIN
 #define M_AFE_CNTER_PORT        GpioPortC
@@ -103,8 +105,8 @@
 #define M_BEEP_PIN        GpioPin7
 
 ///< M LED
-#define M_LED_RED_PORT       GpioPortD
-#define M_LED_RED_PIN        GpioPin5
+#define M_LED_RED_PORT       GpioPortC
+#define M_LED_RED_PIN        GpioPin14
 #define M_LED_GREEN_PORT       GpioPortC
 #define M_LED_GREEN_PIN        GpioPin13
 

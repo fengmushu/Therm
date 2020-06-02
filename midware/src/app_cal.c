@@ -286,27 +286,19 @@ void AppCalibration(void)
     int i = 0;
     CalData_t Cal;
 
-    AppLedEnable(LedOrange);
-    AppLcdDisplayAll();
+    // AppLedEnable(LedOrange);
+    // AppLcdDisplayAll();
 
     do {
 
         // while(!key_pressed_query(KEY_TRIGGER)); //按下
 
-        i = 1 - i;
-        if(i)
-        {
-            AppLedEnable(LedOrange);
-        }
-        else
-        {
-            AppLedEnable(0);
-        }
+        // AppLedEnable(i++ % 3);
 
-        AppLcdDisplayUpdate(40);
+        AppLcdDisplayUpdate(1000);
 
         // beep_once(100);
-        DBG_PRINT("\t%u - %u\r\n", jffies_to_sec(), jffies_to_msc());
+        DBG_PRINT("  uptime: %u - %u\r\n", jffies_to_sec(), jffies_to_msc());
 
         // while(key_pressed_query(KEY_TRIGGER)); //释放
 

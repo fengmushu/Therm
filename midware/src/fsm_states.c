@@ -24,9 +24,7 @@ void sys_resume(void)
 {
     AppLcdEnable();
 
-    AppLedEnable(LedGreen);
-
-    AppMAdcPowerOn();
+    AppSwPowerOn();
     Adc_Enable();
     PCNT_Run(TRUE);
     Bgr_BgrEnable();
@@ -55,7 +53,7 @@ void sys_halt(void)
     AppLcdDisable();
 
     // turn off adc
-    AppMAdcPowerOff();
+    AppSwPowerOff();
     Adc_Disable();
     PCNT_Run(FALSE);
     Bgr_BgrDisable();

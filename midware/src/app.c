@@ -110,12 +110,21 @@ void AppLedEnable(en_led_colour_t uColor)
     } else {
         Gpio_ClrIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
     }
+
+    ///FIXME: < Just for test
+    if(LedNone == uColor) {
+        AppSwPowerOff();
+    } else {
+        AppSwPowerOn();
+    }
+    ///<
 }
 
 void AppLedDisable(void)
 {
     Gpio_SetIO(M_LED_RED_PORT, M_LED_RED_PIN);
     Gpio_SetIO(M_LED_GREEN_PORT, M_LED_GREEN_PIN);
+    AppSwPowerOff();
 }
 
 ///< VCC 电量监测模块初始化

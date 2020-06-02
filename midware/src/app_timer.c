@@ -109,24 +109,28 @@ void timer3_init(void)
  ******************************************************************************/
 static volatile uint32_t jffies = 0;
 
-#define SYS_TICK_MAP    (0x10000 / HZ)
-#define SYS_TICK_AAR    (0x10000 - SYS_TICK_MAP)
+/* jffies = HZ x cell */
+#define SYS_TICK_HZ     (0x10)
+#define SYS_TICK_AAR    (0x10000U - SYS_TICK_HZ)
 
-///< sec * HZ
-static inline uint32_t sys_tick_fixup(void)
+/* 定时器分辨率(mills second / cell): PCLK(Mhz) / PCLK_DIV * 1000ms/s */
+#define BT0_CELL_TIME   (1000 * 1000 * 64  / 4000000U)
+
+static inline uint32_t bt0_tick_fixup_micro(void)
 {
-    if (Bt_M0_Cnt16Get(TIM0) >= (uint16_t)SYS_TICK_AAR)
+    volatile uint32_t M0 = Bt_M0_Cnt16Get(TIM0);
+    if ( M0 > (uint16_t)SYS_TICK_AAR)
     {
-        return  (jffies  + (Bt_M0_Cnt16Get(TIM0) - (uint16_t)SYS_TICK_AAR) / SYS_TICK_MAP);
+        return  (jffies * SYS_TICK_HZ + (M0 - (uint16_t)SYS_TICK_AAR)) * BT0_CELL_TIME;
     }
-    return jffies;
+    return jffies * SYS_TICK_HZ * BT0_CELL_TIME;
 }
 
 static void Tim0Int(void)
 {
     if(TRUE == Bt_GetIntFlag(TIM0, BtUevIrq))
     {
-        ///< TODO:
+        // TODO:
         jffies ++;
         Bt_ClearIntFlag(TIM0, BtUevIrq);
     }
@@ -134,17 +138,19 @@ static void Tim0Int(void)
 
 uint32_t jffies_to_msc(void) //毫秒
 {
-    return (sys_tick_fixup() * 1000 / HZ);
+    return bt0_tick_fixup_micro() / 1000;
 }
 
 uint32_t jffies_to_mic(void) //微秒
 {
-    return jffies_to_msc() * 1000;
+    uint32_t us = bt0_tick_fixup_micro();
+
+    return us;
 }
 
 uint32_t jffies_to_sec(void)
 {
-    return (sys_tick_fixup() / HZ);
+    return bt0_tick_fixup_micro() / 1000 / 1000;
 }
 
 void basic_timer_init(void)
@@ -184,5 +190,5 @@ void basic_timer_init(void)
     ///< 生成一次随机数
     Rng_Generate();
 
-    DBG_PRINT("TIM0 clk: %u HZ. RNG: %u, %u\r\n", SYS_TICK_AAR, Rng_GetData0(), Rng_GetData1());
+    DBG_PRINT("TIM0 pclk: %u HZ. RNG: %u, %u\r\n", Sysctrl_GetPClkFreq(), Rng_GetData0(), Rng_GetData1());
 }

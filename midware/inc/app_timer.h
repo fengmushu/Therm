@@ -4,8 +4,6 @@
 #include "rng.h"
 #include "base_types.h"
 
-#define HZ              1000
-
 // clock src: PCLK 4MHz 256DIV
 #define TIM3_PCLK_4M256D_1SEC		(15625)
 #define TIM3_PCLK_4M256D_2SEC		(31250)

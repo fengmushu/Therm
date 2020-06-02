@@ -84,14 +84,16 @@
 /*****************************************************************************
  * Function implementation - global ('extern') and local ('static')
  *****************************************************************************/
-void AppMAdcPowerOn(void)
+void AppSwPowerOn(void)
 {
     Gpio_SetIO(M_LCD_PWR_EN_PORT, M_LCD_PWR_EN_PIN);
+    Gpio_ClrIO(M_SW_PWR_EN_PORT, M_SW_PWR_EN_PIN);
 }
 
-void AppMAdcPowerOff(void)
+void AppSwPowerOff(void)
 {
     Gpio_ClrIO(M_LCD_PWR_EN_PORT, M_LCD_PWR_EN_PIN);
+    Gpio_SetIO(M_SW_PWR_EN_PORT, M_SW_PWR_EN_PIN);
 }
 
 ///< ADC 顺序扫描(多次采样) 功能配置

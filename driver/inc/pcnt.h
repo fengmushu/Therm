@@ -202,6 +202,7 @@ extern "C"
     //@} // PCNT Group
 
 #ifdef __cplusplus
+}
 #endif
 
 #endif /* __PCNT_H__ */

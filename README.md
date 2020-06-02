@@ -28,10 +28,13 @@
 - PD00 - UART-DBG-TX
 
 [KEY]
-- KEY[1:Trigger - 5] - PD6 - PC10/11/12 - PD2
+- PD04 KEY - TRIGGER
 
 [Anlog]
 - PB07 - SYSTEM-POWER
+
+[PWM-COUNTER]
+- 
 
 [LED]
 - LED-Light - PC13

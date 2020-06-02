@@ -102,6 +102,7 @@ extern "C"
  ******************************************************************************/
 typedef enum en_led_colour
 {
+    LedNone     = 0x0u,
     LedRed      = 0x1u,                 ///< 红色
     LedGreen    = 0x2u,                 ///< 绿色
     LedOrange   = 0x3u,

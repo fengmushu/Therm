@@ -92,8 +92,8 @@ extern "C"
  ******************************************************************************/
  
 extern void AppMAdcInit(void);
-extern void AppMAdcPowerOff(void);
-extern void AppMAdcPowerOn(void);
+extern void AppSwPowerOff(void);
+extern void AppSwPowerOn(void);
 
 ///< 红外温度采样值获取(采样16次取平均)
 extern void AppAdcVirAvgCodeGet(uint32_t *pu32AdcRestultAcc);
