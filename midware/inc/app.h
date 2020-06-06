@@ -142,6 +142,11 @@ typedef struct {
  * Global function prototypes (definition in C source)                        
  ******************************************************************************/
 
+static inline int in_irq(void)
+{
+    return __get_IPSR();
+}
+
 static inline void beep_on(void)
 {
     Gpio_SetIO(M_BEEP_PORT, M_BEEP_PIN);

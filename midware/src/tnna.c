@@ -426,16 +426,12 @@ boolean_t NNA_Calibration(
             pCal->fAmp = fAmp;
             pCal->fCalBase = (fCaHBase + fCaLBase) / 2;
 
-            AppLcdSetTemp((uint32_t)(fAmp * 10));
-            AppLcdDisplayUpdate(300);
-
+            lcd_float1_show(LCD_BIGNUM, (int)(fAmp * 10));
             DBG_PRINT("\tAMP: %2.2f L: %2.2f H: %2.2f %2.2f %2.2f\r\n", fAmp, fTL, fTH, fCaLBase, fCaHBase);
         }
         else
         {
-            AppLcdSetTemp((uint32_t)(fAmp * 10));
-            AppLcdDisplayUpdate(500);
-
+            lcd_float1_show(LCD_BIGNUM, (int)(fAmp * 10));
             DBG_PRINT("\tAMP-OF: %2.2f, %2.2f\r\n", fAmp, fTx);
             return FALSE;
         }

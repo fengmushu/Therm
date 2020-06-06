@@ -582,6 +582,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\midware\src\app_factory.c</FilePath>
             </File>
+            <File>
+              <FileName>app_lcd_hg03.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_lcd_hg03.c</FilePath>
+            </File>
+            <File>
+              <FileName>app_lcd_hg04.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\midware\src\app_lcd_hg04.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

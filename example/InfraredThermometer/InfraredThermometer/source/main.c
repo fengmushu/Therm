@@ -77,8 +77,11 @@
 // 串口发送重定向
 int fputc(int ch, FILE * file)
 {
-    Uart_SendDataPoll(DBG_CONSOLE,ch);
-    
+    if (in_irq())
+        Uart_SendDataIt(DBG_CONSOLE, ch);
+    else
+        Uart_SendDataPoll(DBG_CONSOLE, ch);
+
     return ch;
 }
 
@@ -92,9 +95,8 @@ void sys_init(void)
     
     ///< ADC 模块初始化
     AppMAdcInit();
-    
-    ///< LCD 模块初始化
-    AppLcdInit();
+
+    lcd_init(g_lcd_def_hw);
 
 #ifdef DEBUG
     ///< 串口初始化
