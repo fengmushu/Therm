@@ -380,6 +380,8 @@ static fsm_state_t state_config_proc(fsm_node_t *node, fsm_event_t *out)
 {
         int ret;
 
+        while(key_pressed_query(KEY_FN)); // wait for KEY_FN release
+
         switch ((ret = app_fn_proc())) {
         case APP_FN_DONE:
                 return FSM_STATE_MAIN; // fsm internal empty shift
