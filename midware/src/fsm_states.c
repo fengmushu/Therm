@@ -201,7 +201,7 @@ static fsm_state_t state_sleep_proc(fsm_node_t *node, fsm_event_t *out)
         fsm_state_t next = node->state;
 
         if (key_pressed_query(KEY_TRIGGER))
-                next = FSM_STATE_SCAN;
+                next = FSM_STATE_MAIN;
 
         return next;
 }

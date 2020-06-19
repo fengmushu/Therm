@@ -80,7 +80,7 @@
 
 #define time_after(a,b) ((long)(b)-(long)(a)<0)
 
-#define SYS_SW_VERSION      20 //VERSION 2.0
+#define SYS_SW_VERSION      33 //VERSION 2.0
 
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus

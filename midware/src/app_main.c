@@ -162,7 +162,11 @@ fsm_state_t state_main_proc(fsm_node_t *node, fsm_event_t *out)
                 }
         }
 
-        lcd_float1_show(LCD_BIGNUM, C2F_by_setting(big_number));
+        if(scan_show) {
+                lcd_float1_show(LCD_BIGNUM, C2F_by_setting(big_number));
+        } else {
+                lcd_float1_show(LCD_BIGNUM, C2F_by_setting(330));
+        }
 
 lcd_update:
         AppLedEnable(led_color);
