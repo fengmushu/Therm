@@ -224,8 +224,8 @@ en_result_t I2C_Init(M0P_I2C_TypeDef* I2Cx, stc_i2c_cfg_t *pstcI2CCfg)
    en_result_t enRet = Error;
    uint8_t     u8Tm;
 
-       M0P_RESET->PERI_RESET &= ~(uint32_t)0x10u;
-       M0P_RESET->PERI_RESET |= (uint32_t)0x10u;
+   M0P_RESET->PERI_RESET &= ~(uint32_t)0x10u;
+   M0P_RESET->PERI_RESET |= (uint32_t)0x10u;
 
    I2Cx->CR = 0;
    I2Cx->CR = pstcI2CCfg->enMode;

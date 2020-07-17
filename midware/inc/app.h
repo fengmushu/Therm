@@ -55,20 +55,40 @@
  * Include files
  ******************************************************************************/
 #include "ddl.h"
+#include "lpm.h"
+#include "bgr.h"
+#include "adc.h"
 #include "lvd.h"
 #include "pca.h"
 #include "rtc.h"
 #include "gpio.h"
 #include "uart.h"
 #include "app_adc.h"
+#include "app_lcd.h"
 #include "nna.h"
 #include "flash.h"
+#include "crc.h"
+
+#define DEBUG 1
+
+#ifdef DEBUG
+#define DBG_PRINT printf
+#define DBG_DUMP(p, l) hexdump(p, l)
+#else
+#define DBG_PRINT(x, ...) do{} while(0)
+#endif
+
+#define time_after(a,b) ((long)(b)-(long)(a)<0)
+
+#define SYS_SW_VERSION      33 //VERSION 2.0
 
 /* C binding of definitions if building with C++ compiler */
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#define UID_BASE_ADDR           0x00100E74
 
 /**
  ******************************************************************************
@@ -82,16 +102,25 @@ extern "C"
  ******************************************************************************/
 typedef enum en_led_colour
 {
-    LedRed       = 0x00u,                 ///< 红色
-    LedLightBlue = 0x40u,                 ///< 浅蓝色
+    LedRed      = 0x1u,                 ///< 红色
+    LedGreen    = 0x2u,                 ///< 绿色
+    LedOrange   = 0x3u,
 }en_led_colour_t;
+
+typedef struct {
+    uint8_t LotNumber[6];
+    uint8_t XCoordWater;
+    uint8_t YCoordWater;
+    uint8_t WaterNumber;
+    uint8_t RevID;
+} UID_t;
 
 /******************************************************************************
  * Global definitions
  ******************************************************************************/
-#define VIRL_PARA_ADDR           (stcInfTherBoardPara.u32BlackBodyTempLAddr)                                   ///< 红外低温标定数据存放地址
+#define VIRL_PARA_ADDR           (stTherBoardPara.u32BlackBodyTempLAddr)                                   ///< 红外低温标定数据存放地址
 #define VIRL_PARA_DATA           (*((volatile uint32_t*)VIRL_PARA_ADDR))    ///< 红外低温标定数据
-#define VIRH_PARA_ADDR           (stcInfTherBoardPara.u32BlackBodyTempHAddr)                                   ///< 红外高温标定数据存放地址
+#define VIRH_PARA_ADDR           (stTherBoardPara.u32BlackBodyTempHAddr)                                   ///< 红外高温标定数据存放地址
 #define VIRH_PARA_DATA           (*((volatile uint32_t*)VIRH_PARA_ADDR))    ///< 红外高温标定数据
     
 
@@ -112,14 +141,38 @@ typedef enum en_led_colour
 /******************************************************************************
  * Global function prototypes (definition in C source)                        
  ******************************************************************************/
+
+static inline int in_irq(void)
+{
+    return __get_IPSR();
+}
+
+static inline void beep_on(void)
+{
+    Gpio_SetIO(M_BEEP_PORT, M_BEEP_PIN);
+}
+
+static inline void beep_off(void)
+{
+    Gpio_ClrIO(M_BEEP_PORT, M_BEEP_PIN);
+}
+
+static inline void beep_once(uint16_t ms)
+{
+    beep_on();
+    delay1ms(ms);
+    beep_off();
+}
+
+void AppSysClkInit(void);
+
 ///< VCC电压监测功能初始化
 extern void AppVolMonitorInit(void);
 ///< 蜂鸣器滴滴
 extern void AppBeepBlink(uint32_t u32FreqIndex);
 
-///< 自动关机模块初始化
-extern void AppPowerOffModuleInit(void);
-extern en_result_t AppRtcFeed(void);
+// 电源管理
+extern void AppPmuInit(void);
 
 //@} // APP Group
 ///< LED背光灯控制
@@ -131,9 +184,12 @@ extern void AppUartInit(void);
 
 ///< 参数标定区初始化
 extern void AppParaAreaInit(void);
+
 ///< VIR黑体 校准系数标定
 extern void AppVirLParaMark(uint32_t u32VirLDataCal);
 extern void AppVirHParaMark(uint32_t u32VirHDataCal);
+extern uint16_t AppVirLParaGet(void);
+extern uint16_t AppVirHParaGet(void);
 
 #ifdef __cplusplus
 }

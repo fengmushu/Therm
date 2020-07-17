@@ -50,33 +50,49 @@
  ******************************************************************************/
 #ifndef __BOARD_STKHC32L13X_H__
 #define __BOARD_STKHC32L13X_H__
+
 ///< XTH
 #define SYSTEM_XTH          (32*1000*1000u)     ///< 32MHz
 
+///< XTL
+#define SYSTEM_XTL          (32768u)            ///< 32768Hz
+
 ///< M GPIO KEYS
-#define M_KEY_USER0_PORT       GpioPortC
-#define M_KEY_USER0_PIN        GpioPin10
-#define M_KEY_USER1_PORT       GpioPortC
-#define M_KEY_USER1_PIN        GpioPin11
-#define M_KEY_USER2_PORT       GpioPortC
-#define M_KEY_USER2_PIN        GpioPin12
-#define M_KEY_USER3_PORT       GpioPortD
-#define M_KEY_USER3_PIN        GpioPin6
-//#define M_KEY_USER3_PORT       GpioPortD
-//#define M_KEY_USER3_PIN        GpioPin4
+#define M_KEY_LEFT_PORT       GpioPortC
+#define M_KEY_LEFT_PIN        GpioPin10
+#define M_KEY_MID_PORT       GpioPortC
+#define M_KEY_MID_PIN        GpioPin11
+#define M_KEY_RIGHT_PORT       GpioPortC
+#define M_KEY_RIGHT_PIN        GpioPin12
+#define M_KEY_TRIG_PORT       GpioPortD
+#define M_KEY_TRIG_PIN        GpioPin6
+#define M_KEY_SWITCH_PORT       GpioPortD
+#define M_KEY_SWITCH_PIN        GpioPin2
 
 ///< M ADC EXREF
-#define M_ADC_EXREF_PORT  GpioPortB
-#define M_ADC_EXREF_PIN   GpioPin1
+// #define M_ADC_EXREF_PORT  GpioPortB
+// #define M_ADC_EXREF_PIN   GpioPin1
+
 ///< M ADC CHx
-#define M_ADC_AIN00_PORT  GpioPortA
-#define M_ADC_AIN00_PIN   GpioPin1
-#define M_ADC_AIN01_PORT  GpioPortA
-#define M_ADC_AIN01_PIN   GpioPin2
-#define M_ADC_AIN03_PORT  GpioPortA
-#define M_ADC_AIN03_PIN   GpioPin3
-#define M_ADC_VIR_PORT    GpioPortA
-#define M_ADC_VIR_PIN     GpioPin0
+// V-OUT
+#define M_ADC_VOUT_PORT    GpioPortA
+#define M_ADC_VOUT_PIN     GpioPin0
+// NTC+
+#define M_ADC_NTCH_PORT  GpioPortA
+#define M_ADC_NTCH_PIN   GpioPin1
+// NTC-
+#define M_ADC_NTCL_PORT  GpioPortA
+#define M_ADC_NTCL_PIN   GpioPin2
+// VIN +/- --- V2.0硬件, 已删除
+// V-Bias-REF-IN
+// #define M_ADC_VREF_PORT  GpioPortA
+// #define M_ADC_VREF_PIN   GpioPin3
+// V-Bias-ON/OFF
+#define M_ADC_VBIRS_PORT  GpioPortA
+#define M_ADC_VBIRS_PIN   GpioPin15
+// USE PB07 as ADC_VOUT_CTRL_PIN
+#define M_ADC_VBIRS_EN_PORT     GpioPortB
+#define M_ADC_VBIRS_EN_PIN      GpioPin7
 
 ///< M LCD SEG/COM
 #define M_LCD_COM0_PORT   GpioPortA
@@ -87,6 +103,7 @@
 #define M_LCD_COM2_PIN    GpioPin11
 #define M_LCD_COM3_PORT   GpioPortA
 #define M_LCD_COM3_PIN    GpioPin12
+//< M LCD SEG0-19
 #define M_LCD_SEG0_PORT   GpioPortA
 #define M_LCD_SEG0_PIN    GpioPin8 
 #define M_LCD_SEG1_PORT   GpioPortC
@@ -107,26 +124,36 @@
 #define M_LCD_SEG8_PIN    GpioPin12
 #define M_LCD_SEG9_PORT   GpioPortB
 #define M_LCD_SEG9_PIN    GpioPin11
-
-///< M DIGITAL SENSOR
-#define M_S_CS_PORT       GpioPortA
-#define M_S_CS_PIN        GpioPin4
-#define M_S_SDO_PORT      GpioPortA
-#define M_S_SDO_PIN       GpioPin6
-#define M_S_CLK_PORT      GpioPortA
-#define M_S_CLK_PIN       GpioPin5
+#define M_LCD_SEG10_PORT   GpioPortB
+#define M_LCD_SEG10_PIN    GpioPin10
+#define M_LCD_SEG11_PORT   GpioPortB
+#define M_LCD_SEG11_PIN    GpioPin2
+#define M_LCD_SEG12_PORT   GpioPortB
+#define M_LCD_SEG12_PIN    GpioPin1
+#define M_LCD_SEG13_PORT   GpioPortB
+#define M_LCD_SEG13_PIN    GpioPin0
+#define M_LCD_SEG14_PORT   GpioPortC
+#define M_LCD_SEG14_PIN    GpioPin5
+#define M_LCD_SEG15_PORT   GpioPortC
+#define M_LCD_SEG15_PIN    GpioPin4
+#define M_LCD_SEG16_PORT   GpioPortA
+#define M_LCD_SEG16_PIN    GpioPin7
+#define M_LCD_SEG17_PORT   GpioPortA
+#define M_LCD_SEG17_PIN    GpioPin6
+#define M_LCD_SEG18_PORT   GpioPortA
+#define M_LCD_SEG18_PIN    GpioPin5
+#define M_LCD_SEG19_PORT   GpioPortA
+#define M_LCD_SEG19_PIN    GpioPin4
 
 //< M BEEP
 #define M_BEEP_PORT       GpioPortD
 #define M_BEEP_PIN        GpioPin7
 
 ///< M LED
-#define M_LED1_PORT       GpioPortC
-#define M_LED1_PIN        GpioPin14
-#define M_LED2_PORT       GpioPortC
-#define M_LED2_PIN        GpioPin13
-#define M_LED3_PORT       GpioPortC
-#define M_LED3_PIN        GpioPin15
+#define M_LED_RED_PORT       GpioPortC
+#define M_LED_RED_PIN        GpioPin14
+#define M_LED_GREEN_PORT       GpioPortC
+#define M_LED_GREEN_PIN        GpioPin13
 
 ///< M I2C EEPROM
 #define M_E2_I2C0_SCL_PORT       GpioPortB
@@ -134,77 +161,10 @@
 #define M_E2_I2C0_SDA_PORT       GpioPortB
 #define M_E2_I2C0_SDA_PIN        GpioPin9
 
-
-
-
-
-
-
-
-///< STK BOARD
-
-///< STK GPIO DEFINE
-///< USER KEY
-#define STK_USER_PORT       GpioPortD
-#define STK_USER_PIN        GpioPin4
-
-
-///< LED
-#define STK_LED_PORT        GpioPortD
-#define STK_LED_PIN         GpioPin5
-
-#define STK_XTHI_PORT       GpioPortD
-#define STK_XTHI_PIN        GpioPin0
-#define STK_XTHO_PORT       GpioPortD
-#define STK_XTHO_PIN        GpioPin1
-
-///< XTL
-#define SYSTEM_XTL          (32768u)            ///< 32768Hz
-#define STK_XTLI_PORT       GpioPortC
-#define STK_XTLI_PIN        GpioPin14
-#define STK_XTLO_PORT       GpioPortC
-#define STK_XTLO_PIN        GpioPin15
-
-///< LCD
-#define STK_LCD_COM0_PORT   GpioPortA
-#define STK_LCD_COM0_PIN    GpioPin9
-#define STK_LCD_COM1_PORT   GpioPortA
-#define STK_LCD_COM1_PIN    GpioPin10
-#define STK_LCD_COM2_PORT   GpioPortA
-#define STK_LCD_COM2_PIN    GpioPin11
-#define STK_LCD_COM3_PORT   GpioPortA
-#define STK_LCD_COM3_PIN    GpioPin12
-#define STK_LCD_SEG0_PORT   GpioPortA
-#define STK_LCD_SEG0_PIN    GpioPin8
-#define STK_LCD_SEG1_PORT   GpioPortC
-#define STK_LCD_SEG1_PIN    GpioPin9
-#define STK_LCD_SEG2_PORT   GpioPortC
-#define STK_LCD_SEG2_PIN    GpioPin8
-#define STK_LCD_SEG3_PORT   GpioPortC
-#define STK_LCD_SEG3_PIN    GpioPin7
-#define STK_LCD_SEG4_PORT   GpioPortC
-#define STK_LCD_SEG4_PIN    GpioPin6
-#define STK_LCD_SEG5_PORT   GpioPortB
-#define STK_LCD_SEG5_PIN    GpioPin15
-#define STK_LCD_SEG6_PORT   GpioPortB
-#define STK_LCD_SEG6_PIN    GpioPin14
-#define STK_LCD_SEG7_PORT   GpioPortB
-#define STK_LCD_SEG7_PIN    GpioPin13
-
-///< I2C EEPROM
-#define EVB_I2C0_EEPROM_SCL_PORT    GpioPortB
-#define EVB_I2C0_EEPROM_SCL_PIN     GpioPin6
-#define EVB_I2C0_EEPROM_SDA_PORT    GpioPortB
-#define EVB_I2C0_EEPROM_SDA_PIN     GpioPin7
-
-///< SPI0
-#define EVB_SPI0_FLASH_CS_PORT      GpioPortE
-#define EVB_SPI0_FLASH_CS_PIN       GpioPin12
-#define EVB_SPI0_FLASH_SCK_PORT     GpioPortE
-#define EVB_SPI0_FLASH_SCK_PIN      GpioPin13
-#define EVB_SPI0_FLASH_MISO_PORT    GpioPortE
-#define EVB_SPI0_FLASH_MISO_PIN     GpioPin14
-#define EVB_SPI0_FLASH_MOSI_PORT    GpioPortE
-#define EVB_SPI0_FLASH_MOSI_PIN     GpioPin15
+// DBG_CONSOLE
+#define DBG_CONSOLE         M0P_UART1
+#define DBG_CONSOLE_GPIO    GpioPortD
+#define DBG_CONSOLE_TX      GpioPin0
+#define DBG_CONSOLE_RX      GpioPin1
 
 #endif

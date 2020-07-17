@@ -53,6 +53,7 @@
  ******************************************************************************/
 #include "adc.h"
 #include "app_adc.h"
+#include "app.h"
 #include "bgr.h"
 /**
  ******************************************************************************
@@ -83,6 +84,18 @@
 /*****************************************************************************
  * Function implementation - global ('extern') and local ('static')
  *****************************************************************************/
+void AppMAdcPowerOn(void)
+{
+    // Gpio_SetIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN); 
+    Gpio_SetIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
+}
+
+void AppMAdcPowerOff(void)
+{
+    // Gpio_ClrIO(M_ADC_VBIRS_PORT, M_ADC_VBIRS_PIN);
+    Gpio_ClrIO(M_ADC_VBIRS_EN_PORT, M_ADC_VBIRS_EN_PIN);
+}
+
 ///< ADC 顺序扫描(多次采样) 功能配置
 void _AppAdcSQRCfg(en_adc_samp_ch_sel_t enAdcSampCh)
 {
@@ -133,95 +146,55 @@ void AppMAdcInit(void)
     stcAdcCfg.enAdcMode         = AdcScanMode;                  ///<采样模式-扫描
     stcAdcCfg.enAdcClkDiv       = AdcMskClkDiv8;                ///<采样分频-1
     stcAdcCfg.enAdcSampCycleSel = AdcMskSampCycle12Clk;         ///<采样周期数-8
-    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelExtern1;       ///<参考电压选择-VCC
+    stcAdcCfg.enAdcRefVolSel    = AdcMskRefVolSelInBgr2p5;      ///<参考电压选择-AVDD
     stcAdcCfg.enAdcOpBuf        = AdcMskBufDisable;             ///<OP BUF配置-关
-    stcAdcCfg.enInRef           = AdcMskInRefDisable;           ///<内部参考电压使能-关
+    stcAdcCfg.enInRef           = AdcMskInRefEnable;            ///<内部参考电压使能-关
     stcAdcCfg.enAdcAlign        = AdcAlignRight;                ///<转换结果对齐方式-右
     Adc_Init(&stcAdcCfg);
+}
+
+///< ADC通道数据读取
+void AppAdcChAvgCodeGet(en_adc_samp_ch_sel_t ch, uint32_t *pu32AdcRestultAcc)
+{
+    _AppAdcSQRCfg(ch);
+    Adc_ClrIrqStatus(AdcMskIrqSqr);
     
+    Adc_SQR_Start();
+    
+    while(FALSE == Adc_GetIrqStatus(AdcMskIrqSqr)){;}
+       
+    *pu32AdcRestultAcc = Adc_GetAccResult();
+    *pu32AdcRestultAcc = (*pu32AdcRestultAcc + 0x8u)>>4;
+    
+    Adc_SQR_Stop();
+
+    Adc_ClrAccResult();
+    Adc_ClrIrqStatus(AdcMskIrqSqr);
 }
 
 ///< 环境温度采样值L获取(采样16次取平均)
 void AppAdcNtcLAvgCodeGet(uint32_t *pu32AdcRestultAcc)
 {    
-    _AppAdcSQRCfg(AdcExInputCH1);
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    
-    Adc_SQR_Start();
-    
-    while(FALSE == Adc_GetIrqStatus(AdcMskIrqSqr)){;}
-       
-    *pu32AdcRestultAcc = Adc_GetAccResult();
-    *pu32AdcRestultAcc = (*pu32AdcRestultAcc + 0x8u)>>4;
-    
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    Adc_ClrAccResult();
-    
-    Adc_SQR_Stop();
-
+    AppAdcChAvgCodeGet(AdcExInputCH1, pu32AdcRestultAcc);
 }
 
 ///< 环境温度采样值L获取(采样16次取平均)
 void AppAdcNtcHAvgCodeGet(uint32_t *pu32AdcRestultAcc)
 {    
-    _AppAdcSQRCfg(AdcExInputCH2);
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    
-    Adc_SQR_Start();
-    
-    while(FALSE == Adc_GetIrqStatus(AdcMskIrqSqr)){;}
-       
-    *pu32AdcRestultAcc = Adc_GetAccResult();
-    *pu32AdcRestultAcc = (*pu32AdcRestultAcc + 0x8u)>>4;
-    
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    Adc_ClrAccResult();
-    
-    Adc_SQR_Stop();
-
+    AppAdcChAvgCodeGet(AdcExInputCH2, pu32AdcRestultAcc);
 }
 
 ///< 红外温度采样值获取(采样16次取平均)
 void AppAdcVirAvgCodeGet(uint32_t *pu32AdcRestultAcc)
 {    
-    _AppAdcSQRCfg(AdcExInputCH0);
-    
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    Adc_SQR_Start();
-
-    while(FALSE == Adc_GetIrqStatus(AdcMskIrqSqr)){;}
-        
-    *pu32AdcRestultAcc = Adc_GetAccResult();
-        
-    *pu32AdcRestultAcc = (*pu32AdcRestultAcc + 0x8u)>>4u;    
-        
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    Adc_ClrAccResult();
-    
-    Adc_SQR_Stop();
-
+    AppAdcChAvgCodeGet(AdcExInputCH0, pu32AdcRestultAcc);
 }
 
 ///< VBias采样值获取(采样16次取平均)
-void AppAdcVBiasAvgCodeGet(uint32_t *pu32AdcRestultAcc)
-{    
-    _AppAdcSQRCfg(AdcExInputCH3);
-    
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    Adc_SQR_Start();
-
-    while(FALSE == Adc_GetIrqStatus(AdcMskIrqSqr)){;}
-        
-    *pu32AdcRestultAcc = Adc_GetAccResult();
-        
-    *pu32AdcRestultAcc = (*pu32AdcRestultAcc + 0x8u)>>4u;    
-        
-    Adc_ClrIrqStatus(AdcMskIrqSqr);
-    Adc_ClrAccResult();
-    
-    Adc_SQR_Stop();
-
-}
+// void AppAdcVBiasAvgCodeGet(uint32_t *pu32AdcRestultAcc)
+// {    
+//         AppAdcChAvgCodeGet(AdcExInputCH11, pu32AdcRestultAcc);
+// }
 
 //@} // AdcGroup
 
